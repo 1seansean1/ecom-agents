@@ -78,7 +78,7 @@ def check_chromadb() -> bool:
     breaker = get_breaker("chromadb")
     try:
         url = os.environ.get("CHROMA_URL", "http://localhost:8100")
-        resp = httpx.get(f"{url}/api/v1/heartbeat", timeout=5.0)
+        resp = httpx.get(f"{url}/api/v2/heartbeat", timeout=5.0)
         ok = resp.status_code == 200
         if ok:
             breaker.record_success()
