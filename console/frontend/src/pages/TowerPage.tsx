@@ -5,13 +5,10 @@ import type { TowerRun, TowerTicket, TowerEvent } from '@/types/tower';
 import {
   Inbox,
   Play,
-  Pause,
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Clock,
   RefreshCw,
-  ChevronRight,
   ShieldAlert,
   Loader2,
 } from 'lucide-react';

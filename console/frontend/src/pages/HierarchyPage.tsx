@@ -287,11 +287,11 @@ function FeasibilityCard({ feasibility }: { feasibility: Feasibility }) {
           </div>
         ))}
       </div>
-      {feasibility.details?.rank && (
+      {feasibility.details?.rank ? (
         <div className="mt-2 text-xs text-[var(--color-text-muted)] font-mono">
-          {'\u03A3'}r = {(feasibility.details.rank as Record<string, number>).total} | cod(G) = {(feasibility.details.rank as Record<string, number>).cod_g} | margin = {(feasibility.details.rank as Record<string, number>).margin}
+          {'\u03A3'}r = {String((feasibility.details.rank as Record<string, number>).total)} | cod(G) = {String((feasibility.details.rank as Record<string, number>).cod_g)} | margin = {String((feasibility.details.rank as Record<string, number>).margin)}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
