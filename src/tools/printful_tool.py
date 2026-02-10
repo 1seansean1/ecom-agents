@@ -13,11 +13,14 @@ import httpx
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
+from src.tools.retry import retry_with_backoff
+
 logger = logging.getLogger(__name__)
 
 PRINTFUL_BASE = "https://api.printful.com"
 
 
+@retry_with_backoff(max_retries=3, base_delay=1.0, max_delay=30.0)
 def _printful_request(method: str, path: str, json_body: dict | None = None) -> dict:
     """Make an authenticated Printful API request."""
     api_key = os.environ.get("PRINTFUL_API_KEY", "")

@@ -1,7 +1,7 @@
 [project]
-name = "forge-console-backend"
-version = "0.1.0"
-description = "Forge Console — Agent orchestration dashboard backend"
+name = "holly-grace-backend"
+version = "1.0.0"
+description = "Holly Grace — Agent orchestration dashboard backend"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
@@ -12,10 +12,14 @@ dependencies = [
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "python-dotenv>=1.0.0",
+    "python-jose[cryptography]>=3.3.0",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [build-system]
 requires = ["hatchling"]

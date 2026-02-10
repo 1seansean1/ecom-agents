@@ -15,7 +15,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
           <div className="w-2 h-2 rounded-full bg-[var(--color-success)] animate-pulse" />
-          Forge Scope
+          Holly Grace
         </div>
       </div>
     </header>

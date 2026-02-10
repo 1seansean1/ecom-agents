@@ -28,6 +28,8 @@ def test_graph_has_all_nodes(router):
     assert "revenue_analytics" in node_names
     assert "error_handler" in node_names
     assert "sub_agents" in node_names
+    assert "input_guardrail" in node_names
+    assert "output_guardrail" in node_names
 
 
 def test_route_from_orchestrator_sales():
@@ -61,9 +63,9 @@ def test_route_from_orchestrator_unknown():
 
 
 def test_route_from_sales_simple():
-    """Sales should end for simple tasks (no sub-agents)."""
+    """Sales should route to output guardrail for simple tasks (no sub-agents)."""
     state = {"should_spawn_sub_agents": False}
-    assert _route_from_sales(state) == "__end__"
+    assert _route_from_sales(state) == "output_guardrail"
 
 
 def test_route_from_sales_complex():

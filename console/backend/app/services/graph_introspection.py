@@ -1,10 +1,10 @@
-"""Graph introspection: returns the ecom-agents graph topology for React Flow."""
+"""Graph introspection: returns the Holly Grace agents graph topology for React Flow."""
 
 from __future__ import annotations
 
 from app.models.graph import EdgeDefinition, GraphDefinition, NodeDefinition
 
-# Hardcoded graph structure matching ecom-agents src/graph.py
+# Hardcoded graph structure matching Holly Grace agents src/graph.py
 # This will be replaced with dynamic introspection via /graph/definition in Phase 2
 
 MASTER_GRAPH = GraphDefinition(

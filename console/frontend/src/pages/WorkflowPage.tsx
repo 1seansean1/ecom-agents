@@ -5,7 +5,7 @@ import ExecutionPanel from '@/components/canvas/ExecutionPanel';
 import { useExecutionStream } from '@/hooks/useExecutionStream';
 import { useCanvasMetadata } from '@/hooks/useCanvasMetadata';
 import { fetchJson } from '@/lib/api';
-import type { GraphDefinition } from '@/types/graph';
+import type { GraphDefinition, NodeDefinition, EdgeDefinition } from '@/types/graph';
 import type { Workflow } from '@/types/workflows';
 
 interface WorkflowListResponse {
@@ -13,34 +13,120 @@ interface WorkflowListResponse {
   count: number;
 }
 
+interface AgentConfig {
+  agent_id: string;
+  model_id: string;
+  channel_id: string;
+}
+
+/** Convert a Workflow definition into a GraphDefinition for the canvas. */
+function workflowToGraphDef(
+  workflow: Workflow,
+  agentMap: Record<string, AgentConfig>,
+): GraphDefinition {
+  const nodes: NodeDefinition[] = [];
+  const edges: EdgeDefinition[] = [];
+  let hasEndTarget = false;
+
+  for (const node of workflow.definition.nodes) {
+    const agent = agentMap[node.agent_id];
+    const modelId = agent?.model_id ?? '';
+    let modelProvider = '';
+    if (modelId.includes('gpt') || modelId.includes('o1')) modelProvider = 'openai';
+    else if (
+      modelId.includes('claude') ||
+      modelId.includes('opus') ||
+      modelId.includes('sonnet') ||
+      modelId.includes('haiku')
+    )
+      modelProvider = 'anthropic';
+    else if (modelId) modelProvider = 'ollama';
+
+    nodes.push({
+      id: node.node_id,
+      label: node.agent_id
+        .replace(/^af_/, '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
+      node_type: node.is_entry_point
+        ? 'orchestrator'
+        : node.is_error_handler
+          ? 'error_handler'
+          : 'agent',
+      model_id: modelId || undefined,
+      model_provider: modelProvider || undefined,
+      position: node.position,
+    });
+  }
+
+  for (const edge of workflow.definition.edges) {
+    if (edge.target_node_id === '__end__') hasEndTarget = true;
+    edges.push({
+      id: edge.edge_id,
+      source: edge.source_node_id,
+      target: edge.target_node_id,
+      conditional: edge.edge_type === 'conditional',
+      label: edge.label || undefined,
+    });
+  }
+
+  if (hasEndTarget) {
+    nodes.push({ id: '__end__', label: 'END', node_type: 'terminal' });
+  }
+
+  return { nodes, edges, subgraphs: {} };
+}
+
 export default function WorkflowPage() {
   const [graphDef, setGraphDef] = useState<GraphDefinition | null>(null);
+  const [defaultGraphDef, setDefaultGraphDef] = useState<GraphDefinition | null>(null);
   const [showSub, setShowSub] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
+  const [agentMap, setAgentMap] = useState<Record<string, AgentConfig>>({});
   const { activeNodes, events, connected, clearEvents } = useExecutionStream();
   const metadata = useCanvasMetadata();
 
-  // Load workflows list
+  // Load workflows list + agents + default graph on mount
   useEffect(() => {
     fetchJson<WorkflowListResponse>('/api/workflows')
       .then((res) => {
-        setWorkflows(res.workflows);
-        const active = res.workflows.find((w) => w.is_active);
+        const wfs = res?.workflows ?? [];
+        setWorkflows(wfs);
+        const active = wfs.find((w) => w.is_active);
         if (active) setSelectedWorkflowId(active.workflow_id);
+      })
+      .catch(() => {});
+
+    fetchJson<GraphDefinition>('/api/graph/definition')
+      .then((g) => {
+        setDefaultGraphDef(g);
+        setGraphDef(g);
+      })
+      .catch(() => console.warn('Backend unreachable, using empty graph'));
+
+    fetchJson<{ agents: AgentConfig[] }>('/api/agents')
+      .then((res) => {
+        const map: Record<string, AgentConfig> = {};
+        for (const a of res?.agents ?? []) map[a.agent_id] = a;
+        setAgentMap(map);
       })
       .catch(() => {});
   }, []);
 
-  // Load graph definition
+  // Update graph when selected workflow changes
   useEffect(() => {
-    fetchJson<GraphDefinition>('/api/graph/definition')
-      .then(setGraphDef)
-      .catch(() => {
-        console.warn('Backend unreachable, using empty graph');
-      });
-  }, []);
+    if (!selectedWorkflowId) return;
+    const wf = workflows.find((w) => w.workflow_id === selectedWorkflowId);
+    if (!wf) return;
+
+    if (wf.workflow_id === 'default') {
+      setGraphDef(defaultGraphDef);
+    } else {
+      setGraphDef(workflowToGraphDef(wf, agentMap));
+    }
+  }, [selectedWorkflowId, workflows, defaultGraphDef, agentMap]);
 
   const selectedWorkflow = workflows.find((w) => w.workflow_id === selectedWorkflowId);
 

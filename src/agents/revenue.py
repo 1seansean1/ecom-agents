@@ -11,6 +11,8 @@ import logging
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
+from src.agent_registry import AgentConfigRegistry
+from src.agents.constitution import build_system_prompt
 from src.llm.config import ModelID
 from src.llm.fallback import get_model_with_fallbacks
 from src.llm.router import LLMRouter
@@ -39,13 +41,15 @@ Always provide data-driven analysis. Respond in JSON:
 """
 
 
-def build_revenue_node(router: LLMRouter):
+def build_revenue_node(router: LLMRouter, registry: AgentConfigRegistry):
     """Build the revenue/analytics graph node function."""
-    model = get_model_with_fallbacks(router, ModelID.CLAUDE_OPUS)
 
     def revenue_node(state: AgentState) -> dict:
         """Handle revenue analysis and pricing tasks."""
         logger.info("Revenue agent handling task_type=%s", state.get("task_type"))
+
+        config = registry.get("revenue")
+        model = get_model_with_fallbacks(router, ModelID(config.model_id))
 
         task_description = ""
         if state.get("trigger_payload"):
@@ -63,7 +67,7 @@ def build_revenue_node(router: LLMRouter):
         )
 
         response = model.invoke([
-            SystemMessage(content=REVENUE_SYSTEM_PROMPT),
+            SystemMessage(content=build_system_prompt("revenue", config.system_prompt)),
             HumanMessage(
                 content=f"Analyze: {task_description}{context_addendum}"
             ),

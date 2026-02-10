@@ -1,6 +1,7 @@
 """Stripe tool: payment processing, product creation, revenue queries.
 
 Uses stripe-agent-toolkit for LangChain-native tools plus custom revenue queries.
+Idempotency keys prevent duplicate product/price creation on retries.
 """
 
 from __future__ import annotations
@@ -12,6 +13,8 @@ from typing import Any
 import stripe
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
+
+from src.tools.idempotency import get_idempotency_store
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +34,22 @@ class CreateProductInput(BaseModel):
 @tool(args_schema=CreateProductInput)
 def stripe_create_product(name: str, description: str = "", price_cents: int = 0) -> dict:
     """Create a product and price in Stripe."""
+    store = get_idempotency_store()
+    params = {"name": name, "description": description, "price_cents": price_cents}
+    idem_key = store.generate_key("stripe_create_product", params)
+
+    cached = store.check_and_set(idem_key)
+    if cached:
+        logger.info("Returning cached Stripe product for key=%s", idem_key)
+        return {**cached.result, "_idempotent": True}
+
     client = _get_stripe_client()
 
-    product = client.products.create(params={"name": name, "description": description})
+    # Use Stripe's native idempotency key for the product create
+    product = client.products.create(
+        params={"name": name, "description": description},
+        options={"idempotency_key": f"prod_{idem_key}"},
+    )
 
     price = None
     if price_cents > 0:
@@ -42,15 +58,18 @@ def stripe_create_product(name: str, description: str = "", price_cents: int = 0
                 "product": product.id,
                 "unit_amount": price_cents,
                 "currency": "usd",
-            }
+            },
+            options={"idempotency_key": f"price_{idem_key}"},
         )
 
-    return {
+    result = {
         "product_id": product.id,
         "product_name": product.name,
         "price_id": price.id if price else None,
         "price_cents": price_cents,
     }
+    store.store(idem_key, result, ttl=3600)
+    return result
 
 
 class CreatePaymentLinkInput(BaseModel):
@@ -61,13 +80,25 @@ class CreatePaymentLinkInput(BaseModel):
 @tool(args_schema=CreatePaymentLinkInput)
 def stripe_create_payment_link(price_id: str, quantity: int = 1) -> dict:
     """Create a Stripe payment link for a price."""
+    store = get_idempotency_store()
+    params = {"price_id": price_id, "quantity": quantity}
+    idem_key = store.generate_key("stripe_create_payment_link", params)
+
+    cached = store.check_and_set(idem_key)
+    if cached:
+        logger.info("Returning cached Stripe payment link for key=%s", idem_key)
+        return {**cached.result, "_idempotent": True}
+
     client = _get_stripe_client()
 
     link = client.payment_links.create(
-        params={"line_items": [{"price": price_id, "quantity": quantity}]}
+        params={"line_items": [{"price": price_id, "quantity": quantity}]},
+        options={"idempotency_key": f"plink_{idem_key}"},
     )
 
-    return {"payment_link_id": link.id, "url": link.url}
+    result = {"payment_link_id": link.id, "url": link.url}
+    store.store(idem_key, result, ttl=3600)
+    return result
 
 
 class RevenueQueryInput(BaseModel):

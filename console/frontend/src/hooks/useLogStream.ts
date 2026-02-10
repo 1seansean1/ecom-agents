@@ -25,7 +25,7 @@ export function useLogStream() {
 
     const unsub = ws.subscribe(
       (raw) => {
-        const event = raw as LogEntry;
+        const event = raw as unknown as LogEntry;
         if (event.type === 'log') {
           setLogs((prev) => {
             const next = [...prev, event];

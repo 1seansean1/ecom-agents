@@ -25,7 +25,7 @@ export interface HealthCheck {
   status: string;
   service: string;
   checks: Record<string, boolean>;
-  forge_console?: string;
+  holly_console?: string;
   error?: string;
 }
 

@@ -12,8 +12,8 @@ resource "aws_lb" "main" {
   tags = { Name = "${var.project_name}-alb" }
 }
 
-# Target group for forge-console backend
-resource "aws_lb_target_group" "forge_backend" {
+# Target group for holly-grace backend
+resource "aws_lb_target_group" "holly_backend" {
   name        = "${var.project_name}-backend-tg"
   port        = 8060
   protocol    = "HTTP"
@@ -21,7 +21,7 @@ resource "aws_lb_target_group" "forge_backend" {
   target_type = "ip"
 
   health_check {
-    path                = "/api/health"
+    path                = "/"
     healthy_threshold   = 2
     unhealthy_threshold = 3
     timeout             = 10
@@ -53,14 +53,14 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# Forward /api/* and /ws/* to forge-backend
+# Forward /api/* and /ws/* to holly-backend
 resource "aws_lb_listener_rule" "api" {
   listener_arn = aws_lb_listener.http.arn
   priority     = 100
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.forge_backend.arn
+    target_group_arn = aws_lb_target_group.holly_backend.arn
   }
 
   condition {

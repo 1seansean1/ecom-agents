@@ -1,15 +1,15 @@
-"""Morphogenetic system API routes — proxies to ecom-agents /morphogenetic endpoints."""
+"""Morphogenetic system API routes — proxies to Holly Grace agents /morphogenetic endpoints."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from app.services.ecom_client import get_client
+from app.services.holly_client import get_client
 
 router = APIRouter(prefix="/api/morphogenetic", tags=["morphogenetic"])
 
-_503 = {"error": "Cannot reach ecom-agents server"}
+_503 = {"error": "Cannot reach Holly Grace agents server"}
 
 
 @router.get("/snapshot")

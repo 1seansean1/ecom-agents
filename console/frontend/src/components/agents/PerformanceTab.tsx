@@ -38,7 +38,7 @@ function formatTime(ts: string): string {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:00`;
 }
 
-export default function PerformanceTab({ agentId, currentVersion }: Props) {
+export default function PerformanceTab({ agentId, currentVersion: _currentVersion }: Props) {
   const [data, setData] = useState<EfficacyRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -158,7 +158,7 @@ export default function PerformanceTab({ agentId, currentVersion }: Props) {
             <Tooltip
               contentStyle={{ background: '#111', border: '1px solid #333', fontSize: 11 }}
               labelStyle={{ color: '#888' }}
-              formatter={(value: number) => [`$${value.toFixed(6)}`, 'Cost']}
+              formatter={(value: number | undefined) => [`$${(value ?? 0).toFixed(6)}`, 'Cost']}
             />
             {versionChanges.map((t, i) => (
               <ReferenceLine key={i} x={t} stroke="#666" strokeDasharray="4 4" label={{ value: 'v', fill: '#666', fontSize: 9 }} />

@@ -1,6 +1,6 @@
 # --- ECR Repositories ---
 
-resource "aws_ecr_repository" "forge_backend" {
+resource "aws_ecr_repository" "holly_backend" {
   name                 = "${var.project_name}/backend"
   image_tag_mutability = "MUTABLE"
   force_delete         = true
@@ -10,8 +10,8 @@ resource "aws_ecr_repository" "forge_backend" {
   }
 }
 
-resource "aws_ecr_repository" "ecom_agents" {
-  name                 = "${var.project_name}/ecom-agents"
+resource "aws_ecr_repository" "holly_agents" {
+  name                 = "${var.project_name}/holly-grace"
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
@@ -21,8 +21,8 @@ resource "aws_ecr_repository" "ecom_agents" {
 }
 
 # Lifecycle policy — keep last 5 images
-resource "aws_ecr_lifecycle_policy" "forge_backend" {
-  repository = aws_ecr_repository.forge_backend.name
+resource "aws_ecr_lifecycle_policy" "holly_backend" {
+  repository = aws_ecr_repository.holly_backend.name
   policy = jsonencode({
     rules = [{
       rulePriority = 1
@@ -37,8 +37,8 @@ resource "aws_ecr_lifecycle_policy" "forge_backend" {
   })
 }
 
-resource "aws_ecr_lifecycle_policy" "ecom_agents" {
-  repository = aws_ecr_repository.ecom_agents.name
+resource "aws_ecr_lifecycle_policy" "holly_agents" {
+  repository = aws_ecr_repository.holly_agents.name
   policy = jsonencode({
     rules = [{
       rulePriority = 1

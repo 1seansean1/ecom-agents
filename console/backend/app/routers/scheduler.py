@@ -1,25 +1,25 @@
-"""Scheduler API routes — proxies to ecom-agents."""
+"""Scheduler API routes — proxies to Holly Grace agents."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from app.services.ecom_client import get_client
+from app.services.holly_client import get_client
 
 router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 
 
 @router.get("/jobs")
 async def list_jobs():
-    """List all scheduled jobs from ecom-agents."""
+    """List all scheduled jobs from Holly Grace agents."""
     client = get_client()
     try:
         resp = await client.get("/scheduler/jobs")
         return resp.json()
     except Exception:
         return JSONResponse(
-            {"jobs": [], "count": 0, "error": "Cannot reach ecom-agents server"},
+            {"jobs": [], "count": 0, "error": "Cannot reach Holly Grace agents server"},
             status_code=503,
         )
 
@@ -33,6 +33,6 @@ async def trigger_job(job_id: str):
         return resp.json()
     except Exception:
         return JSONResponse(
-            {"error": "Cannot reach ecom-agents server"},
+            {"error": "Cannot reach Holly Grace agents server"},
             status_code=503,
         )

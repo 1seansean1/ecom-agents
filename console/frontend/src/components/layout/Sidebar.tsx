@@ -12,6 +12,7 @@ import {
   FlaskConical,
   Dna,
   Archive,
+  MessageSquare,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -27,12 +28,13 @@ const NAV_ITEMS = [
   { to: '/tools', icon: Wrench, label: 'Tools' },
   { to: '/health', icon: HeartPulse, label: 'Health' },
   { to: '/system', icon: Archive, label: 'System' },
+  { to: '/chat', icon: MessageSquare, label: 'Chat' },
 ];
 
 export default function Sidebar() {
   return (
     <aside role="navigation" aria-label="Main navigation" className="w-16 h-full bg-[var(--color-bg-card)] border-r border-[var(--color-border)] flex flex-col items-center py-4 gap-1 shrink-0 overflow-y-auto">
-      <div className="text-[var(--color-accent)] font-bold text-xs mb-4 tracking-widest">FS</div>
+      <div className="text-[var(--color-accent)] font-bold text-xs mb-4 tracking-widest">HG</div>
       {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
         <NavLink
           key={to}

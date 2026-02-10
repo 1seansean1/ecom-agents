@@ -102,14 +102,14 @@ export default function HealthPage() {
                 </div>
               ))}
 
-            {health?.forge_console && (
+            {health?.holly_console && (
               <div className="p-4 rounded-xl bg-[var(--color-bg-card)] border border-[var(--color-border)] flex items-center gap-3">
                 <span className="text-xl">🖥</span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium">Forge Console</div>
-                  <div className="text-xs text-[var(--color-text-muted)]">{health.forge_console}</div>
+                  <div className="text-sm font-medium">Holly Grace</div>
+                  <div className="text-xs text-[var(--color-text-muted)]">{health.holly_console}</div>
                 </div>
-                <StatusDot healthy={health.forge_console === 'connected'} />
+                <StatusDot healthy={health.holly_console === 'connected'} />
               </div>
             )}
           </div>

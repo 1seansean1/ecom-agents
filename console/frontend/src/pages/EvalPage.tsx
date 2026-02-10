@@ -32,7 +32,8 @@ export default function EvalPage() {
 
   const fetchHistory = useCallback(async () => {
     try {
-      const resp = await fetch('/api/eval/results');
+      const resp = await fetch('/api/eval/results', { credentials: 'include' });
+      if (!resp.ok) { setHistory([]); return; }
       const data = await resp.json();
       setHistory(data.history || []);
     } catch {
@@ -47,7 +48,8 @@ export default function EvalPage() {
   const fetchResults = async (suiteId: string) => {
     setSelectedSuite(suiteId);
     try {
-      const resp = await fetch(`/api/eval/results/${suiteId}`);
+      const resp = await fetch(`/api/eval/results/${suiteId}`, { credentials: 'include' });
+      if (!resp.ok) { setResults([]); return; }
       const data = await resp.json();
       setResults(data.results || []);
     } catch {
@@ -58,7 +60,7 @@ export default function EvalPage() {
   const runSuite = async () => {
     setRunning(true);
     try {
-      const resp = await fetch('/api/eval/run', { method: 'POST' });
+      const resp = await fetch('/api/eval/run', { method: 'POST', credentials: 'include' });
       const data = await resp.json();
       if (data.suite_id) {
         await fetchHistory();

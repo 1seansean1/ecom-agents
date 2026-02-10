@@ -1,15 +1,15 @@
-"""Agent config API routes — proxies CRUD to ecom-agents."""
+"""Agent config API routes — proxies CRUD to Holly Grace agents."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from app.services.ecom_client import get_client
+from app.services.holly_client import get_client
 
 router = APIRouter(prefix="/api/agents", tags=["agents"])
 
-_503 = {"error": "Cannot reach ecom-agents server"}
+_503 = {"error": "Cannot reach Holly Grace agents server"}
 
 
 @router.get("")

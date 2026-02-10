@@ -1,7 +1,7 @@
 [project]
-name = "ecom-agents"
-version = "0.1.0"
-description = "Autonomous print-on-demand e-commerce agent system"
+name = "holly-grace"
+version = "1.0.0"
+description = "Holly Grace — autonomous e-commerce agent orchestration platform"
 requires-python = ">=3.11"
 dependencies = [
     # LangChain ecosystem
@@ -34,6 +34,11 @@ dependencies = [
     "uvicorn[standard]>=0.27.0,<1.0.0",
     "python-dotenv>=1.0.0,<2.0.0",
     "sse-starlette>=1.6.0,<3.0.0",
+    # APS (Adaptive Partition Selection)
+    "numpy>=1.24.0,<3.0.0",
+    # Security
+    "python-jose[cryptography]>=3.3.0,<4.0.0",
+    "slowapi>=0.1.9,<1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +48,8 @@ dev = [
     "pytest-cov>=4.1.0,<6.0.0",
     "ruff>=0.4.0,<1.0.0",
     "mypy>=1.7.0,<2.0.0",
+    "hypothesis>=6.100.0,<7.0.0",
+    "freezegun>=1.2.0,<2.0.0",
 ]
 
 [tool.ruff]

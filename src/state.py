@@ -29,6 +29,20 @@ class AgentState(TypedDict):
     sales_result: NotRequired[dict[str, Any]]
     operations_result: NotRequired[dict[str, Any]]
     revenue_result: NotRequired[dict[str, Any]]
+    sage_result: NotRequired[dict[str, Any]]
     sub_agent_results: NotRequired[dict[str, Any]]
+    agent_results: NotRequired[dict[str, Any]]
     error: NotRequired[str]
     retry_count: NotRequired[int]
+    # Execution limits
+    _budget_tracker: NotRequired[dict[str, Any]]
+    _budget_exhausted: NotRequired[bool]
+    _budget_report: NotRequired[dict[str, Any]]
+    # Guardrails
+    _input_validation: NotRequired[dict[str, Any]]
+    _guardrail_blocked: NotRequired[bool]
+    # Approval gate
+    _pending_approval: NotRequired[dict[str, Any]]
+    # Checkpointing
+    _thread_id: NotRequired[str]
+    _checkpoint_id: NotRequired[str]

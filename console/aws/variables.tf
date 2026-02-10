@@ -1,13 +1,13 @@
 variable "aws_region" {
   description = "AWS region for all resources"
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
 }
 
 variable "project_name" {
   description = "Project name used for resource naming"
   type        = string
-  default     = "forge-console"
+  default     = "holly-grace"
 }
 
 variable "environment" {
@@ -28,16 +28,16 @@ variable "domain_name" {
   default     = ""
 }
 
-# --- ecom-agents configuration ---
+# --- Holly Grace agent system configuration ---
 
-variable "ecom_agents_image" {
-  description = "ECR image URI for ecom-agents (set after first push)"
+variable "holly_agents_image" {
+  description = "ECR image URI for holly-grace agents (set after first push)"
   type        = string
   default     = ""
 }
 
-variable "forge_backend_image" {
-  description = "ECR image URI for forge-console backend (set after first push)"
+variable "holly_backend_image" {
+  description = "ECR image URI for holly-grace backend (set after first push)"
   type        = string
   default     = ""
 }
@@ -87,28 +87,65 @@ variable "instagram_access_token" {
   default     = ""
 }
 
+variable "auth_secret_key" {
+  description = "JWT secret for Holly Grace agent auth"
+  type        = string
+  sensitive   = true
+}
+
+variable "console_jwt_secret" {
+  description = "JWT secret for Holly Grace console auth"
+  type        = string
+  sensitive   = true
+}
+
+variable "console_password" {
+  description = "Holly Grace console login password"
+  type        = string
+  sensitive   = true
+  default     = "admin"
+}
+
+variable "holly_agents_token" {
+  description = "Pre-signed JWT for holly-backend to authenticate with holly-agents"
+  type        = string
+  sensitive   = true
+}
+
+variable "shopify_shop_url" {
+  description = "Shopify store URL"
+  type        = string
+  default     = "liberty-forge-2.myshopify.com"
+}
+
+variable "shopify_api_version" {
+  description = "Shopify API version"
+  type        = string
+  default     = "2026-01"
+}
+
 # --- Sizing ---
 
 variable "backend_cpu" {
-  description = "CPU units for forge-console backend (1024 = 1 vCPU)"
+  description = "CPU units for holly-grace backend (1024 = 1 vCPU)"
   type        = number
   default     = 512
 }
 
 variable "backend_memory" {
-  description = "Memory (MB) for forge-console backend"
+  description = "Memory (MB) for holly-grace backend"
   type        = number
   default     = 1024
 }
 
-variable "ecom_agents_cpu" {
-  description = "CPU units for ecom-agents"
+variable "holly_agents_cpu" {
+  description = "CPU units for holly-grace agents"
   type        = number
   default     = 512
 }
 
-variable "ecom_agents_memory" {
-  description = "Memory (MB) for ecom-agents"
+variable "holly_agents_memory" {
+  description = "Memory (MB) for holly-grace agents"
   type        = number
   default     = 1024
 }

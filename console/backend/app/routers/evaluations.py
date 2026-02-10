@@ -1,15 +1,15 @@
-"""Evaluation suite API routes — proxies to ecom-agents /eval endpoints."""
+"""Evaluation suite API routes — proxies to Holly Grace agents /eval endpoints."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from app.services.ecom_client import get_client
+from app.services.holly_client import get_client
 
 router = APIRouter(prefix="/api/eval", tags=["evaluations"])
 
-_503 = {"error": "Cannot reach ecom-agents server"}
+_503 = {"error": "Cannot reach Holly Grace agents server"}
 
 
 @router.post("/run")

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liberty Forge — Agent Workflows</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f0f; color: #e0e0e0; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 2px solid #e94560;
+  }
+  .header h1 { font-size: 1.8rem; font-weight: 700; color: #fff; }
+  .header p { color: #a0a0a0; margin-top: 0.3rem; font-size: 0.95rem; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #2a2a2a;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .card-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-green { background: #4ade80; box-shadow: 0 0 6px #4ade8088; }
+  .dot-blue { background: #60a5fa; box-shadow: 0 0 6px #60a5fa88; }
+  .dot-purple { background: #a78bfa; box-shadow: 0 0 6px #a78bfa88; }
+  .dot-orange { background: #fb923c; box-shadow: 0 0 6px #fb923c88; }
+  .card-header h2 { font-size: 1rem; font-weight: 600; }
+  .card-body { padding: 1.25rem; }
+  .card-body .mermaid { display: flex; justify-content: center; }
+
+  .full-width { grid-column: 1 / -1; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .info-item { padding: 0.75rem; background: #111; border-radius: 8px; border: 1px solid #222; }
+  .info-item .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+  .info-item .value { font-size: 1.1rem; font-weight: 600; margin-top: 0.25rem; }
+
+  .model-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .model-table th { text-align: left; padding: 0.5rem 0.75rem; color: #888; border-bottom: 1px solid #333; font-weight: 500; }
+  .model-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #1f1f1f; }
+  .model-table tr:hover td { background: #161616; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .badge-local { background: #14532d; color: #4ade80; }
+  .badge-openai { background: #1e3a5f; color: #60a5fa; }
+  .badge-anthropic { background: #3b1d60; color: #a78bfa; }
+
+  .schedule-list { list-style: none; }
+  .schedule-list li {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #1f1f1f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .schedule-list li:last-child { border: none; }
+  .sched-name { font-weight: 500; }
+  .sched-time { color: #888; font-size: 0.85rem; font-family: monospace; }
+
+  .links { display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; }
+  .links a {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    background: #e94560;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  .links a:hover { background: #c73652; }
+  .links a.secondary { background: #2a2a2a; }
+  .links a.secondary:hover { background: #3a3a3a; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Liberty Forge — Agent Orchestration & Observability</h1>
+  <p>4 LLMs &middot; 6 Scheduled Jobs &middot; 5 Graph Nodes &middot; 4 Sub-Agents &middot; 3 Memory Tiers</p>
+  <div class="links">
+    <a href="http://localhost:8050/agent/playground" target="_blank">LangServe Playground</a>
+    <a href="http://localhost:8050/health" target="_blank" class="secondary">Health Check</a>
+    <a href="http://localhost:8050/scheduler/jobs" target="_blank" class="secondary">Scheduler Jobs</a>
+    <a href="https://smith.langchain.com" target="_blank" class="secondary">LangSmith Traces</a>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- Master Graph -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot dot-green"></span>
+      <h2>Master Workflow Graph</h2>
+    </div>
+    <div class="card-body">
+      <pre class="mermaid">
+graph TD
+  START(["__start__"]):::startNode
+  ORC["orchestrator\n(Ollama Qwen 2.5:3b)"]:::orchestrator
+  SALES["sales_marketing\n(GPT-4o)"]:::sales
+  OPS["operations\n(GPT-4o-mini)"]:::ops
+  REV["revenue_analytics\n(Opus 4.6)"]:::revenue
+  ERR["error_handler\n(retry ≤ 3)"]:::error
+  SUB["sub_agents\n(campaign subgraph)"]:::subagent
+  END_(["__end__"]):::endNode
+
+  START --> ORC
+  ORC -.-> SALES
+  ORC -.-> OPS
+  ORC -.-> REV
+  ORC -.-> ERR
+  SALES -.-> SUB
+  SALES -.-> END_
+  OPS --> END_
+  REV --> END_
+  SUB --> END_
+  ERR -.-> ORC
+  ERR -.-> END_
+
+  classDef startNode fill:#1a1a1a,stroke:#4ade80,color:#4ade80
+  classDef endNode fill:#1a1a1a,stroke:#f87171,color:#f87171
+  classDef orchestrator fill:#14532d,stroke:#4ade80,color:#e0e0e0
+  classDef sales fill:#1e3a5f,stroke:#60a5fa,color:#e0e0e0
+  classDef ops fill:#1e3a5f,stroke:#38bdf8,color:#e0e0e0
+  classDef revenue fill:#3b1d60,stroke:#a78bfa,color:#e0e0e0
+  classDef error fill:#451a1a,stroke:#f87171,color:#e0e0e0
+  classDef subagent fill:#2d1f0e,stroke:#fb923c,color:#e0e0e0
+      </pre>
+    </div>
+  </div>
+
+  <!-- Sub-Agent Graph -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot dot-orange"></span>
+      <h2>Campaign Sub-Agent Subgraph</h2>
+    </div>
+    <div class="card-body">
+      <pre class="mermaid">
+graph TD
+  START2(["__start__"]):::startNode
+  CW["content_writer\n(GPT-4o)"]:::sales
+  IS["image_selector\n(GPT-4o-mini)"]:::ops
+  HO["hashtag_optimizer\n(Ollama Qwen)"]:::orchestrator
+  CA["campaign_analyzer\n(Opus 4.6)"]:::revenue
+  END2(["__end__"]):::endNode
+
+  START2 --> CW
+  START2 --> IS
+  CW --> HO
+  IS --> HO
+  HO --> CA
+  CA --> END2
+
+  classDef startNode fill:#1a1a1a,stroke:#4ade80,color:#4ade80
+  classDef endNode fill:#1a1a1a,stroke:#f87171,color:#f87171
+  classDef orchestrator fill:#14532d,stroke:#4ade80,color:#e0e0e0
+  classDef sales fill:#1e3a5f,stroke:#60a5fa,color:#e0e0e0
+  classDef ops fill:#1e3a5f,stroke:#38bdf8,color:#e0e0e0
+  classDef revenue fill:#3b1d60,stroke:#a78bfa,color:#e0e0e0
+      </pre>
+    </div>
+  </div>
+
+  <!-- LLM Model Registry -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot dot-blue"></span>
+      <h2>LLM Model Registry</h2>
+    </div>
+    <div class="card-body">
+      <table class="model-table">
+        <thead>
+          <tr><th>Model</th><th>Provider</th><th>Role</th><th>$/1K in</th><th>$/1K out</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Qwen 2.5:3b</td>
+            <td><span class="badge badge-local">Ollama</span></td>
+            <td>Orchestrator, Hashtags</td>
+            <td style="color:#4ade80">$0.00</td>
+            <td style="color:#4ade80">$0.00</td>
+          </tr>
+          <tr>
+            <td>GPT-4o-mini</td>
+            <td><span class="badge badge-openai">OpenAI</span></td>
+            <td>Operations, Image Select</td>
+            <td>$0.15</td>
+            <td>$0.60</td>
+          </tr>
+          <tr>
+            <td>GPT-4o</td>
+            <td><span class="badge badge-openai">OpenAI</span></td>
+            <td>Sales, Content Writer</td>
+            <td>$2.50</td>
+            <td>$10.00</td>
+          </tr>
+          <tr>
+            <td>Claude Opus 4.6</td>
+            <td><span class="badge badge-anthropic">Anthropic</span></td>
+            <td>Revenue, Campaign Analysis</td>
+            <td>$15.00</td>
+            <td>$75.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Scheduler -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot dot-purple"></span>
+      <h2>Autonomous Scheduler (APScheduler)</h2>
+    </div>
+    <div class="card-body">
+      <ul class="schedule-list">
+        <li><span class="sched-name">Order Check</span><span class="sched-time">every 30m → Operations</span></li>
+        <li><span class="sched-name">Instagram Post</span><span class="sched-time">9am + 3pm → Sales</span></li>
+        <li><span class="sched-name">Full Campaign</span><span class="sched-time">Mon 9am → Sales (sub-agents)</span></li>
+        <li><span class="sched-name">Revenue Report</span><span class="sched-time">daily 8am → Revenue</span></li>
+        <li><span class="sched-name">Health Check</span><span class="sched-time">every 15m → System</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Observability Stack -->
+  <div class="card full-width">
+    <div class="card-header">
+      <span class="dot dot-green"></span>
+      <h2>Observability & Resilience Stack</h2>
+    </div>
+    <div class="card-body">
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">Tracing</div>
+          <div class="value">LangSmith</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:0.25rem">Every LLM call, tool call, graph transition. Token counts, latency, costs.</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Health Monitoring</div>
+          <div class="value">/health endpoint</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:0.25rem">Checks Ollama, Postgres, Redis, ChromaDB, API keys every 15 min.</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Circuit Breakers</div>
+          <div class="value">5 services</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:0.25rem">Ollama, Stripe, Shopify, Printful, Instagram. 5 fails → OPEN, 60s → HALF_OPEN.</div>
+        </div>
+        <div class="info-item">
+          <div class="label">LLM Fallbacks</div>
+          <div class="value">Per-model chains</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:0.25rem">Ollama→GPT-4o-mini→GPT-4o. Opus→GPT-4o→GPT-4o-mini. Auto-switch on failure.</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Memory: Short-term</div>
+          <div class="value">LangGraph State</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:0.25rem">Conversation buffer (k=10) per run in graph messages.</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Memory: Medium-term</div>
+          <div class="value">Redis (30d TTL)</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:0.25rem">Campaign progress, workflow state, partial results. Port 6381.</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Memory: Long-term</div>
+          <div class="value">ChromaDB (Vector)</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:0.25rem">Past decisions, lessons, product performance. Semantic retrieval. Port 8100.</div>
+        </div>
+        <div class="info-item">
+          <div class="label">Checkpointing</div>
+          <div class="value">PostgreSQL</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:0.25rem">LangGraph state persistence. Interrupt and resume mid-execution. Port 5434.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memory Flow -->
+  <div class="card full-width">
+    <div class="card-header">
+      <span class="dot dot-blue"></span>
+      <h2>3-Tier Memory Architecture</h2>
+    </div>
+    <div class="card-body">
+      <pre class="mermaid">
+graph LR
+  IN["Incoming Task"]:::input --> ST["Short-Term\nLangGraph messages\n(k=10, per-run)"]:::short
+  ST --> MT["Medium-Term\nRedis\n(30-day TTL)"]:::medium
+  MT --> LT["Long-Term\nChromaDB\n(permanent, vector)"]:::long
+  LT -->|"semantic retrieval"| CTX["memory_context\ninjected into state"]:::context
+  CTX --> ORC2["Orchestrator\n+ Agents"]:::agent
+
+  classDef input fill:#1a1a1a,stroke:#888,color:#e0e0e0
+  classDef short fill:#14532d,stroke:#4ade80,color:#e0e0e0
+  classDef medium fill:#1e3a5f,stroke:#60a5fa,color:#e0e0e0
+  classDef long fill:#3b1d60,stroke:#a78bfa,color:#e0e0e0
+  classDef context fill:#2d1f0e,stroke:#fb923c,color:#e0e0e0
+  classDef agent fill:#451a1a,stroke:#f87171,color:#e0e0e0
+      </pre>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1a1a2e',
+      primaryTextColor: '#e0e0e0',
+      primaryBorderColor: '#4ade80',
+      lineColor: '#555',
+      secondaryColor: '#16213e',
+      tertiaryColor: '#0f3460',
+      background: '#1a1a1a',
+      mainBkg: '#1a1a1a',
+      nodeBorder: '#4ade80',
+      clusterBkg: '#111',
+      clusterBorder: '#333',
+      titleColor: '#e0e0e0',
+      edgeLabelBackground: '#1a1a1a',
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 20,
+    }
+  });
+</script>
+
+</body>
+</html>

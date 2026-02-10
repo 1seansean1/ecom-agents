@@ -15,4 +15,4 @@ class ServiceHealth(BaseModel):
 class SystemHealth(BaseModel):
     overall: str  # "healthy", "degraded", "down"
     services: list[ServiceHealth]
-    ecom_agents_reachable: bool
+    holly_agents_reachable: bool

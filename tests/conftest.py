@@ -1,4 +1,4 @@
-"""Shared test fixtures for ecom-agents."""
+"""Shared test fixtures for Holly Grace."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ def set_test_env(monkeypatch):
     monkeypatch.setenv("INSTAGRAM_ACCESS_TOKEN", "test_fake")
     monkeypatch.setenv("INSTAGRAM_BUSINESS_ACCOUNT_ID", "12345")
     monkeypatch.setenv("OLLAMA_BASE_URL", "http://localhost:11435")
-    monkeypatch.setenv("DATABASE_URL", "postgresql://ecom:ecom_dev_password@localhost:5434/ecom_agents")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://holly:holly_dev_password@localhost:5434/holly_grace")
     monkeypatch.setenv("REDIS_URL", "redis://localhost:6381/0")
     monkeypatch.setenv("CHROMA_URL", "http://localhost:8100")
     monkeypatch.setenv("LANGSMITH_TRACING", "false")
@@ -82,3 +82,12 @@ def mock_llm_response():
         return mock
 
     return _make
+
+
+@pytest.fixture
+def registry():
+    """Test agent config registry with hardcoded defaults (no DB)."""
+    from src.agent_registry import AgentConfigRegistry
+
+    reg = AgentConfigRegistry(cache_ttl=0)
+    return reg

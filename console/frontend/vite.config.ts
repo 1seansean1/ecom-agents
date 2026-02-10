@@ -18,6 +18,11 @@ export default defineConfig({
         target: 'http://localhost:8060',
         ws: true,
       },
+      '/chat-ui': {
+        target: 'http://localhost:8073',
+        rewrite: (path) => path.replace(/^\/chat-ui/, ''),
+        changeOrigin: true,
+      },
     },
   },
 })

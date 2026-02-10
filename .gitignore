@@ -10,12 +10,18 @@ build/
 .ruff_cache/
 .coverage
 htmlcov/
+.hypothesis/
 
 # Console frontend
 node_modules/
 console/frontend/dist/
 console/frontend/dist-ssr/
 *.local
+
+# Chat UI runtime
+chat-ui/__pycache__/
+chat-ui/*.log
+chat-ui/*.err
 
 # Terraform
 *.tfstate
@@ -24,3 +30,15 @@ console/frontend/dist-ssr/
 .terraform.lock.hcl
 terraform.tfvars
 *.auto.tfvars
+tfplan
+drawbridge.txt
+
+# Research PDFs
+*.pdf
+
+# Dev helper scripts
+chat-ui/*.ps1
+
+# OS
+NUL
+nul

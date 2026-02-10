@@ -1,4 +1,4 @@
-"""Event bridge: connects to ecom-agents WebSocket and fans out to browser clients."""
+"""Event bridge: connects to Holly Grace agents WebSocket and fans out to browser clients."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class EventBridge:
-    """Maintains a persistent WebSocket connection to ecom-agents
+    """Maintains a persistent WebSocket connection to Holly Grace agents
     and fans out events to all connected browser clients."""
 
     def __init__(self) -> None:
@@ -64,26 +64,26 @@ class EventBridge:
                     pass
 
     async def _connect_loop(self) -> None:
-        """Persistent connection loop to ecom-agents WebSocket."""
-        ws_url = settings.ecom_agents_url.replace("http://", "ws://").replace("https://", "wss://")
+        """Persistent connection loop to Holly Grace agents WebSocket."""
+        ws_url = settings.agents_url.replace("http://", "ws://").replace("https://", "wss://")
         ws_url = f"{ws_url}/ws/events"
-        if settings.ecom_agents_token:
-            ws_url = f"{ws_url}?token={settings.ecom_agents_token}"
+        if settings.agents_token:
+            ws_url = f"{ws_url}?token={settings.agents_token}"
 
         while self._running:
             try:
-                logger.info("Connecting to ecom-agents WebSocket: %s", ws_url)
+                logger.info("Connecting to Holly Grace agents WebSocket: %s", ws_url)
                 async with websockets.connect(ws_url, ping_interval=20, ping_timeout=10) as ws:
-                    logger.info("Connected to ecom-agents WebSocket")
+                    logger.info("Connected to Holly Grace agents WebSocket")
                     self._broadcast({"type": "bridge_status", "status": "connected"})
                     async for message in ws:
                         try:
                             event = json.loads(message)
                             self._broadcast(event)
                         except json.JSONDecodeError:
-                            logger.warning("Invalid JSON from ecom-agents WS: %s", message[:100])
+                            logger.warning("Invalid JSON from agents WS: %s", message[:100])
             except Exception as e:
-                logger.warning("ecom-agents WebSocket disconnected: %s — reconnecting in 3s", e)
+                logger.warning("Holly Grace agents WebSocket disconnected: %s — reconnecting in 3s", e)
                 self._broadcast({"type": "bridge_status", "status": "disconnected"})
                 await asyncio.sleep(3)
 

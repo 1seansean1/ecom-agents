@@ -2,6 +2,7 @@
 
 Wraps the Shopify GraphQL Admin API for product and order management.
 REST API is deprecated — using GraphQL exclusively.
+Check-before-create idempotency on product creation prevents duplicates.
 """
 
 from __future__ import annotations
@@ -14,9 +15,13 @@ import httpx
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
+from src.tools.idempotency import get_idempotency_store
+from src.tools.retry import retry_with_backoff
+
 logger = logging.getLogger(__name__)
 
 
+@retry_with_backoff(max_retries=3, base_delay=1.0, max_delay=30.0)
 def _graphql_request(query: str, variables: dict | None = None) -> dict:
     """Execute a Shopify GraphQL Admin API request."""
     shop_url = os.environ.get("SHOPIFY_SHOP_URL", "")
@@ -103,8 +108,39 @@ class CreateProductInput(BaseModel):
 
 @tool(args_schema=CreateProductInput)
 def shopify_create_product(title: str, description: str = "", price: str = "0.00") -> dict:
-    """Create a new product in Shopify."""
-    query = """
+    """Create a new product in Shopify (with duplicate detection)."""
+    store = get_idempotency_store()
+    params = {"title": title, "description": description, "price": price}
+    idem_key = store.generate_key("shopify_create_product", params)
+
+    cached = store.check_and_set(idem_key)
+    if cached:
+        logger.info("Returning cached Shopify product for key=%s", idem_key)
+        return {**cached.result, "_idempotent": True}
+
+    # Check-before-create: query existing products by title
+    check_query = """
+    query ($query: String!) {
+      products(first: 1, query: $query) {
+        edges { node { id title status } }
+      }
+    }
+    """
+    existing = _graphql_request(check_query, {"query": f"title:'{title}'"})
+    existing_products = existing.get("data", {}).get("products", {}).get("edges", [])
+    if existing_products:
+        result = {
+            "id": existing_products[0]["node"]["id"],
+            "title": existing_products[0]["node"]["title"],
+            "status": existing_products[0]["node"]["status"],
+            "_duplicate_prevented": True,
+        }
+        store.store(idem_key, result, ttl=3600)
+        logger.info("Duplicate Shopify product prevented: %s", title)
+        return result
+
+    # Create the product
+    mutation = """
     mutation productCreate($input: ProductInput!) {
       productCreate(input: $input) {
         product {
@@ -126,7 +162,7 @@ def shopify_create_product(title: str, description: str = "", price: str = "0.00
             "variants": [{"price": price}],
         }
     }
-    result = _graphql_request(query, variables)
+    result = _graphql_request(mutation, variables)
     product_data = result.get("data", {}).get("productCreate", {})
     errors = product_data.get("userErrors", [])
 
@@ -134,11 +170,13 @@ def shopify_create_product(title: str, description: str = "", price: str = "0.00
         return {"error": errors[0]["message"], "field": errors[0]["field"]}
 
     product = product_data.get("product", {})
-    return {
+    product_result = {
         "id": product.get("id"),
         "title": product.get("title"),
         "status": product.get("status"),
     }
+    store.store(idem_key, product_result, ttl=3600)
+    return product_result
 
 
 class QueryOrdersInput(BaseModel):

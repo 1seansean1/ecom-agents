@@ -2,6 +2,7 @@
 
 Posts content to Instagram Business accounts using the Meta Graph API.
 Rate limit: 25 posts per 24 hours (enforced locally).
+Content-hash dedup prevents identical posts within 24 hours.
 """
 
 from __future__ import annotations
@@ -13,6 +14,9 @@ import time
 import httpx
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
+
+from src.tools.idempotency import get_idempotency_store
+from src.tools.retry import retry_with_backoff
 
 logger = logging.getLogger(__name__)
 
@@ -31,19 +35,22 @@ def _check_rate_limit() -> bool:
     return len(_post_timestamps) < MAX_POSTS_PER_DAY
 
 
+@retry_with_backoff(max_retries=3, base_delay=2.0, max_delay=30.0)
 def _meta_request(method: str, path: str, params: dict | None = None) -> dict:
-    """Make an authenticated Meta Graph API request."""
-    access_token = os.environ.get("INSTAGRAM_ACCESS_TOKEN", "")
+    """Make an authenticated Meta Graph API request.
 
-    all_params = {"access_token": access_token}
-    if params:
-        all_params.update(params)
+    Token is sent via Authorization header (not URL query params) to avoid
+    leaking credentials in server logs and browser history.
+    """
+    access_token = os.environ.get("INSTAGRAM_ACCESS_TOKEN", "")
+    headers = {"Authorization": f"Bearer {access_token}"}
 
     response = httpx.request(
         method,
         f"{META_GRAPH_BASE}{path}",
-        params=all_params if method == "GET" else None,
-        data=all_params if method == "POST" else None,
+        params=params if method == "GET" else None,
+        data=params if method == "POST" else None,
+        headers=headers,
         timeout=30.0,
     )
     response.raise_for_status()
@@ -57,12 +64,22 @@ class PublishPostInput(BaseModel):
 
 @tool(args_schema=PublishPostInput)
 def instagram_publish_post(image_url: str, caption: str) -> dict:
-    """Publish an image post to Instagram.
+    """Publish an image post to Instagram (with content-hash dedup).
 
     Two-step process:
     1. Create a media container
     2. Publish the container
     """
+    # Content-hash dedup: prevent identical posts within 24h
+    store = get_idempotency_store()
+    params = {"image_url": image_url, "caption": caption}
+    idem_key = store.generate_key("instagram_publish_post", params)
+
+    cached = store.check_and_set(idem_key, ttl=86400)  # 24h TTL
+    if cached:
+        logger.info("Duplicate Instagram post prevented for key=%s", idem_key)
+        return {**cached.result, "_idempotent": True, "status": "duplicate_prevented"}
+
     if not _check_rate_limit():
         return {"error": "Rate limit exceeded (25 posts/24hrs)", "status": "rate_limited"}
 
@@ -96,11 +113,13 @@ def instagram_publish_post(image_url: str, caption: str) -> dict:
 
     _post_timestamps.append(time.time())
 
-    return {
+    post_result = {
         "post_id": result.get("id"),
         "status": "published",
         "remaining_today": MAX_POSTS_PER_DAY - len(_post_timestamps),
     }
+    store.store(idem_key, post_result, ttl=86400)
+    return post_result
 
 
 @tool

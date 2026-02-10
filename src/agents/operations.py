@@ -11,6 +11,8 @@ import logging
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
+from src.agent_registry import AgentConfigRegistry
+from src.agents.constitution import build_system_prompt
 from src.llm.config import ModelID
 from src.llm.fallback import get_model_with_fallbacks
 from src.llm.router import LLMRouter
@@ -37,13 +39,15 @@ Respond with a structured action plan in JSON:
 """
 
 
-def build_operations_node(router: LLMRouter):
+def build_operations_node(router: LLMRouter, registry: AgentConfigRegistry):
     """Build the operations graph node function."""
-    model = get_model_with_fallbacks(router, ModelID.GPT4O_MINI)
 
     def operations_node(state: AgentState) -> dict:
         """Handle operations tasks (orders, inventory, fulfillment)."""
         logger.info("Operations agent handling task_type=%s", state.get("task_type"))
+
+        config = registry.get("operations")
+        model = get_model_with_fallbacks(router, ModelID(config.model_id))
 
         task_description = ""
         if state.get("trigger_payload"):
@@ -55,7 +59,7 @@ def build_operations_node(router: LLMRouter):
                     break
 
         response = model.invoke([
-            SystemMessage(content=OPS_SYSTEM_PROMPT),
+            SystemMessage(content=build_system_prompt("operations", config.system_prompt)),
             HumanMessage(content=f"Handle this operations task: {task_description}"),
         ])
 

@@ -57,25 +57,30 @@ resource "aws_iam_role" "ecs_task" {
 
 # --- CloudWatch Log Groups ---
 
-resource "aws_cloudwatch_log_group" "forge_backend" {
+resource "aws_cloudwatch_log_group" "holly_backend" {
   name              = "/ecs/${var.project_name}/backend"
   retention_in_days = 14
 }
 
-resource "aws_cloudwatch_log_group" "ecom_agents" {
-  name              = "/ecs/${var.project_name}/ecom-agents"
+resource "aws_cloudwatch_log_group" "holly_agents" {
+  name              = "/ecs/${var.project_name}/holly-grace"
   retention_in_days = 14
 }
 
-# --- Service Discovery (so forge-backend can reach ecom-agents by name) ---
+resource "aws_cloudwatch_log_group" "chromadb" {
+  name              = "/ecs/${var.project_name}/chromadb"
+  retention_in_days = 14
+}
+
+# --- Service Discovery (so holly-backend can reach holly-grace by name) ---
 
 resource "aws_service_discovery_private_dns_namespace" "main" {
   name = "${var.project_name}.local"
   vpc  = aws_vpc.main.id
 }
 
-resource "aws_service_discovery_service" "ecom_agents" {
-  name = "ecom-agents"
+resource "aws_service_discovery_service" "holly_agents" {
+  name = "holly-grace"
 
   dns_config {
     namespace_id = aws_service_discovery_private_dns_namespace.main.id
@@ -91,20 +96,64 @@ resource "aws_service_discovery_service" "ecom_agents" {
   }
 }
 
-# --- ECS Task Definition: ecom-agents ---
+resource "aws_service_discovery_service" "chromadb" {
+  name = "chromadb"
 
-resource "aws_ecs_task_definition" "ecom_agents" {
-  family                   = "${var.project_name}-ecom-agents"
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.main.id
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+}
+
+# --- EFS for ChromaDB persistence ---
+
+resource "aws_efs_file_system" "chromadb" {
+  tags = { Name = "${var.project_name}-chromadb-efs" }
+}
+
+resource "aws_security_group" "efs" {
+  name_prefix = "${var.project_name}-efs-"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port       = 2049
+    to_port         = 2049
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs.id]
+  }
+
+  tags = { Name = "${var.project_name}-efs-sg" }
+}
+
+resource "aws_efs_mount_target" "chromadb" {
+  count           = 2
+  file_system_id  = aws_efs_file_system.chromadb.id
+  subnet_id       = aws_subnet.private[count.index].id
+  security_groups = [aws_security_group.efs.id]
+}
+
+# --- ECS Task Definition: holly-grace ---
+
+resource "aws_ecs_task_definition" "holly_agents" {
+  family                   = "${var.project_name}-holly-grace"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = var.ecom_agents_cpu
-  memory                   = var.ecom_agents_memory
+  cpu                      = var.holly_agents_cpu
+  memory                   = var.holly_agents_memory
   execution_role_arn       = aws_iam_role.ecs_execution.arn
   task_role_arn            = aws_iam_role.ecs_task.arn
 
   container_definitions = jsonencode([{
-    name  = "ecom-agents"
-    image = var.ecom_agents_image != "" ? var.ecom_agents_image : "${aws_ecr_repository.ecom_agents.repository_url}:latest"
+    name  = "holly-grace"
+    image = var.holly_agents_image != "" ? var.holly_agents_image : "${aws_ecr_repository.holly_agents.repository_url}:latest"
 
     portMappings = [{
       containerPort = 8050
@@ -114,15 +163,13 @@ resource "aws_ecs_task_definition" "ecom_agents" {
     environment = [
       { name = "HOST", value = "0.0.0.0" },
       { name = "PORT", value = "8050" },
-      { name = "LANGSMITH_PROJECT", value = "ecom-agents" },
+      { name = "LANGSMITH_PROJECT", value = "holly-grace" },
       { name = "LANGSMITH_TRACING_V2", value = "true" },
-      { name = "POSTGRES_HOST", value = aws_db_instance.postgres.address },
-      { name = "POSTGRES_PORT", value = "5432" },
-      { name = "POSTGRES_DB", value = "ecom_agents" },
-      { name = "POSTGRES_USER", value = "ecom_admin" },
-      { name = "REDIS_HOST", value = aws_elasticache_cluster.redis.cache_nodes[0].address },
-      { name = "REDIS_PORT", value = "6379" },
-      { name = "OLLAMA_BASE_URL", value = "http://localhost:11434" },
+      { name = "REDIS_URL", value = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0" },
+      { name = "CHROMA_URL", value = "http://chromadb.${var.project_name}.local:8000" },
+      { name = "OLLAMA_BASE_URL", value = "" },
+      { name = "SHOPIFY_SHOP_URL", value = var.shopify_shop_url },
+      { name = "SHOPIFY_API_VERSION", value = var.shopify_api_version },
     ]
 
     secrets = [
@@ -132,13 +179,14 @@ resource "aws_ecs_task_definition" "ecom_agents" {
       { name = "SHOPIFY_ACCESS_TOKEN", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:SHOPIFY_ACCESS_TOKEN::" },
       { name = "STRIPE_SECRET_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:STRIPE_SECRET_KEY::" },
       { name = "PRINTFUL_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:PRINTFUL_API_KEY::" },
-      { name = "POSTGRES_PASSWORD", valueFrom = aws_secretsmanager_secret.db_password.arn },
+      { name = "DATABASE_URL", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:DATABASE_URL::" },
+      { name = "AUTH_SECRET_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:AUTH_SECRET_KEY::" },
     ]
 
     logConfiguration = {
       logDriver = "awslogs"
       options = {
-        "awslogs-group"         = aws_cloudwatch_log_group.ecom_agents.name
+        "awslogs-group"         = aws_cloudwatch_log_group.holly_agents.name
         "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "ecs"
       }
@@ -149,14 +197,14 @@ resource "aws_ecs_task_definition" "ecom_agents" {
       interval    = 30
       timeout     = 10
       retries     = 3
-      startPeriod = 60
+      startPeriod = 120
     }
   }])
 }
 
-# --- ECS Task Definition: forge-console backend ---
+# --- ECS Task Definition: holly-grace backend ---
 
-resource "aws_ecs_task_definition" "forge_backend" {
+resource "aws_ecs_task_definition" "holly_backend" {
   family                   = "${var.project_name}-backend"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -166,8 +214,8 @@ resource "aws_ecs_task_definition" "forge_backend" {
   task_role_arn            = aws_iam_role.ecs_task.arn
 
   container_definitions = jsonencode([{
-    name  = "forge-backend"
-    image = var.forge_backend_image != "" ? var.forge_backend_image : "${aws_ecr_repository.forge_backend.repository_url}:latest"
+    name  = "holly-backend"
+    image = var.holly_backend_image != "" ? var.holly_backend_image : "${aws_ecr_repository.holly_backend.repository_url}:latest"
 
     portMappings = [{
       containerPort = 8060
@@ -175,26 +223,30 @@ resource "aws_ecs_task_definition" "forge_backend" {
     }]
 
     environment = [
-      { name = "FORGE_ECOM_AGENTS_URL", value = "http://ecom-agents.${var.project_name}.local:8050" },
-      { name = "FORGE_LANGSMITH_PROJECT", value = "ecom-agents" },
-      { name = "FORGE_CORS_ORIGINS", value = "[\"*\"]" },
+      { name = "HOLLY_AGENTS_URL", value = "http://holly-grace.${var.project_name}.local:8050" },
+      { name = "HOLLY_LANGSMITH_PROJECT", value = "holly-grace" },
+      { name = "HOLLY_CORS_ORIGINS", value = "[\"*\"]" },
+      { name = "HOLLY_CONSOLE_USER_EMAIL", value = "sean.p.allen9@gmail.com" },
     ]
 
     secrets = [
-      { name = "FORGE_LANGSMITH_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:LANGSMITH_API_KEY::" },
+      { name = "HOLLY_LANGSMITH_API_KEY", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:LANGSMITH_API_KEY::" },
+      { name = "HOLLY_CONSOLE_USER_PASSWORD", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:CONSOLE_PASSWORD::" },
+      { name = "HOLLY_CONSOLE_JWT_SECRET", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:CONSOLE_JWT_SECRET::" },
+      { name = "HOLLY_AGENTS_TOKEN", valueFrom = "${aws_secretsmanager_secret.app_secrets.arn}:HOLLY_AGENTS_TOKEN::" },
     ]
 
     logConfiguration = {
       logDriver = "awslogs"
       options = {
-        "awslogs-group"         = aws_cloudwatch_log_group.forge_backend.name
+        "awslogs-group"         = aws_cloudwatch_log_group.holly_backend.name
         "awslogs-region"        = var.aws_region
         "awslogs-stream-prefix" = "ecs"
       }
     }
 
     healthCheck = {
-      command     = ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8060/api/health')\" || exit 1"]
+      command     = ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8060/')\" || exit 1"]
       interval    = 30
       timeout     = 10
       retries     = 3
@@ -203,12 +255,63 @@ resource "aws_ecs_task_definition" "forge_backend" {
   }])
 }
 
+# --- ECS Task Definition: ChromaDB ---
+
+resource "aws_ecs_task_definition" "chromadb" {
+  family                   = "${var.project_name}-chromadb"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = aws_iam_role.ecs_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  volume {
+    name = "chromadb-data"
+    efs_volume_configuration {
+      file_system_id = aws_efs_file_system.chromadb.id
+    }
+  }
+
+  container_definitions = jsonencode([{
+    name  = "chromadb"
+    image = "chromadb/chroma:latest"
+
+    portMappings = [{
+      containerPort = 8000
+      protocol      = "tcp"
+    }]
+
+    mountPoints = [{
+      sourceVolume  = "chromadb-data"
+      containerPath = "/chroma/chroma"
+    }]
+
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.chromadb.name
+        "awslogs-region"        = var.aws_region
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
+
+    healthCheck = {
+      command     = ["CMD-SHELL", "curl -sf http://localhost:8000/api/v2/heartbeat || exit 1"]
+      interval    = 30
+      timeout     = 5
+      retries     = 3
+      startPeriod = 30
+    }
+  }])
+}
+
 # --- ECS Services ---
 
-resource "aws_ecs_service" "ecom_agents" {
-  name            = "ecom-agents"
+resource "aws_ecs_service" "holly_agents" {
+  name            = "holly-grace"
   cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.ecom_agents.arn
+  task_definition = aws_ecs_task_definition.holly_agents.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
@@ -219,14 +322,14 @@ resource "aws_ecs_service" "ecom_agents" {
   }
 
   service_registries {
-    registry_arn = aws_service_discovery_service.ecom_agents.arn
+    registry_arn = aws_service_discovery_service.holly_agents.arn
   }
 }
 
-resource "aws_ecs_service" "forge_backend" {
-  name            = "forge-backend"
+resource "aws_ecs_service" "holly_backend" {
+  name            = "holly-backend"
   cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.forge_backend.arn
+  task_definition = aws_ecs_task_definition.holly_backend.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
@@ -237,10 +340,30 @@ resource "aws_ecs_service" "forge_backend" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.forge_backend.arn
-    container_name   = "forge-backend"
+    target_group_arn = aws_lb_target_group.holly_backend.arn
+    container_name   = "holly-backend"
     container_port   = 8060
   }
 
   depends_on = [aws_lb_listener_rule.api]
+}
+
+resource "aws_ecs_service" "chromadb" {
+  name            = "chromadb"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.chromadb.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs.id]
+    assign_public_ip = false
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.chromadb.arn
+  }
+
+  depends_on = [aws_efs_mount_target.chromadb]
 }

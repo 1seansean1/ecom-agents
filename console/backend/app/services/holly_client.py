@@ -1,4 +1,4 @@
-"""Async HTTP client for the ecom-agents API."""
+"""Async HTTP client for the Holly Grace agents API."""
 
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ def get_client() -> httpx.AsyncClient:
     global _client
     if _client is None or _client.is_closed:
         headers = {}
-        if settings.ecom_agents_token:
-            headers["Authorization"] = f"Bearer {settings.ecom_agents_token}"
+        if settings.agents_token:
+            headers["Authorization"] = f"Bearer {settings.agents_token}"
         _client = httpx.AsyncClient(
-            base_url=settings.ecom_agents_url,
+            base_url=settings.agents_url,
             timeout=30.0,
             headers=headers,
         )

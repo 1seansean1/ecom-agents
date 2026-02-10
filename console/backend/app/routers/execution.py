@@ -9,7 +9,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.services.ecom_client import get_client
+from app.auth import get_ws_cookie_token, verify_console_token
+from app.services.holly_client import get_client
 from app.services.event_bridge import event_bridge
 
 router = APIRouter(tags=["execution"])
@@ -29,7 +30,7 @@ async def execute_task(req: InvokeRequest):
             json={
                 "input": {
                     "messages": [{"type": "human", "content": req.task}],
-                    "trigger_source": "forge_console",
+                    "trigger_source": "holly_console",
                     "retry_count": 0,
                 }
             },
@@ -67,6 +68,10 @@ async def _wait_disconnect(websocket: WebSocket):
 @router.websocket("/ws/execution")
 async def ws_execution(websocket: WebSocket):
     """WebSocket endpoint for browser clients to receive real-time execution events."""
+    token = get_ws_cookie_token(websocket)
+    if not token or not verify_console_token(token):
+        await websocket.close(code=4001, reason="Unauthorized")
+        return
     await websocket.accept()
     sub_id, queue = event_bridge.subscribe()
     try:
@@ -86,6 +91,10 @@ async def ws_execution(websocket: WebSocket):
 @router.websocket("/ws/logs")
 async def ws_logs(websocket: WebSocket):
     """WebSocket endpoint for streaming log events only."""
+    token = get_ws_cookie_token(websocket)
+    if not token or not verify_console_token(token):
+        await websocket.close(code=4001, reason="Unauthorized")
+        return
     await websocket.accept()
     sub_id, queue = event_bridge.subscribe()
     try:

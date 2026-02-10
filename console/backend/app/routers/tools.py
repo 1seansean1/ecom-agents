@@ -1,11 +1,11 @@
-"""Tool registry API routes — proxies to ecom-agents."""
+"""Tool registry API routes — proxies to Holly Grace agents."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from app.services.ecom_client import get_client
+from app.services.holly_client import get_client
 
 router = APIRouter(prefix="/api/tools", tags=["tools"])
 
@@ -19,6 +19,6 @@ async def list_tools():
         return resp.json()
     except Exception:
         return JSONResponse(
-            {"error": "Cannot reach ecom-agents server", "tools": [], "count": 0},
+            {"error": "Cannot reach Holly Grace agents server", "tools": [], "count": 0},
             status_code=503,
         )

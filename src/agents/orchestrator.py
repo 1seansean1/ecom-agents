@@ -11,6 +11,8 @@ import logging
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.language_models import BaseChatModel
 
+from src.agent_registry import AgentConfigRegistry
+from src.agents.constitution import build_system_prompt
 from src.llm.config import ModelID
 from src.llm.fallback import get_model_with_fallbacks
 from src.llm.router import LLMRouter
@@ -26,11 +28,12 @@ VALID_TASK_TYPES = [
     "inventory_sync",
     "revenue_report",
     "pricing_review",
+    "sage_chat",
 ]
 
 VALID_COMPLEXITIES = ["trivial", "simple", "moderate", "complex"]
 
-VALID_ROUTES = ["sales_marketing", "operations", "revenue_analytics"]
+VALID_ROUTES = ["sales_marketing", "operations", "revenue_analytics", "sage"]
 
 # Task types that trigger sub-agent spawning in the sales agent
 SUB_AGENT_TASK_TYPES = {"full_campaign", "product_launch"}
@@ -48,6 +51,7 @@ Routing rules:
 - content_post, full_campaign, product_launch → sales_marketing
 - order_check, inventory_sync → operations
 - revenue_report, pricing_review → revenue_analytics
+- sage_chat → sage
 
 Complexity rules:
 - trivial: simple lookups, status checks
@@ -57,19 +61,24 @@ Complexity rules:
 """
 
 
-def build_orchestrator_node(router: LLMRouter):
+def build_orchestrator_node(router: LLMRouter, registry: AgentConfigRegistry):
     """Build the orchestrator graph node function."""
-    model = get_model_with_fallbacks(router, ModelID.OLLAMA_QWEN)
 
     def orchestrator_node(state: AgentState) -> dict:
         """Classify the incoming task and determine routing."""
         logger.info("Orchestrator classifying task")
 
+        config = registry.get("orchestrator")
+        model = get_model_with_fallbacks(router, ModelID(config.model_id))
+
         system_msg = SystemMessage(
-            content=CLASSIFICATION_PROMPT.format(
-                task_types=VALID_TASK_TYPES,
-                complexities=VALID_COMPLEXITIES,
-                routes=VALID_ROUTES,
+            content=build_system_prompt(
+                "orchestrator",
+                config.system_prompt.format(
+                    task_types=VALID_TASK_TYPES,
+                    complexities=VALID_COMPLEXITIES,
+                    routes=VALID_ROUTES,
+                ),
             )
         )
 
@@ -80,6 +89,10 @@ def build_orchestrator_node(router: LLMRouter):
         elif state.get("messages"):
             for msg in reversed(state["messages"]):
                 if isinstance(msg, HumanMessage):
+                    task_description = msg.content
+                    break
+                # Fallback: LangServe may deserialize messages as non-HumanMessage objects
+                elif hasattr(msg, 'type') and msg.type == "human":
                     task_description = msg.content
                     break
 

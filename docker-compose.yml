@@ -3,24 +3,24 @@ version: "3.9"
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: ecom-postgres
+    container_name: holly-postgres
     ports:
       - "5434:5432"
     environment:
-      POSTGRES_USER: ecom
-      POSTGRES_PASSWORD: ecom_dev_password
-      POSTGRES_DB: ecom_agents
+      POSTGRES_USER: holly
+      POSTGRES_PASSWORD: holly_dev_password
+      POSTGRES_DB: holly_grace
     volumes:
-      - ecom_pgdata:/var/lib/postgresql/data
+      - holly_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ecom -d ecom_agents"]
+      test: ["CMD-SHELL", "pg_isready -U holly -d holly_grace"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: ecom-redis
+    container_name: holly-redis
     ports:
       - "6381:6379"
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
@@ -32,11 +32,11 @@ services:
 
   chromadb:
     image: chromadb/chroma:latest
-    container_name: ecom-chromadb
+    container_name: holly-chromadb
     ports:
       - "8100:8000"
     volumes:
-      - ecom_chromadata:/chroma/chroma
+      - holly_chromadata:/chroma/chroma
     environment:
       ANONYMIZED_TELEMETRY: "false"
     healthcheck:
@@ -47,11 +47,11 @@ services:
 
   ollama:
     image: ollama/ollama:latest
-    container_name: ecom-ollama
+    container_name: holly-ollama
     ports:
       - "11435:11434"
     volumes:
-      - ecom_ollama:/root/.ollama
+      - holly_ollama:/root/.ollama
     deploy:
       resources:
         reservations:
@@ -66,12 +66,30 @@ services:
       retries: 10
       start_period: 30s
 
+  android-builder:
+    build:
+      context: ./docker/android-builder
+    container_name: holly-android-builder
+    volumes:
+      - holly_app_factory:/workspace
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    healthcheck:
+      test: ["CMD-SHELL", "java -version 2>&1 | grep -q '17'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
 volumes:
-  ecom_pgdata:
-  ecom_chromadata:
-  ecom_ollama:
+  holly_pgdata:
+  holly_chromadata:
+  holly_ollama:
+  holly_app_factory:
 
 networks:
   default:
-    name: ecom-agents
+    name: holly-grace
     driver: bridge

@@ -35,7 +35,7 @@ export function useExecutionStream() {
 
     const unsub = ws.subscribe(
       (raw) => {
-        const event = raw as ExecutionEvent;
+        const event = raw as unknown as ExecutionEvent;
 
         // Track active nodes
         if (event.type === 'node_entered' && event.node) {

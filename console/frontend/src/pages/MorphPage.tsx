@@ -422,26 +422,29 @@ export default function MorphPage() {
 
   const fetchAll = useCallback(async () => {
     try {
+      const opts = { credentials: 'include' as const };
       const [snapResp, goalsResp, cascResp, asmResp, cfgResp] = await Promise.all([
-        fetch('/api/morphogenetic/snapshot'),
-        fetch('/api/morphogenetic/goals'),
-        fetch('/api/morphogenetic/cascade'),
-        fetch('/api/morphogenetic/assembly'),
-        fetch('/api/morphogenetic/cascade/config'),
+        fetch('/api/morphogenetic/snapshot', opts),
+        fetch('/api/morphogenetic/goals', opts),
+        fetch('/api/morphogenetic/cascade', opts),
+        fetch('/api/morphogenetic/assembly', opts),
+        fetch('/api/morphogenetic/cascade/config', opts),
       ]);
 
-      const snapData = await snapResp.json();
-      const goalsData = await goalsResp.json();
-      const cascData = await cascResp.json();
-      const asmData = await asmResp.json();
-      const cfgData = await cfgResp.json();
+      const snapData = snapResp.ok ? await snapResp.json() : null;
+      const goalsData = goalsResp.ok ? await goalsResp.json() : {};
+      const cascData = cascResp.ok ? await cascResp.json() : {};
+      const asmData = asmResp.ok ? await asmResp.json() : null;
+      const cfgData = cfgResp.ok ? await cfgResp.json() : null;
 
-      setSnapshot(snapData);
+      if (snapData && !snapData.error) setSnapshot(snapData);
       setGoals(goalsData.goals || []);
       setCascades(cascData.events || []);
-      setAssembly(asmData);
-      setCascadeConfig(cfgData);
-      setConfigDraft(cfgData);
+      if (asmData && !asmData.error) setAssembly(asmData);
+      if (cfgData && !cfgData.error) {
+        setCascadeConfig(cfgData);
+        setConfigDraft(cfgData);
+      }
     } catch {
       // Endpoints may not be available yet
     } finally {
@@ -456,7 +459,7 @@ export default function MorphPage() {
   const runEvaluation = async () => {
     setEvaluating(true);
     try {
-      const resp = await fetch('/api/morphogenetic/evaluate', { method: 'POST' });
+      const resp = await fetch('/api/morphogenetic/evaluate', { method: 'POST', credentials: 'include' });
       const data = await resp.json();
       if (data.snapshot) {
         setSnapshot(data.snapshot);
@@ -529,7 +532,7 @@ export default function MorphPage() {
     if (!editingGoal) return;
     if (!window.confirm(`Delete goal "${editingGoal.display_name}"? This cannot be undone.`)) return;
     try {
-      const resp = await fetch(`/api/morphogenetic/goals/${editingGoal.goal_id}`, { method: 'DELETE' });
+      const resp = await fetch(`/api/morphogenetic/goals/${editingGoal.goal_id}`, { method: 'DELETE', credentials: 'include' });
       if (resp.ok) {
         showToast(`Goal "${editingGoal.display_name}" deleted`);
         setEditingGoal(null);
@@ -543,7 +546,7 @@ export default function MorphPage() {
   const handleResetGoals = async () => {
     if (!window.confirm('Reset all goals to defaults? Custom goals will be deleted.')) return;
     try {
-      const resp = await fetch('/api/morphogenetic/goals/reset', { method: 'POST' });
+      const resp = await fetch('/api/morphogenetic/goals/reset', { method: 'POST', credentials: 'include' });
       if (resp.ok) {
         showToast('Goals reset to defaults');
         await fetchAll();
@@ -562,6 +565,7 @@ export default function MorphPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(configDraft),
+        credentials: 'include',
       });
       if (resp.ok) {
         const data = await resp.json();
@@ -577,7 +581,7 @@ export default function MorphPage() {
   const handleResetConfig = async () => {
     if (!window.confirm('Reset cascade settings to defaults?')) return;
     try {
-      const resp = await fetch('/api/morphogenetic/cascade/config/reset', { method: 'POST' });
+      const resp = await fetch('/api/morphogenetic/cascade/config/reset', { method: 'POST', credentials: 'include' });
       if (resp.ok) {
         const data = await resp.json();
         setCascadeConfig(data);

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import Header from '@/components/layout/Header';
-import { fetchJson, postJson, putJson, deleteJson } from '@/lib/api';
+import { fetchJson, postJson, deleteJson } from '@/lib/api';
 import type { Workflow, WorkflowVersion, WorkflowCreatePayload } from '@/types/workflows';
 
 function formatDate(iso: string): string {

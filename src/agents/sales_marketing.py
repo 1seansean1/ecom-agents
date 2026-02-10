@@ -11,6 +11,8 @@ import logging
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
+from src.agent_registry import AgentConfigRegistry
+from src.agents.constitution import build_system_prompt
 from src.llm.config import ModelID
 from src.llm.fallback import get_model_with_fallbacks
 from src.llm.router import LLMRouter
@@ -38,9 +40,8 @@ Respond in JSON format:
 """
 
 
-def build_sales_marketing_node(router: LLMRouter):
+def build_sales_marketing_node(router: LLMRouter, registry: AgentConfigRegistry):
     """Build the sales/marketing graph node function."""
-    model = get_model_with_fallbacks(router, ModelID.GPT4O)
 
     def sales_marketing_node(state: AgentState) -> dict:
         """Handle sales/marketing tasks. May delegate to sub-agents."""
@@ -57,6 +58,9 @@ def build_sales_marketing_node(router: LLMRouter):
                 "sales_result": {"status": "delegated_to_sub_agents"},
             }
 
+        config = registry.get("sales_marketing")
+        model = get_model_with_fallbacks(router, ModelID(config.model_id))
+
         # Simple task: generate content directly
         task_description = ""
         if state.get("trigger_payload"):
@@ -68,7 +72,7 @@ def build_sales_marketing_node(router: LLMRouter):
                     break
 
         response = model.invoke([
-            SystemMessage(content=SALES_SYSTEM_PROMPT),
+            SystemMessage(content=build_system_prompt("sales_marketing", config.system_prompt)),
             HumanMessage(
                 content=f"Create an Instagram post for our store. Context: {task_description}"
             ),

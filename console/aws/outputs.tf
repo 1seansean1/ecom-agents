@@ -1,5 +1,5 @@
 output "cloudfront_url" {
-  description = "Forge Console URL (CloudFront)"
+  description = "Holly Grace URL (CloudFront)"
   value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
 }
 
@@ -8,14 +8,14 @@ output "alb_url" {
   value       = "http://${aws_lb.main.dns_name}"
 }
 
-output "ecr_forge_backend_url" {
-  description = "ECR repository URL for forge-console backend"
-  value       = aws_ecr_repository.forge_backend.repository_url
+output "ecr_holly_backend_url" {
+  description = "ECR repository URL for holly-grace backend"
+  value       = aws_ecr_repository.holly_backend.repository_url
 }
 
-output "ecr_ecom_agents_url" {
-  description = "ECR repository URL for ecom-agents"
-  value       = aws_ecr_repository.ecom_agents.repository_url
+output "ecr_holly_agents_url" {
+  description = "ECR repository URL for holly-grace"
+  value       = aws_ecr_repository.holly_agents.repository_url
 }
 
 output "s3_frontend_bucket" {

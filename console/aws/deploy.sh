@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Forge Console — AWS Deployment Script
+# Holly Grace — AWS Deployment Script
 # Usage: ./deploy.sh [init|build|push|deploy|frontend|all|destroy]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-AWS_REGION="${AWS_REGION:-us-east-1}"
+AWS_REGION="${AWS_REGION:-us-east-2}"
 
 # Colors
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
@@ -34,17 +34,18 @@ cmd_init() {
 cmd_build() {
     log "Building Docker images..."
 
-    # Build forge-console backend
-    log "Building forge-console backend..."
-    docker build -t forge-console/backend:latest "$PROJECT_ROOT/backend"
+    # Build holly-grace backend
+    log "Building holly-grace backend..."
+    docker build -t holly-grace/backend:latest "$PROJECT_ROOT/backend"
 
-    # Build ecom-agents (needs its own Dockerfile)
-    if [ -f "$PROJECT_ROOT/../ecom-agents/Dockerfile" ]; then
-        log "Building ecom-agents..."
-        docker build -t forge-console/ecom-agents:latest "$PROJECT_ROOT/../ecom-agents"
+    # Build holly-grace agents — console/ is inside holly-grace/, so go up two dirs
+    HOLLY_ROOT="$(dirname "$PROJECT_ROOT")"
+    if [ -f "$HOLLY_ROOT/Dockerfile" ]; then
+        log "Building holly-grace agents..."
+        docker build -t holly-grace/agents:latest "$HOLLY_ROOT"
     else
-        warn "ecom-agents Dockerfile not found at ../ecom-agents/Dockerfile"
-        warn "You'll need to build and tag ecom-agents manually."
+        warn "holly-grace Dockerfile not found at $HOLLY_ROOT/Dockerfile"
+        warn "You'll need to build and tag holly-grace agents manually."
     fi
 
     log "Build complete."
@@ -60,19 +61,19 @@ cmd_push() {
     # Get repo URLs from Terraform output
     cd "$SCRIPT_DIR"
     local BACKEND_REPO ECR_AGENTS_REPO
-    BACKEND_REPO=$(terraform output -raw ecr_forge_backend_url)
-    ECR_AGENTS_REPO=$(terraform output -raw ecr_ecom_agents_url)
+    BACKEND_REPO=$(terraform output -raw ecr_holly_backend_url)
+    ECR_AGENTS_REPO=$(terraform output -raw ecr_holly_agents_url)
 
-    log "Pushing forge-console backend..."
-    docker tag forge-console/backend:latest "$BACKEND_REPO:latest"
+    log "Pushing holly-grace backend..."
+    docker tag holly-grace/backend:latest "$BACKEND_REPO:latest"
     docker push "$BACKEND_REPO:latest"
 
-    if docker image inspect forge-console/ecom-agents:latest >/dev/null 2>&1; then
-        log "Pushing ecom-agents..."
-        docker tag forge-console/ecom-agents:latest "$ECR_AGENTS_REPO:latest"
+    if docker image inspect holly-grace/agents:latest >/dev/null 2>&1; then
+        log "Pushing holly-grace agents..."
+        docker tag holly-grace/agents:latest "$ECR_AGENTS_REPO:latest"
         docker push "$ECR_AGENTS_REPO:latest"
     else
-        warn "ecom-agents image not found locally, skipping push."
+        warn "holly-grace agents image not found locally, skipping push."
     fi
 
     log "Push complete."
@@ -86,8 +87,9 @@ cmd_deploy() {
     log "Forcing ECS service update..."
     local CLUSTER
     CLUSTER=$(terraform output -raw ecs_cluster_name)
-    aws ecs update-service --cluster "$CLUSTER" --service forge-backend --force-new-deployment --region "$AWS_REGION" >/dev/null
-    aws ecs update-service --cluster "$CLUSTER" --service ecom-agents --force-new-deployment --region "$AWS_REGION" >/dev/null
+    aws ecs update-service --cluster "$CLUSTER" --service holly-backend --force-new-deployment --region "$AWS_REGION" >/dev/null
+    aws ecs update-service --cluster "$CLUSTER" --service holly-agents --force-new-deployment --region "$AWS_REGION" >/dev/null
+    aws ecs update-service --cluster "$CLUSTER" --service chromadb --force-new-deployment --region "$AWS_REGION" >/dev/null
 
     log "Deployment initiated. Services will stabilize in ~2-3 minutes."
     echo ""
@@ -125,7 +127,7 @@ cmd_frontend() {
 }
 
 cmd_destroy() {
-    warn "This will destroy ALL AWS resources for Forge Console."
+    warn "This will destroy ALL AWS resources for Holly Grace."
     read -p "Are you sure? (yes/no): " confirm
     if [ "$confirm" = "yes" ]; then
         cd "$SCRIPT_DIR"

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ShieldCheck, ShieldAlert, Clock, XCircle, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Clock, XCircle, CheckCircle, RefreshCw, AlertTriangle } from 'lucide-react';
 
 interface Approval {
   id: number;
@@ -36,7 +36,7 @@ export default function ApprovalsPage() {
 
   const fetchApprovals = useCallback(async () => {
     try {
-      const resp = await fetch(`/api/approvals?status=${filter}`);
+      const resp = await fetch(`/api/approvals?status=${filter}`, { credentials: 'include' });
       const data = await resp.json();
       setApprovals(data.approvals || []);
     } catch {
@@ -56,6 +56,7 @@ export default function ApprovalsPage() {
     try {
       await fetch(`/api/approvals/${id}/${decision}`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decided_by: 'console' }),
       });

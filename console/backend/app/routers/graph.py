@@ -5,12 +5,12 @@ from __future__ import annotations
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from app.services.ecom_client import get_client
+from app.services.holly_client import get_client
 from app.services.graph_introspection import get_graph_definition
 
 router = APIRouter(prefix="/api/graph", tags=["graph"])
 
-_503 = {"error": "Cannot reach ecom-agents server"}
+_503 = {"error": "Cannot reach Holly Grace agents server"}
 
 
 @router.get("/definition")
@@ -21,7 +21,7 @@ async def graph_definition():
 
 @router.get("/metadata")
 async def graph_metadata():
-    """Batch metadata for all graph nodes (proxied to ecom-agents)."""
+    """Batch metadata for all graph nodes (proxied to Holly Grace agents)."""
     client = get_client()
     try:
         resp = await client.get("/graph/metadata")

@@ -82,7 +82,7 @@ resource "aws_cloudfront_distribution" "frontend" {
 
     forwarded_values {
       query_string = true
-      headers      = ["Authorization", "Origin", "Accept"]
+      headers      = ["Authorization", "Origin", "Accept", "Content-Type"]
       cookies {
         forward = "all"
       }

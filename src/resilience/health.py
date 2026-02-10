@@ -47,7 +47,7 @@ def check_postgres() -> bool:
         import psycopg
 
         db_url = os.environ.get(
-            "DATABASE_URL", "postgresql://ecom:ecom_dev_password@localhost:5434/ecom_agents"
+            "DATABASE_URL", "postgresql://holly:holly_dev_password@localhost:5434/holly_grace"
         )
         with psycopg.connect(db_url, connect_timeout=5) as conn:
             conn.execute("SELECT 1")

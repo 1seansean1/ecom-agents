@@ -16,6 +16,9 @@ import logging
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, StateGraph
 
+from src.agent_registry import AgentConfigRegistry
+from src.agents.constitution import build_system_prompt
+from src.aps.instrument import instrument_node
 from src.llm.config import ModelID
 from src.llm.fallback import get_model_with_fallbacks
 from src.llm.router import LLMRouter
@@ -24,19 +27,16 @@ from src.state import AgentState
 logger = logging.getLogger(__name__)
 
 
-def _build_content_writer(router: LLMRouter):
-    model = get_model_with_fallbacks(router, ModelID.GPT4O)
+def _build_content_writer(router: LLMRouter, registry: AgentConfigRegistry):
 
     def content_writer(state: AgentState) -> dict:
         logger.info("Sub-agent: content_writer starting")
+        config = registry.get("content_writer")
+        model = get_model_with_fallbacks(router, ModelID(config.model_id))
         task = json.dumps(state.get("trigger_payload", {}))
 
         response = model.invoke([
-            SystemMessage(
-                content="You are a creative copywriter for a print-on-demand e-commerce brand. "
-                "Write compelling Instagram post copy. Output JSON: "
-                '{"caption": "...", "tone": "...", "word_count": N}'
-            ),
+            SystemMessage(content=build_system_prompt("content_writer", config.system_prompt)),
             HumanMessage(content=f"Write post copy for this campaign: {task}"),
         ])
 
@@ -57,19 +57,16 @@ def _build_content_writer(router: LLMRouter):
     return content_writer
 
 
-def _build_image_selector(router: LLMRouter):
-    model = get_model_with_fallbacks(router, ModelID.GPT4O_MINI)
+def _build_image_selector(router: LLMRouter, registry: AgentConfigRegistry):
 
     def image_selector(state: AgentState) -> dict:
         logger.info("Sub-agent: image_selector starting")
+        config = registry.get("image_selector")
+        model = get_model_with_fallbacks(router, ModelID(config.model_id))
         task = json.dumps(state.get("trigger_payload", {}))
 
         response = model.invoke([
-            SystemMessage(
-                content="You are an image director for e-commerce. "
-                "Suggest the ideal product image composition. Output JSON: "
-                '{"image_description": "...", "style": "...", "background": "..."}'
-            ),
+            SystemMessage(content=build_system_prompt("image_selector", config.system_prompt)),
             HumanMessage(content=f"Select/describe the ideal image for: {task}"),
         ])
 
@@ -92,20 +89,17 @@ def _build_image_selector(router: LLMRouter):
     return image_selector
 
 
-def _build_hashtag_optimizer(router: LLMRouter):
-    model = get_model_with_fallbacks(router, ModelID.OLLAMA_QWEN)
+def _build_hashtag_optimizer(router: LLMRouter, registry: AgentConfigRegistry):
 
     def hashtag_optimizer(state: AgentState) -> dict:
         logger.info("Sub-agent: hashtag_optimizer starting")
+        config = registry.get("hashtag_optimizer")
+        model = get_model_with_fallbacks(router, ModelID(config.model_id))
         sub_results = state.get("sub_agent_results", {})
         caption = sub_results.get("content_writer", {}).get("caption", "")
 
         response = model.invoke([
-            SystemMessage(
-                content="You optimize Instagram hashtags for engagement. "
-                "Output JSON: "
-                '{"hashtags": ["#tag1", ...], "strategy": "..."}'
-            ),
+            SystemMessage(content=build_system_prompt("hashtag_optimizer", config.system_prompt)),
             HumanMessage(content=f"Optimize hashtags for this caption: {caption}"),
         ])
 
@@ -127,21 +121,16 @@ def _build_hashtag_optimizer(router: LLMRouter):
     return hashtag_optimizer
 
 
-def _build_campaign_analyzer(router: LLMRouter):
-    model = get_model_with_fallbacks(router, ModelID.CLAUDE_OPUS)
+def _build_campaign_analyzer(router: LLMRouter, registry: AgentConfigRegistry):
 
     def campaign_analyzer(state: AgentState) -> dict:
         logger.info("Sub-agent: campaign_analyzer starting")
+        config = registry.get("campaign_analyzer")
+        model = get_model_with_fallbacks(router, ModelID(config.model_id))
         sub_results = state.get("sub_agent_results", {})
 
         response = model.invoke([
-            SystemMessage(
-                content="You are a senior e-commerce strategist. Analyze the campaign materials "
-                "and provide performance predictions and strategic recommendations. "
-                "Output JSON: "
-                '{"expected_engagement_rate": "X%", "recommendations": [...], '
-                '"risk_factors": [...], "estimated_reach": N, "lesson_learned": "..."}'
-            ),
+            SystemMessage(content=build_system_prompt("campaign_analyzer", config.system_prompt)),
             HumanMessage(content=f"Analyze this campaign: {json.dumps(sub_results)}"),
         ])
 
@@ -175,7 +164,7 @@ def _build_campaign_analyzer(router: LLMRouter):
     return campaign_analyzer
 
 
-def build_sub_agent_subgraph(router: LLMRouter) -> StateGraph:
+def build_sub_agent_subgraph(router: LLMRouter, registry: AgentConfigRegistry) -> StateGraph:
     """Build the sub-agent subgraph for campaign tasks.
 
     Flow:
@@ -186,10 +175,10 @@ def build_sub_agent_subgraph(router: LLMRouter) -> StateGraph:
     """
     graph = StateGraph(AgentState)
 
-    graph.add_node("content_writer", _build_content_writer(router))
-    graph.add_node("image_selector", _build_image_selector(router))
-    graph.add_node("hashtag_optimizer", _build_hashtag_optimizer(router))
-    graph.add_node("campaign_analyzer", _build_campaign_analyzer(router))
+    graph.add_node("content_writer", instrument_node("K5", ModelID.GPT4O, _build_content_writer(router, registry)))
+    graph.add_node("image_selector", _build_image_selector(router, registry))
+    graph.add_node("hashtag_optimizer", _build_hashtag_optimizer(router, registry))
+    graph.add_node("campaign_analyzer", instrument_node("K6", ModelID.CLAUDE_OPUS, _build_campaign_analyzer(router, registry)))
 
     # Both content_writer and image_selector start from entry
     graph.set_entry_point("content_writer")

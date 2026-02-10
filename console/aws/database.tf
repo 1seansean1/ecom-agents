@@ -23,15 +23,15 @@ resource "aws_secretsmanager_secret_version" "db_password" {
 resource "aws_db_instance" "postgres" {
   identifier     = "${var.project_name}-postgres"
   engine         = "postgres"
-  engine_version = "16.4"
+  engine_version = "16.6"
   instance_class = var.db_instance_class
 
   allocated_storage     = 20
   max_allocated_storage = 50
   storage_encrypted     = true
 
-  db_name  = "ecom_agents"
-  username = "ecom_admin"
+  db_name  = "holly_agents"
+  username = "holly_admin"
   password = random_password.db_password.result
 
   db_subnet_group_name   = aws_db_subnet_group.main.name

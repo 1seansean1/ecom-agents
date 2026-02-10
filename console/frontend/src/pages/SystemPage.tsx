@@ -10,7 +10,6 @@ import {
   FileJson,
   Clock,
   Shield,
-  Trash2,
   Eye,
   ChevronDown,
   ChevronRight,
@@ -99,7 +98,7 @@ export default function SystemPage() {
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await fetch('/api/system/export');
+      const res = await fetch('/api/system/export', { credentials: 'include' });
       if (!res.ok) throw new Error(`Export failed: ${res.status}`);
       const data = await res.json();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -130,7 +129,7 @@ export default function SystemPage() {
     try {
       const text = await file.text();
       const json = JSON.parse(text);
-      if (json.format !== 'ecom-agents-system-image') {
+      if (json.format !== 'holly-grace-system-image') {
         showToast('Invalid system image format', 'error');
         return;
       }

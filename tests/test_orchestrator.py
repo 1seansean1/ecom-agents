@@ -15,7 +15,7 @@ from src.agents.orchestrator import (
 )
 
 
-def test_orchestrator_routes_order_check(router, sample_state, mock_llm_response):
+def test_orchestrator_routes_order_check(router, registry, sample_state, mock_llm_response):
     """Orchestrator should route order_check to operations."""
     mock_model = MagicMock()
     mock_model.invoke.return_value = mock_llm_response(
@@ -27,25 +27,21 @@ def test_orchestrator_routes_order_check(router, sample_state, mock_llm_response
     )
 
     with patch("src.agents.orchestrator.get_model_with_fallbacks", return_value=mock_model):
-        node = build_orchestrator_node(router)
+        node = build_orchestrator_node(router, registry)
         result = node(sample_state)
         assert result["task_type"] == "order_check"
         assert result["route_to"] == "operations"
         assert result["should_spawn_sub_agents"] is False
 
 
-def test_orchestrator_handles_malformed_json(router, sample_state, mock_llm_response):
+def test_orchestrator_handles_malformed_json(router, registry, sample_state, mock_llm_response):
     """Orchestrator should handle malformed LLM responses gracefully."""
-    from src.agents.orchestrator import build_orchestrator_node
-    from src.llm.config import ModelID
-    from src.llm.fallback import get_model_with_fallbacks
-
     # Mock the model
     mock_model = MagicMock()
     mock_model.invoke.return_value = mock_llm_response("This is not JSON at all")
 
     with patch("src.agents.orchestrator.get_model_with_fallbacks", return_value=mock_model):
-        node = build_orchestrator_node(router)
+        node = build_orchestrator_node(router, registry)
         result = node(sample_state)
 
         # Should fall back to defaults
@@ -54,7 +50,7 @@ def test_orchestrator_handles_malformed_json(router, sample_state, mock_llm_resp
         assert result["error"] == ""
 
 
-def test_orchestrator_spawns_sub_agents_for_campaign(router, mock_llm_response):
+def test_orchestrator_spawns_sub_agents_for_campaign(router, registry, mock_llm_response):
     """Orchestrator should set should_spawn_sub_agents for full_campaign."""
     mock_model = MagicMock()
     mock_model.invoke.return_value = mock_llm_response(
@@ -66,7 +62,7 @@ def test_orchestrator_spawns_sub_agents_for_campaign(router, mock_llm_response):
     )
 
     with patch("src.agents.orchestrator.get_model_with_fallbacks", return_value=mock_model):
-        node = build_orchestrator_node(router)
+        node = build_orchestrator_node(router, registry)
         state = {
             "messages": [HumanMessage(content="Launch a new campaign this week")],
             "trigger_payload": {},
@@ -78,7 +74,7 @@ def test_orchestrator_spawns_sub_agents_for_campaign(router, mock_llm_response):
         assert result["route_to"] == "sales_marketing"
 
 
-def test_orchestrator_no_spawn_for_simple_post(router, mock_llm_response):
+def test_orchestrator_no_spawn_for_simple_post(router, registry, mock_llm_response):
     """Orchestrator should NOT spawn sub-agents for content_post."""
     mock_model = MagicMock()
     mock_model.invoke.return_value = mock_llm_response(
@@ -90,7 +86,7 @@ def test_orchestrator_no_spawn_for_simple_post(router, mock_llm_response):
     )
 
     with patch("src.agents.orchestrator.get_model_with_fallbacks", return_value=mock_model):
-        node = build_orchestrator_node(router)
+        node = build_orchestrator_node(router, registry)
         state = {
             "messages": [HumanMessage(content="Post something on Instagram")],
             "trigger_payload": {},
@@ -101,12 +97,12 @@ def test_orchestrator_no_spawn_for_simple_post(router, mock_llm_response):
         assert result["should_spawn_sub_agents"] is False
 
 
-def test_orchestrator_no_task_description(router, mock_llm_response):
+def test_orchestrator_no_task_description(router, registry, mock_llm_response):
     """Orchestrator should return error when no task description is provided."""
     mock_model = MagicMock()
 
     with patch("src.agents.orchestrator.get_model_with_fallbacks", return_value=mock_model):
-        node = build_orchestrator_node(router)
+        node = build_orchestrator_node(router, registry)
         state = {"messages": [], "trigger_payload": {}}
         result = node(state)
 
@@ -119,7 +115,8 @@ def test_valid_task_types():
     assert "full_campaign" in VALID_TASK_TYPES
     assert "order_check" in VALID_TASK_TYPES
     assert "revenue_report" in VALID_TASK_TYPES
-    assert len(VALID_TASK_TYPES) == 7
+    assert "sage_chat" in VALID_TASK_TYPES
+    assert len(VALID_TASK_TYPES) == 8
 
 
 def test_valid_routes():
@@ -127,3 +124,4 @@ def test_valid_routes():
     assert "sales_marketing" in VALID_ROUTES
     assert "operations" in VALID_ROUTES
     assert "revenue_analytics" in VALID_ROUTES
+    assert "sage" in VALID_ROUTES

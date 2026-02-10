@@ -171,7 +171,7 @@ export default function CostsPage() {
                         fontSize: 12,
                         color: 'var(--color-text)',
                       }}
-                      formatter={(value: number) => [`$${(value ?? 0).toFixed(4)}`, 'Cost']}
+                      formatter={(value: number | undefined) => [`$${(value ?? 0).toFixed(4)}`, 'Cost']}
                     />
                     <Bar dataKey="cost" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                   </BarChart>
@@ -205,7 +205,7 @@ export default function CostsPage() {
                           <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => [`$${value.toFixed(4)}`]} />
+                      <Tooltip formatter={(value: number | undefined) => [`$${(value ?? 0).toFixed(4)}`]} />
                       <Legend
                         wrapperStyle={{ fontSize: 10, color: 'var(--color-text-muted)' }}
                       />
@@ -238,7 +238,7 @@ export default function CostsPage() {
                           <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => [`$${value.toFixed(4)}`]} />
+                      <Tooltip formatter={(value: number | undefined) => [`$${(value ?? 0).toFixed(4)}`]} />
                       <Legend
                         wrapperStyle={{ fontSize: 10, color: 'var(--color-text-muted)' }}
                       />
