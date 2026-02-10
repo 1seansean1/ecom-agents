@@ -312,6 +312,34 @@ _HARDCODED_DEFAULTS: dict[str, AgentConfig] = {
     ),
 }
 
+# ---------------------------------------------------------------------------
+# Construction Crew defaults (auto-generated from crew registry)
+# ---------------------------------------------------------------------------
+
+def _load_crew_defaults() -> None:
+    """Populate _HARDCODED_DEFAULTS with Construction Crew agents."""
+    from src.holly.crew.registry import CREW_AGENTS
+
+    _MODEL_MAP = {
+        "claude-opus-4-6": ModelID.CLAUDE_OPUS.value,
+        "gpt-4o": ModelID.GPT4O.value,
+        "gpt-4o-mini": ModelID.GPT4O_MINI.value,
+    }
+
+    for agent_id, crew_agent in CREW_AGENTS.items():
+        _HARDCODED_DEFAULTS[agent_id] = AgentConfig(
+            agent_id=agent_id,
+            channel_id="CREW",
+            display_name=crew_agent.display_name,
+            description=crew_agent.role,
+            model_id=_MODEL_MAP.get(crew_agent.model, ModelID.GPT4O.value),
+            system_prompt=crew_agent.system_prompt,
+            tool_ids=crew_agent.tools,
+            is_builtin=True,
+        )
+
+_load_crew_defaults()
+
 
 # ---------------------------------------------------------------------------
 # Registry

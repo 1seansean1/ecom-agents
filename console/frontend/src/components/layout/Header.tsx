@@ -1,9 +1,12 @@
+import type { ReactNode } from 'react';
+
 interface HeaderProps {
   title: string;
   subtitle?: string;
+  right?: ReactNode;
 }
 
-export default function Header({ title, subtitle }: HeaderProps) {
+export default function Header({ title, subtitle, right }: HeaderProps) {
   return (
     <header className="h-12 px-4 border-b border-[var(--color-border)] bg-[var(--color-bg-card)] flex items-center justify-between shrink-0">
       <div className="flex items-center gap-3">
@@ -13,6 +16,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
         )}
       </div>
       <div className="flex items-center gap-2">
+        {right}
         <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)]">
           <div className="w-2 h-2 rounded-full bg-[var(--color-success)] animate-pulse" />
           Holly Grace

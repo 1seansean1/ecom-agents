@@ -1340,7 +1340,54 @@ async def list_checkpoints(thread_id: str):
     return JSONResponse({"thread_id": thread_id, "checkpoints": checkpoints})
 
 
-# Add LangServe routes with Holly Grace callback injection
+# ---------------------------------------------------------------------------
+# Universal routing: /agent/invoke → Tower run (Phase 25d)
+# ---------------------------------------------------------------------------
+
+
+@app.post("/agent/invoke")
+async def agent_invoke_via_tower(request: Request):
+    """Intercept direct agent invocations and route through the Control Tower.
+
+    This ensures all workflow executions are durable, checkpointed, and auditable.
+    The original LangServe /agent/invoke is still available as /agent/direct
+    for backwards compatibility.
+    """
+    from src.tower.runner import start_run
+
+    body = await request.json()
+    input_state = body.get("input", {})
+
+    # Extract task description from messages if available
+    messages = input_state.get("messages", [])
+    task_desc = ""
+    if messages:
+        last_msg = messages[-1] if isinstance(messages, list) else messages
+        if isinstance(last_msg, dict):
+            task_desc = last_msg.get("content", "")[:80]
+        elif isinstance(last_msg, str):
+            task_desc = last_msg[:80]
+
+    run_id = start_run(
+        compiled_graph,
+        input_state=input_state,
+        workflow_id="default",
+        run_name=task_desc or "API invocation",
+        metadata={"source": "agent_invoke", "config": body.get("config", {})},
+        created_by="api",
+    )
+
+    return JSONResponse({
+        "output": {
+            "run_id": run_id,
+            "status": "queued",
+            "message": "Routed through Control Tower for durable execution. "
+                       "Use /tower/runs/{run_id} to track progress.",
+        },
+    })
+
+
+# Add LangServe routes at /agent/direct for backwards compatibility
 def _per_req_config_modifier(config: dict, request) -> dict:
     """Inject HollyEventCallbackHandler + APS trace_id into every invocation."""
     callbacks = config.get("callbacks", []) or []
@@ -1356,7 +1403,7 @@ def _per_req_config_modifier(config: dict, request) -> dict:
 add_routes(
     app,
     compiled_graph,
-    path="/agent",
+    path="/agent/direct",
     per_req_config_modifier=_per_req_config_modifier,
 )
 
