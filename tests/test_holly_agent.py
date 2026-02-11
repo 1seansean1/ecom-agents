@@ -296,12 +296,9 @@ class TestGreeting(unittest.TestCase):
         }
         from src.holly.agent import generate_greeting
         greeting = generate_greeting()
-        # Should contain one of the time-of-day words
-        self.assertTrue(
-            any(word in greeting.lower() for word in ("morning", "afternoon", "evening")),
-            f"Greeting missing time of day: {greeting}",
-        )
-        self.assertIn("Holly Grace", greeting)
+        # Greeting should be concise and contain status info
+        self.assertIn("Hey.", greeting)
+        self.assertIn("need", greeting.lower())
 
 
 # ============================================================================

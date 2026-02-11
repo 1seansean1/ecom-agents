@@ -154,11 +154,31 @@ async def lifespan(app: FastAPI):
     holly_consumer.start()
     logger.info("Holly Grace bus consumer started")
 
+    # Initialize Holly memory tables
+    try:
+        from src.holly.memory import init_memory_tables
+        init_memory_tables()
+        logger.info("Holly memory tables initialized")
+    except Exception:
+        logger.warning("Failed to init Holly memory tables (non-fatal)", exc_info=True)
+
+    # Start Holly autonomy loop (continuous execution daemon)
+    from src.holly.autonomy import get_autonomy_loop, seed_startup_objectives
+    holly_autonomy = get_autonomy_loop()
+    if os.environ.get("HOLLY_AUTONOMOUS", "0") == "1":
+        seed_startup_objectives()
+        holly_autonomy.start()
+        logger.info("Holly autonomy loop STARTED (HOLLY_AUTONOMOUS=1)")
+    else:
+        logger.info("Holly autonomy loop SKIPPED (set HOLLY_AUTONOMOUS=1 to enable)")
+
     scheduler.start()
     logger.info("Autonomous scheduler started — store is now running 24/7")
     yield
     scheduler.stop()
     logger.info("Autonomous scheduler stopped")
+    holly_autonomy.stop()
+    logger.info("Holly autonomy loop stopped")
     holly_consumer.stop()
     logger.info("Holly Grace bus consumer stopped")
     tower_worker.stop()

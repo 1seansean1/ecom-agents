@@ -587,6 +587,69 @@ def query_scheduled_jobs() -> dict:
 # MCP tool bridge — call any registered MCP tool
 # ---------------------------------------------------------------------------
 
+def store_memory_fact(category: str, content: str, source: str | None = None) -> dict:
+    """Store a key fact in Holly's long-term memory.
+
+    Facts persist across sessions and are retrieved in context assembly.
+    Categories help organize knowledge (e.g. 'system', 'revenue', 'crew',
+    'workflow', 'model', 'lesson_learned').
+    """
+    from src.holly.memory import store_fact
+
+    try:
+        fact_id = store_fact(category, content, source=source)
+        return {"stored": True, "fact_id": fact_id, "category": category}
+    except Exception as e:
+        return {"error": f"Failed to store fact: {e}"}
+
+
+def query_memory(category: str | None = None, limit: int = 20) -> dict:
+    """Query Holly's long-term memory facts and recent episodes.
+
+    Returns both facts (optionally filtered by category) and recent
+    episode summaries from completed tasks.
+    """
+    from src.holly.memory import get_facts, get_recent_episodes
+
+    try:
+        facts = get_facts(category=category, limit=limit)
+        episodes = get_recent_episodes(limit=10)
+        return {
+            "facts": facts,
+            "fact_count": len(facts),
+            "recent_episodes": episodes,
+            "episode_count": len(episodes),
+        }
+    except Exception as e:
+        return {"error": f"Memory query failed: {e}"}
+
+
+def query_autonomy_status() -> dict:
+    """Check the status of Holly's autonomous execution loop."""
+    from src.holly.autonomy import get_autonomy_status, get_queue_depth
+
+    try:
+        status = get_autonomy_status()
+        status["queue_depth"] = get_queue_depth()
+        return status
+    except Exception as e:
+        return {"error": f"Autonomy status unavailable: {e}"}
+
+
+def submit_autonomous_task(objective: str, priority: str = "normal") -> dict:
+    """Submit a new task to Holly's autonomous execution queue.
+
+    Tasks are processed in order (high-priority tasks jump the queue).
+    """
+    from src.holly.autonomy import submit_task
+
+    try:
+        task_id = submit_task(objective, priority=priority)
+        return {"submitted": True, "task_id": task_id, "priority": priority}
+    except Exception as e:
+        return {"error": f"Failed to submit task: {e}"}
+
+
 def call_mcp_tool(server_id: str, tool_name: str, arguments: dict | None = None) -> dict:
     """Call any tool on any registered MCP server.
 
@@ -630,6 +693,10 @@ HOLLY_TOOLS = {
     "query_hierarchy_gate": query_hierarchy_gate,
     "query_scheduled_jobs": query_scheduled_jobs,
     "call_mcp_tool": call_mcp_tool,
+    "store_memory_fact": store_memory_fact,
+    "query_memory": query_memory,
+    "query_autonomy_status": query_autonomy_status,
+    "submit_autonomous_task": submit_autonomous_task,
 }
 
 # Anthropic tool schemas for function calling
@@ -802,6 +869,47 @@ HOLLY_TOOL_SCHEMAS = [
                 "arguments": {"type": "object", "description": "Tool arguments as key-value pairs (varies by tool)"},
             },
             "required": ["server_id", "tool_name"],
+        },
+    },
+    {
+        "name": "store_memory_fact",
+        "description": "Store a key fact in long-term memory. Facts persist across sessions. Use categories like 'system', 'revenue', 'crew', 'workflow', 'model', 'lesson_learned', 'config'.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "Fact category for organization"},
+                "content": {"type": "string", "description": "The fact to store"},
+                "source": {"type": "string", "description": "Where this fact came from (optional)"},
+            },
+            "required": ["category", "content"],
+        },
+    },
+    {
+        "name": "query_memory",
+        "description": "Query long-term memory facts and recent task episodes. Use to recall past decisions, learned patterns, and system knowledge.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "Filter facts by category (optional)"},
+                "limit": {"type": "integer", "description": "Max facts to return (default 20)"},
+            },
+        },
+    },
+    {
+        "name": "query_autonomy_status",
+        "description": "Check the status of the autonomous execution loop: current task, queue depth, completed count.",
+        "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "submit_autonomous_task",
+        "description": "Submit a new task to the autonomous execution queue. High-priority tasks jump the queue.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "objective": {"type": "string", "description": "What to accomplish"},
+                "priority": {"type": "string", "enum": ["low", "normal", "high", "critical"], "description": "Task priority"},
+            },
+            "required": ["objective"],
         },
     },
 ]
