@@ -340,6 +340,22 @@ class AutonomousScheduler:
             replace_existing=True,
         )
 
+        # Signal Generator every 2 hours — cheap product description A/B testing
+        self._scheduler.add_job(
+            self._run_signal_generator,
+            trigger=IntervalTrigger(hours=2),
+            id="signal_generator",
+            replace_existing=True,
+        )
+
+        # Revenue Engine daily at 6am — SEO + content marketing pipeline
+        self._scheduler.add_job(
+            self._run_revenue_engine,
+            trigger=CronTrigger(hour=6, minute=0),
+            id="revenue_engine",
+            replace_existing=True,
+        )
+
         # Sage inbox listener — persistent IMAP IDLE (instant, not polled)
         from src.tools.email_inbox import start_inbox_listener
         start_inbox_listener(self._handle_inbound_message)
@@ -439,6 +455,35 @@ class AutonomousScheduler:
             workflow_id="solana_mining",
             run_name="Solana Mining Check",
         )
+
+    def _run_signal_generator(self):
+        """Run the signal generator workflow (product description A/B testing)."""
+        try:
+            from src.workflows.signal_generator import run_signal_generator
+            result = run_signal_generator()
+            logger.info(
+                "Signal generator: %d products, %d variants, %d updates",
+                result.get("products_analyzed", 0),
+                result.get("variants_generated", 0),
+                result.get("descriptions_updated", 0),
+            )
+        except Exception:
+            logger.exception("Signal generator job failed")
+
+    def _run_revenue_engine(self):
+        """Run the revenue engine workflow (SEO + content marketing)."""
+        try:
+            from src.workflows.revenue_engine import run_revenue_engine
+            result = run_revenue_engine()
+            logger.info(
+                "Revenue engine: %d analyzed, %d SEO fixes, %d posts, %d emails",
+                result.get("products_analyzed", 0),
+                result.get("seo_improvements", 0),
+                result.get("social_posts_generated", 0),
+                result.get("email_campaigns_drafted", 0),
+            )
+        except Exception:
+            logger.exception("Revenue engine job failed")
 
     def _expire_tower_tickets(self):
         """Expire stale Tower tickets."""

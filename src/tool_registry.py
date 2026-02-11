@@ -80,6 +80,10 @@ _TOOL_DEFINITIONS: list[ToolDefinition] = [
     ToolDefinition("solana_check_profitability", "SOL Profitability", "Check Solana mining/staking profitability and ROI", "src.tools.solana_tool", "solana_check_profitability", "solana"),
     ToolDefinition("solana_validator_health", "SOL Validator Health", "Check Solana validator uptime, skip rate, and delinquency", "src.tools.solana_tool", "solana_validator_health", "solana"),
     ToolDefinition("solana_mining_report", "SOL Mining Report", "Generate comprehensive mining report with profitability, health, and gate status", "src.tools.solana_tool", "solana_mining_report", "solana"),
+    # Shopify Content (product description optimization)
+    ToolDefinition("shopify_fetch_descriptions", "Fetch Descriptions", "Fetch Shopify products with full descriptionHtml for content analysis", "src.tools.shopify_content", "fetch_products_with_descriptions", "shopify"),
+    ToolDefinition("shopify_score_description", "Score Description", "Score a product description on readability, length, keywords, and structure", "src.tools.shopify_content", "score_product_description", "shopify"),
+    ToolDefinition("shopify_update_description", "Update Description", "Update a product description in Shopify", "src.tools.shopify_content", "update_product_description", "shopify"),
 ]
 
 # Lazy-loaded tool instances keyed by tool_id

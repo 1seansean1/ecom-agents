@@ -257,6 +257,72 @@ SOLANA_MINING_WORKFLOW = WorkflowDefinition(
 
 
 # ---------------------------------------------------------------------------
+# Signal Generator workflow definition
+# ---------------------------------------------------------------------------
+
+
+SIGNAL_GENERATOR_WORKFLOW = WorkflowDefinition(
+    workflow_id="signal_generator",
+    display_name="Signal Generator",
+    description=(
+        "Cheap, high-volume signal for epsilon tuning. Every 2 hours: "
+        "fetch Shopify products, score descriptions, generate variants via "
+        "GPT-4o-mini, pick winners, auto-update if >10pt improvement, "
+        "log APS eval results."
+    ),
+    nodes=[
+        WorkflowNodeDef("orchestrator", "orchestrator", {"x": 400, "y": 50}, is_entry_point=True),
+        WorkflowNodeDef("operations", "operations", {"x": 400, "y": 250}),
+    ],
+    edges=[
+        WorkflowEdgeDef(
+            "sg_e1", "orchestrator", "operations", "conditional",
+            conditions=[
+                {"target": "operations", "type": "field_equals", "field": "route_to", "value": "operations"},
+                {"target": "operations", "type": "default"},
+            ],
+        ),
+        WorkflowEdgeDef("sg_e2", "operations", "__end__", "direct"),
+    ],
+    error_config={"max_retries": 2},
+)
+
+
+# ---------------------------------------------------------------------------
+# Revenue Engine workflow definition
+# ---------------------------------------------------------------------------
+
+
+REVENUE_ENGINE_WORKFLOW = WorkflowDefinition(
+    workflow_id="revenue_engine",
+    display_name="Revenue Engine",
+    description=(
+        "Daily SEO optimization + content marketing pipeline. Audits product "
+        "SEO, fixes issues via GPT-4o-mini, generates social media content, "
+        "drafts re-engagement emails, tracks via APS evals."
+    ),
+    nodes=[
+        WorkflowNodeDef("orchestrator", "orchestrator", {"x": 400, "y": 50}, is_entry_point=True),
+        WorkflowNodeDef("sales_marketing", "sales_marketing", {"x": 250, "y": 250}),
+        WorkflowNodeDef("revenue_analytics", "revenue", {"x": 550, "y": 250}),
+    ],
+    edges=[
+        WorkflowEdgeDef(
+            "re_e1", "orchestrator", "sales_marketing", "conditional",
+            conditions=[
+                {"target": "sales_marketing", "type": "field_equals", "field": "route_to", "value": "sales_marketing"},
+                {"target": "revenue_analytics", "type": "field_equals", "field": "route_to", "value": "revenue_analytics"},
+                {"target": "sales_marketing", "type": "default"},
+            ],
+        ),
+        WorkflowEdgeDef("re_e2", "sales_marketing", "__end__", "direct"),
+        WorkflowEdgeDef("re_e3", "revenue_analytics", "__end__", "direct"),
+    ],
+    error_config={"max_retries": 2},
+)
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
@@ -364,11 +430,13 @@ class WorkflowRegistry:
         )
 
     def seed_defaults(self) -> None:
-        """Seed the default, App Factory, and Solana Mining workflows into the DB."""
+        """Seed all built-in workflows into the DB."""
         for wf, active in [
             (DEFAULT_WORKFLOW, True),
             (APP_FACTORY_WORKFLOW, False),
             (SOLANA_MINING_WORKFLOW, False),
+            (SIGNAL_GENERATOR_WORKFLOW, False),
+            (REVENUE_ENGINE_WORKFLOW, False),
         ]:
             defn = wf.to_dict()
             seed_workflow(

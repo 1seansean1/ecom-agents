@@ -134,6 +134,14 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Failed to seed goal hierarchy", exc_info=True)
 
+    # Apply enneagram personality profiles to Construction Crew prompts
+    try:
+        from src.holly.crew.registry import apply_enneagram_prompts
+        updated = apply_enneagram_prompts()
+        logger.info("Enneagram personality applied to %d crew agents", updated)
+    except Exception:
+        logger.warning("Failed to apply enneagram prompts (non-fatal)", exc_info=True)
+
     # Initialize Redis Streams message bus (5 streams + consumer groups)
     from src.bus import ensure_consumer_groups
     try:

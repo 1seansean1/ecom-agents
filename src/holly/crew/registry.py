@@ -482,3 +482,24 @@ def list_crew() -> list[dict]:
         }
         for a in CREW_AGENTS.values()
     ]
+
+
+def apply_enneagram_prompts() -> int:
+    """Append enneagram personality sections to all crew agent prompts.
+
+    Called once at startup. Idempotent — skips agents that already have
+    the personality section.  Returns count of agents updated.
+    """
+    from src.holly.crew.enneagram import build_enneagram_prompt_section
+
+    updated = 0
+    for agent_id, agent in CREW_AGENTS.items():
+        if "Enneagram" in agent.system_prompt:
+            continue  # Already applied
+        section = build_enneagram_prompt_section(agent_id)
+        if section:
+            agent.system_prompt = agent.system_prompt.rstrip() + "\n" + section
+            updated += 1
+    if updated:
+        logger.info("Applied enneagram personality to %d crew agents", updated)
+    return updated

@@ -650,6 +650,157 @@ def submit_autonomous_task(objective: str, priority: str = "normal") -> dict:
         return {"error": f"Failed to submit task: {e}"}
 
 
+def tune_epsilon(
+    goal_id: str | None = None,
+    action: str = "status",
+    new_epsilon: float | None = None,
+) -> dict:
+    """Inspect or adjust APS epsilon values for morphogenetic goals.
+
+    Actions:
+      - "status": Get current epsilon values for all goals (or one goal)
+      - "adjust": Change epsilon_G for a goal (requires goal_id + new_epsilon)
+      - "revenue_phase": Get current revenue phase and epsilon_R
+      - "costs": Get model cost summary and per-workflow spending
+
+    Args:
+        goal_id: Specific goal to inspect/adjust (optional for status/revenue_phase).
+        action: One of "status", "adjust", "revenue_phase", "costs".
+        new_epsilon: New epsilon_G value (only for action="adjust", 0.0-1.0).
+    """
+    if action == "revenue_phase":
+        try:
+            from src.aps.revenue_epsilon import get_revenue_epsilon
+            from src.aps.financial_health import get_latest_health
+
+            epsilon_r = get_revenue_epsilon()
+            health = get_latest_health()
+            phase = "unknown"
+            if health:
+                from src.aps.revenue_epsilon import _classify_phase
+                phase = _classify_phase(health)
+            return {
+                "epsilon_r": epsilon_r,
+                "phase": phase,
+                "monthly_revenue": health.monthly_revenue if health else 0,
+                "balance": health.balance if health else 0,
+            }
+        except Exception as e:
+            return {"error": f"Revenue phase unavailable: {e}"}
+
+    if action == "costs":
+        try:
+            from src.llm.cost_config import get_cost_summary, get_total_cost_by_workflow
+            return {
+                "models": get_cost_summary(),
+                "per_workflow": get_total_cost_by_workflow(),
+            }
+        except Exception as e:
+            return {"error": f"Cost data unavailable: {e}"}
+
+    if action == "status":
+        try:
+            from src.morphogenetic.goals import get_default_goal_specs
+            goals = get_default_goal_specs()
+            if goal_id:
+                goals = [g for g in goals if g.goal_id == goal_id]
+                if not goals:
+                    return {"error": f"Goal '{goal_id}' not found"}
+            return {
+                "goals": [
+                    {
+                        "goal_id": g.goal_id,
+                        "display_name": g.display_name,
+                        "epsilon_g": g.epsilon_g,
+                        "horizon_t": g.horizon_t,
+                        "primary_tier": g.primary_tier,
+                        "priority": g.priority,
+                    }
+                    for g in goals
+                ],
+                "count": len(goals),
+            }
+        except Exception as e:
+            return {"error": f"Goal status unavailable: {e}"}
+
+    if action == "adjust":
+        if not goal_id:
+            return {"error": "goal_id is required for action='adjust'"}
+        if new_epsilon is None or not (0.0 <= new_epsilon <= 1.0):
+            return {"error": "new_epsilon must be between 0.0 and 1.0"}
+        try:
+            from src.aps.store import get_goal, upsert_goal
+            existing = get_goal(goal_id)
+            if not existing:
+                return {"error": f"Goal '{goal_id}' not found in DB"}
+            old_epsilon = existing.get("epsilon_g", 0)
+            existing["epsilon_g"] = new_epsilon
+            upsert_goal(existing)
+            logger.info("Epsilon adjusted for %s: %.4f → %.4f", goal_id, old_epsilon, new_epsilon)
+            return {
+                "adjusted": True,
+                "goal_id": goal_id,
+                "old_epsilon": old_epsilon,
+                "new_epsilon": new_epsilon,
+            }
+        except Exception as e:
+            return {"error": f"Failed to adjust epsilon: {e}"}
+
+    return {"error": f"Unknown action: {action}. Use 'status', 'adjust', 'revenue_phase', or 'costs'."}
+
+
+def run_workflow(workflow_name: str) -> dict:
+    """Manually trigger a registered workflow (signal_generator or revenue_engine).
+
+    Args:
+        workflow_name: One of "signal_generator" or "revenue_engine".
+    """
+    if workflow_name == "signal_generator":
+        try:
+            from src.workflows.signal_generator import run_signal_generator
+            result = run_signal_generator()
+            return {"status": "completed", "workflow": workflow_name, "summary": result}
+        except Exception as e:
+            return {"error": f"Signal generator failed: {e}"}
+
+    elif workflow_name == "revenue_engine":
+        try:
+            from src.workflows.revenue_engine import run_revenue_engine
+            result = run_revenue_engine()
+            return {"status": "completed", "workflow": workflow_name, "summary": result}
+        except Exception as e:
+            return {"error": f"Revenue engine failed: {e}"}
+
+    return {"error": f"Unknown workflow: {workflow_name}. Options: signal_generator, revenue_engine"}
+
+
+def query_crew_enneagram(agent_id: str | None = None) -> dict:
+    """Query crew enneagram personality profiles and team balance.
+
+    Args:
+        agent_id: Optional specific crew agent to inspect.
+    """
+    from src.holly.crew.enneagram import get_crew_type, get_coupling_axes, get_team_balance_report
+
+    if agent_id:
+        etype = get_crew_type(agent_id)
+        if not etype:
+            return {"error": f"No enneagram type for '{agent_id}'"}
+        axes = get_coupling_axes(agent_id)
+        return {
+            "agent_id": agent_id,
+            "type": etype.number,
+            "name": etype.name,
+            "triad": etype.triad,
+            "core_desire": etype.core_desire,
+            "core_fear": etype.core_fear,
+            "voice_traits": etype.voice_traits,
+            "coupling_axes": axes,
+        }
+
+    return get_team_balance_report()
+
+
 def call_mcp_tool(server_id: str, tool_name: str, arguments: dict | None = None) -> dict:
     """Call any tool on any registered MCP server.
 
@@ -692,6 +843,9 @@ HOLLY_TOOLS = {
     "query_workflows": query_workflows,
     "query_hierarchy_gate": query_hierarchy_gate,
     "query_scheduled_jobs": query_scheduled_jobs,
+    "tune_epsilon": tune_epsilon,
+    "run_workflow": run_workflow,
+    "query_crew_enneagram": query_crew_enneagram,
     "call_mcp_tool": call_mcp_tool,
     "store_memory_fact": store_memory_fact,
     "query_memory": query_memory,
@@ -857,6 +1011,39 @@ HOLLY_TOOL_SCHEMAS = [
         "name": "query_scheduled_jobs",
         "description": "List all scheduled jobs with their next run times and triggers.",
         "input_schema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "tune_epsilon",
+        "description": "Inspect or adjust APS epsilon values. Actions: 'status' (list goal epsilons), 'adjust' (change a goal's epsilon_G), 'revenue_phase' (current phase + epsilon_R), 'costs' (model pricing + per-workflow spend).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "goal_id": {"type": "string", "description": "Goal ID to inspect or adjust"},
+                "action": {"type": "string", "enum": ["status", "adjust", "revenue_phase", "costs"], "description": "What to do"},
+                "new_epsilon": {"type": "number", "description": "New epsilon value (0.0-1.0, only for adjust)"},
+            },
+        },
+    },
+    {
+        "name": "run_workflow",
+        "description": "Manually trigger a registered workflow. Options: 'signal_generator' (A/B test product descriptions) or 'revenue_engine' (SEO + content marketing).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workflow_name": {"type": "string", "enum": ["signal_generator", "revenue_engine"], "description": "Which workflow to run"},
+            },
+            "required": ["workflow_name"],
+        },
+    },
+    {
+        "name": "query_crew_enneagram",
+        "description": "Query crew personality profiles (enneagram types, coupling axes, team balance). Pass agent_id for one agent, or omit for full team report.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "agent_id": {"type": "string", "description": "Optional crew agent ID to inspect"},
+            },
+        },
     },
     {
         "name": "call_mcp_tool",
