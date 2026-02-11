@@ -87,9 +87,13 @@ cd ../frontend && npm install && npm run dev  # :3000
 
 ### Deploy Pipeline (7 Steps)
 
-```bash
-# 1. Build
-cd ecom-agents
+```powershell
+# 0. Find current image tag
+aws ecr describe-images --repository-name holly-grace/holly-grace --region us-east-2 `
+  --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text
+# Increment this → vN
+
+# 1. Build (exit code 1 is normal — Docker Scout prints a suggestion)
 docker build -f Dockerfile.production -t holly-grace:vN .
 
 # 2. Tag
@@ -105,22 +109,43 @@ docker push 327416545926.dkr.ecr.us-east-2.amazonaws.com/holly-grace/holly-grace
 # Edit deploy/task-definition.json → change image tag to :vN
 aws ecs register-task-definition --cli-input-json file://deploy/task-definition.json --region us-east-2
 
-# 6. Deploy
-aws ecs update-service --cluster holly-grace-cluster --service holly-grace --task-definition holly-grace-holly-grace --force-new-deployment --desired-count 1 --region us-east-2
+# 6. Deploy (use the revision number from step 5 output)
+aws ecs update-service --cluster holly-grace-cluster --service holly-grace `
+  --task-definition holly-grace-holly-grace:REVISION `
+  --force-new-deployment --desired-count 1 --region us-east-2
 
 # 7. Wait and verify
 aws ecs wait services-stable --cluster holly-grace-cluster --services holly-grace --region us-east-2
-curl http://holly-grace-alb-708960690.us-east-2.elb.amazonaws.com/api/health
+Invoke-RestMethod -Uri 'http://holly-grace-alb-708960690.us-east-2.elb.amazonaws.com/api/health'
 ```
+
+> **Note — Windows/PowerShell gotchas:**
+> - Use `Invoke-RestMethod` not `curl` (PowerShell aliases `curl` to `Invoke-WebRequest` which has different flags)
+> - Use backtick `` ` `` for line continuation, not `\`
+> - Use `;` to chain commands, not `&&` (which is invalid in PowerShell 5.x)
+> - Docker build may return exit code 1 even on success due to Docker Scout output — check for "naming to docker.io/..." in the output to confirm the image was created
 
 ### Post-Deploy Verification
 
-1. Health check: `GET /api/health` returns `{"status": "healthy"}`
-2. Login: Console login works (test cookie in browser)
-3. Holly: Send a message in the Holly sidebar — should stream a response
-4. Scheduler: `GET /api/scheduler/jobs` shows 18+ jobs
-5. Autonomy: `GET /api/autonomy/status` shows `running: true` (if HOLLY_AUTONOMOUS=1)
-6. CloudWatch: No ERROR-level logs in the first 5 minutes
+**Without auth (immediate — run from terminal):**
+
+1. Health check: `GET /api/health` → expect `"status": "degraded"` (not "healthy" — Ollama is absent in production, which is expected per ADR-001; critical checks postgres/redis/chromadb must all be `true`)
+2. CloudWatch: No ERROR-level logs in the first 5 minutes:
+   ```powershell
+   aws logs filter-log-events --log-group-name '/ecs/holly-grace/holly-grace' `
+     --filter-pattern 'ERROR' `
+     --start-time ([DateTimeOffset]::UtcNow.AddMinutes(-5).ToUnixTimeMilliseconds()) `
+     --region us-east-2 --query 'events[*].message' --output json
+   ```
+
+**With auth (requires browser login to console):**
+
+3. Login: Console login works at `http://holly-grace-alb-708960690.us-east-2.elb.amazonaws.com`
+4. Holly: Send a message in the Holly sidebar — should stream a response
+5. Scheduler: `GET /api/scheduler/jobs` shows 18+ jobs (visible on Scheduler page)
+6. Autonomy: `GET /api/holly/autonomy/status` shows `running: true`, `thread_alive: true` (if HOLLY_AUTONOMOUS=1)
+
+> **Why "degraded" is normal:** The health check includes an Ollama check. Production doesn't run Ollama (it remaps to GPT-4o-mini). The ALB health check targets `/api/health` with a 200 status code expectation — this passes because all *critical* checks (postgres, redis, chromadb) are healthy (HTTP 200). Ollama failure only downgrades status text to "degraded", not the HTTP status code.
 
 ### Rollback
 
@@ -229,7 +254,7 @@ aws logs tail /ecs/holly-grace/holly-grace --since 5m --region us-east-2
 
 | Endpoint | What It Shows |
 |----------|--------------|
-| `GET /health` | Service health (postgres, redis, chromadb, ollama) |
+| `GET /health` | Service health — returns "degraded" in prod (no Ollama); critical: postgres, redis, chromadb must be `true` |
 | `GET /holly/autonomy/status` | Autonomy loop: running, paused, queue depth, errors |
 | `GET /scheduler/jobs` | All 18 scheduled jobs with next run time |
 | `GET /scheduler/dlq` | Dead letter queue (failed tasks awaiting retry) |
@@ -241,12 +266,19 @@ aws logs tail /ecs/holly-grace/holly-grace --since 5m --region us-east-2
 
 ### CloudWatch Commands
 
-```bash
-# Tail logs
+```powershell
+# Tail logs (Linux/WSL)
 aws logs tail /ecs/holly-grace/holly-grace --follow --region us-east-2
 
-# Search for errors
-aws logs filter-log-events --log-group-name /ecs/holly-grace/holly-grace --filter-pattern "ERROR" --start-time $(date -d '1 hour ago' +%s000) --region us-east-2
+# Search for errors (PowerShell — last hour)
+aws logs filter-log-events --log-group-name '/ecs/holly-grace/holly-grace' `
+  --filter-pattern 'ERROR' `
+  --start-time ([DateTimeOffset]::UtcNow.AddHours(-1).ToUnixTimeMilliseconds()) `
+  --region us-east-2 --query 'events[*].message' --output json
+
+# Search for errors (Linux/WSL — last hour)
+aws logs filter-log-events --log-group-name /ecs/holly-grace/holly-grace \
+  --filter-pattern "ERROR" --start-time $(date -d '1 hour ago' +%s000) --region us-east-2
 ```
 
 ---
@@ -262,11 +294,27 @@ Before adding any new feature, answer:
 
 ### Project-Specific Gotchas
 
+**Code:**
 - SQL: Never use f-strings in SQL — use parameterized queries (scanner flags violations)
 - Hypothesis tests: Always use `deadline=None` + `suppress_health_check` with function-scoped fixtures
 - Mock paths: Lazy imports inside functions → patch at source module, not caller
 - LangGraph 0.6.x: `interrupt()` with checkpointer doesn't raise `GraphInterrupt` — detect via `snapshot.next`
-- Windows: Set `PYTHONUTF8=1` before running agents server
-- Python: Use `py -3.11` (3.14 is default but too new for most packages)
-- Docker: GPU passthrough needs `deploy.resources.reservations.devices` in compose
 - Cookies: ALB over HTTP → don't set `Secure` flag (conditional on X-Forwarded-Proto)
+
+**Testing:**
+- Any test calling `_execute_task()` must mock `_log_audit` — it connects to Postgres and will hang without Docker
+- `bool(MagicMock())` is `True` — always set `.return_value` explicitly when code checks truthiness
+- Thread liveness tests: mock long-running targets to block (not return instantly) to avoid timing races with `is_alive()`
+
+**Environment (Windows):**
+- Set `PYTHONUTF8=1` before running agents server
+- Use `py -3.11` (3.14 is default but too new for most packages)
+- Docker build exit code 1 is normal (Docker Scout output) — check for "naming to docker.io/..." to confirm success
+- PowerShell: use `Invoke-RestMethod` not `curl`, use `;` not `&&`, use heredoc (`@' ... '@`) for multiline git commit messages
+- Docker: GPU passthrough needs `deploy.resources.reservations.devices` in compose
+
+**Deployment:**
+- Always pin the task definition revision in `update-service` (e.g., `holly-grace-holly-grace:16`), don't rely on `:latest`
+- Commit `deploy/task-definition.json` image tag bump separately so it's in git history for rollback reference
+- `/health` returns "degraded" in production (Ollama absent) — this is expected; verify critical checks are `true`
+- Most API endpoints require JWT auth — only `/health` is verifiable without logging in
