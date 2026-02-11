@@ -2004,6 +2004,15 @@ async def holly_message(request: Request):
             "session_id": session_id,
         })
     except Exception as e:
+        error_str = str(e)
+        if "credit balance is too low" in error_str:
+            logger.warning("Holly Grace: Anthropic API credits exhausted")
+            return JSONResponse({
+                "response": "My brain's offline — Anthropic API credits ran out. "
+                            "Sean needs to top up at console.anthropic.com/settings/billing. "
+                            "Everything else (Tower, scheduler, hierarchy) is still running fine.",
+                "session_id": session_id,
+            })
         logger.exception("Holly Grace message error")
         return JSONResponse({"error": str(e)}, status_code=500)
 
