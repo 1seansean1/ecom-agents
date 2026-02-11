@@ -17,7 +17,13 @@ logger = logging.getLogger(__name__)
 
 
 _ESSENTIAL_ENV_KEYS = {
-    # Windows essentials for subprocesses
+    # Cross-platform essentials for subprocesses
+    "PATH",
+    "HOME",
+    "USER",
+    "LANG",
+    "PYTHONPATH",
+    # Windows essentials
     "SystemRoot",
     "ComSpec",
     "PATHEXT",
