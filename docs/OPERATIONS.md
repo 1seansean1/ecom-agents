@@ -324,6 +324,23 @@ Before adding any new feature, answer:
 
 ## Deployment Log & Lessons Learned
 
+### v13 — 2026-02-11 (Autonomy dashboard fixes + ALB port fix)
+
+**What shipped:** 7 files changed, 413 lines added. Persistent audit counters, "Recently Processed" panel, auto-refresh, retry button, better outcome badges. 49 autonomy tests (11 new + 38 existing) all passing. Task def rev 18.
+
+**Issue 1 — ALB target group registered on port 80, app serves on port 8050**
+
+- **What happened:** After deploying v13, the ALB returned 502 Bad Gateway. New ECS tasks kept failing the ALB health check and being replaced in a loop.
+- **Root cause:** The ECS service was originally created with `containerPort: 80` in its `loadBalancers` config, and the target group `holly-grace-console-tg` had port 80 as its default. But the container only runs uvicorn on port 8050 — nothing listens on port 80. The ALB health check was also hitting port 80 at `/` (wrong).
+- **Why v12 appeared to work:** The old v12 task happened to be registered and healthy from a prior configuration. New tasks registered on port 80 always failed.
+- **Fix (3 steps):**
+  1. Created new target group `holly-grace-agents-tg` on port 8050 with health check `/health` on port 8050
+  2. Updated ALB listener to forward to the new target group
+  3. Deleted and recreated the ECS service with `containerPort: 8050`
+- **Prevention:** Always verify that the ECS service's `containerPort` in `loadBalancers` matches the port the application actually listens on. The target group port, health check port, and container port must all align.
+- **Time cost:** ~15 minutes (diagnose health check mismatch, create new TG, recreate service).
+- **Infrastructure changes:** Old TG `holly-grace-console-tg` (port 80) deleted. New TG `holly-grace-agents-tg` (port 8050) active. Service recreated with containerPort 8050.
+
 ### v12 — 2026-02-11 (Bootstrap Exit: code-write, deploy, self-repair, observability, revenue seeds)
 
 **What shipped:** 31 files changed, 8590 lines added. 5 MCP servers (24 tools), 35 Holly tools, code_change + deploy workflows, 7 ops tools, 9 revenue seed tasks. Task def rev 17.
