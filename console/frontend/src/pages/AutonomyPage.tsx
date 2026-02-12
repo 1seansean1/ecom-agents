@@ -8,6 +8,7 @@ const API_BASE = '/api/autonomy';
 export default function AutonomyPage() {
   const [status, setStatus] = useState<AutonomyStatus | null>(null);
   const [queue, setQueue] = useState<QueuedTask[]>([]);
+  const [recent, setRecent] = useState<AuditLog[]>([]);
   const [audit, setAudit] = useState<AuditLog[]>([]);
   const [auditTotal, setAuditTotal] = useState(0);
   const [auditPage, setAuditPage] = useState(0);
@@ -22,6 +23,10 @@ export default function AutonomyPage() {
     fetchJson<{ tasks: QueuedTask[] }>(`${API_BASE}/queue`).then((r) => setQueue(r?.tasks ?? [])).catch(() => {});
   }, []);
 
+  const loadRecent = useCallback(() => {
+    fetchJson<{ tasks: AuditLog[] }>(`${API_BASE}/recent?minutes=5&limit=10`).then((r) => setRecent(r?.tasks ?? [])).catch(() => {});
+  }, []);
+
   const loadAudit = useCallback(() => {
     fetchJson<{ logs: AuditLog[]; total: number }>(`${API_BASE}/audit?limit=${AUDIT_LIMIT}&offset=${auditPage * AUDIT_LIMIT}`)
       .then((r) => {
@@ -34,13 +39,16 @@ export default function AutonomyPage() {
   useEffect(() => {
     loadStatus();
     loadQueue();
+    loadRecent();
     loadAudit();
     const interval = setInterval(() => {
       loadStatus();
       loadQueue();
+      loadRecent();
+      loadAudit();
     }, 5000);
     return () => clearInterval(interval);
-  }, [loadStatus, loadQueue, loadAudit]);
+  }, [loadStatus, loadQueue, loadRecent, loadAudit]);
 
   useEffect(() => {
     loadAudit();
@@ -68,6 +76,14 @@ export default function AutonomyPage() {
     loadStatus();
   };
 
+  const handleRetryTask = async (entry: AuditLog) => {
+    await fetch(`${API_BASE}/retry/${entry.task_id}`, { method: 'POST' });
+    loadQueue();
+    loadRecent();
+    loadAudit();
+    loadStatus();
+  };
+
   const paused = status?.paused;
   const running = status?.running;
 
@@ -78,6 +94,8 @@ export default function AutonomyPage() {
     if (outcome === 'completed') return { bg: '#22c55e20', color: '#22c55e', label: 'OK' };
     if (outcome === 'failed') return { bg: '#ef444420', color: '#ef4444', label: 'FAIL' };
     if (outcome === 'credit_paused') return { bg: '#eab30820', color: '#eab308', label: 'CREDIT' };
+    if (outcome === 'retrying') return { bg: '#eab30820', color: '#eab308', label: 'RETRY' };
+    if (outcome === 'exhausted_retries') return { bg: '#ef444420', color: '#ef4444', label: 'EXHAUSTED' };
     return { bg: '#6b728020', color: '#6b7280', label: outcome };
   };
 
@@ -129,10 +147,11 @@ export default function AutonomyPage() {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-6 gap-4">
             {[
               { label: 'Queue Depth', value: status?.queue_depth ?? '-' },
               { label: 'Tasks Done', value: status?.tasks_completed ?? '-' },
+              { label: 'Failed', value: status?.failed_count ?? '-' },
               { label: 'Errors', value: status?.consecutive_errors ?? '-' },
               { label: 'Monitor Interval', value: status?.monitor_interval ? `${status.monitor_interval}s` : '-' },
               { label: 'Idle Sweeps', value: status?.idle_sweeps ?? '-' },
@@ -194,6 +213,33 @@ export default function AutonomyPage() {
           )}
         </div>
 
+        {/* Recently Processed Panel */}
+        {recent.length > 0 && (
+          <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg">
+            <div className="px-4 py-2 border-b border-[var(--color-border)]">
+              <span className="text-sm font-medium text-[var(--color-text)]">Recently Processed ({recent.length})</span>
+              <span className="text-[10px] text-[var(--color-text-muted)] ml-2">last 5 minutes</span>
+            </div>
+            <div>
+              {recent.map((entry) => {
+                const ob = outcomeBadge(entry.outcome);
+                return (
+                  <div key={`recent-${entry.id}`} className="px-4 py-2 border-b border-[var(--color-border)] flex items-center gap-3 text-xs">
+                    <span className="text-[var(--color-text-muted)] w-16 shrink-0">{relTime(entry.finished_at)}</span>
+                    <span className="font-mono w-16 shrink-0 text-[var(--color-text-muted)]">{entry.task_id}</span>
+                    <span className="w-24 shrink-0 text-[var(--color-text-muted)]">{entry.task_type}</span>
+                    <span style={{ background: ob.bg, color: ob.color }} className="px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0">
+                      {ob.label}
+                    </span>
+                    <span className="text-[var(--color-text-muted)] shrink-0 w-14 text-right">{entry.duration_sec.toFixed(1)}s</span>
+                    <span className="text-[var(--color-text)] truncate flex-1">{entry.objective.slice(0, 100)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Audit Log */}
         <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg">
           <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--color-border)]">
@@ -207,7 +253,7 @@ export default function AutonomyPage() {
                 Prev
               </button>
               <span className="text-[var(--color-text-muted)] py-0.5">
-                {auditPage * AUDIT_LIMIT + 1}–{Math.min((auditPage + 1) * AUDIT_LIMIT, auditTotal)} of {auditTotal}
+                {auditTotal > 0 ? `${auditPage * AUDIT_LIMIT + 1}\u2013${Math.min((auditPage + 1) * AUDIT_LIMIT, auditTotal)} of ${auditTotal}` : '0'}
               </span>
               <button
                 disabled={(auditPage + 1) * AUDIT_LIMIT >= auditTotal}
@@ -249,6 +295,14 @@ export default function AutonomyPage() {
                         <div className="text-[var(--color-text-muted)]">
                           Started: {new Date(entry.started_at).toLocaleString()} | Finished: {new Date(entry.finished_at).toLocaleString()}
                         </div>
+                        {entry.outcome === 'exhausted_retries' && (
+                          <button
+                            onClick={() => handleRetryTask(entry)}
+                            className="mt-1 text-[10px] px-2 py-0.5 rounded border border-[#f97316] text-[#f97316] hover:bg-[#f9731610] transition-colors"
+                          >
+                            Resubmit to Queue
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>

@@ -94,6 +94,30 @@ def get_queue_depth() -> int:
         return 0
 
 
+def get_completed_count() -> int:
+    """Count completed tasks from audit log (persistent, survives restarts)."""
+    return _count_by_outcome("completed")
+
+
+def get_failed_count() -> int:
+    """Count exhausted_retries tasks from audit log."""
+    return _count_by_outcome("exhausted_retries")
+
+
+def _count_by_outcome(outcome: str) -> int:
+    """Count audit log entries by outcome."""
+    import psycopg
+    try:
+        with psycopg.connect(_get_pg_dsn(), autocommit=True) as conn:
+            row = conn.execute(
+                "SELECT count(*) AS cnt FROM holly_autonomy_audit WHERE outcome = %s",
+                (outcome,),
+            ).fetchone()
+            return row[0] if row else 0
+    except Exception:
+        return 0
+
+
 def _pop_task() -> dict | None:
     """Pop the next task from the queue.  Returns None if empty."""
     try:
@@ -150,13 +174,16 @@ def get_autonomy_status() -> dict:
     if loop:
         base["running"] = loop.running
         base["paused"] = loop.paused
-        base["tasks_completed"] = loop.tasks_completed
         base["consecutive_errors"] = loop.consecutive_errors
         base["idle_sweeps"] = loop.idle_sweeps
         base["monitor_interval"] = int(loop.monitor_interval)
         base["queue_depth"] = get_queue_depth()
         base["credit_exhausted"] = loop._credit_exhausted
         base["thread_alive"] = loop._thread.is_alive() if loop._thread else False
+
+    # Persistent counts from audit log (survive restarts)
+    base["tasks_completed"] = get_completed_count()
+    base["failed_count"] = get_failed_count()
     return base
 
 
@@ -259,6 +286,66 @@ def list_audit_logs(limit: int = 50, offset: int = 0) -> dict:
     except Exception:
         logger.warning("Failed to query audit logs", exc_info=True)
         return {"logs": [], "total": 0}
+
+
+def list_recent_tasks(minutes: int = 5, limit: int = 10) -> list[dict]:
+    """Return tasks completed/failed in the last N minutes.
+
+    Bridges the observation gap: tasks move through the queue too fast for
+    the dashboard's 5s poll to catch, but this function shows what just ran.
+    """
+    import psycopg
+    from psycopg.rows import dict_row
+    try:
+        with psycopg.connect(_get_pg_dsn(), autocommit=True, row_factory=dict_row) as conn:
+            rows = conn.execute(
+                "SELECT * FROM holly_autonomy_audit "
+                "WHERE finished_at >= now() - make_interval(mins := %s) "
+                "ORDER BY finished_at DESC LIMIT %s",
+                (minutes, limit),
+            ).fetchall()
+            logs = []
+            for r in rows:
+                entry = dict(r)
+                for k in ("started_at", "finished_at"):
+                    if hasattr(entry.get(k), "isoformat"):
+                        entry[k] = entry[k].isoformat()
+                logs.append(entry)
+            return logs
+    except Exception:
+        logger.warning("Failed to query recent tasks", exc_info=True)
+        return []
+
+
+def retry_failed_task(task_id: str) -> dict:
+    """Find a failed task in the audit log and resubmit it to the queue.
+
+    Returns {resubmitted: True, new_task_id} or {error: ...}.
+    """
+    import psycopg
+    from psycopg.rows import dict_row
+    try:
+        with psycopg.connect(_get_pg_dsn(), autocommit=True, row_factory=dict_row) as conn:
+            row = conn.execute(
+                "SELECT * FROM holly_autonomy_audit "
+                "WHERE task_id = %s AND outcome = 'exhausted_retries' "
+                "ORDER BY finished_at DESC LIMIT 1",
+                (task_id,),
+            ).fetchone()
+            if not row:
+                return {"error": f"No exhausted_retries task found with id {task_id}"}
+
+            # Resubmit with fresh retry count
+            new_id = submit_task(
+                objective=row["objective"],
+                priority=row.get("priority", "normal"),
+                task_type=row.get("task_type", "objective"),
+                metadata=row.get("metadata") if isinstance(row.get("metadata"), dict) else {},
+            )
+            return {"resubmitted": True, "new_task_id": new_id, "original_task_id": task_id}
+    except Exception as e:
+        logger.warning("Failed to retry task %s: %s", task_id, e, exc_info=True)
+        return {"error": f"Failed to retry task: {e}"}
 
 
 # ── Queue inspection ─────────────────────────────────────────────────────

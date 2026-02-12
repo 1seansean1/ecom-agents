@@ -2173,6 +2173,24 @@ async def holly_autonomy_audit(limit: int = 50, offset: int = 0):
     return JSONResponse(result)
 
 
+@app.get("/holly/autonomy/recent")
+async def holly_autonomy_recent(minutes: int = 5, limit: int = 10):
+    """Return tasks completed/failed in the last N minutes."""
+    from src.holly.autonomy import list_recent_tasks
+    tasks = list_recent_tasks(minutes=minutes, limit=limit)
+    return JSONResponse({"tasks": tasks, "count": len(tasks)})
+
+
+@app.post("/holly/autonomy/retry/{task_id}")
+async def holly_autonomy_retry(task_id: str):
+    """Resubmit a failed (exhausted_retries) task to the queue."""
+    from src.holly.autonomy import retry_failed_task
+    result = retry_failed_task(task_id)
+    if result.get("error"):
+        return JSONResponse(result, status_code=404)
+    return JSONResponse(result)
+
+
 @app.websocket("/ws/holly")
 async def ws_holly(websocket: WebSocket):
     """WebSocket endpoint for real-time Holly Grace chat streaming.

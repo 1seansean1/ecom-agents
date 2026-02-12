@@ -5,6 +5,7 @@ export interface AutonomyStatus {
   running?: boolean;
   paused?: boolean;
   tasks_completed?: number;
+  failed_count?: number;
   consecutive_errors?: number;
   idle_sweeps?: number;
   monitor_interval?: number;

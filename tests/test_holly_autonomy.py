@@ -322,8 +322,11 @@ class TestSeedObjectives(unittest.TestCase):
 class TestAutonomyStatus(unittest.TestCase):
     """Test status tracking."""
 
+    @patch("src.holly.autonomy.get_failed_count", return_value=0)
+    @patch("src.holly.autonomy.get_completed_count", return_value=0)
+    @patch("src.holly.autonomy.get_queue_depth", return_value=0)
     @patch("src.holly.autonomy._get_redis")
-    def test_update_and_get_status(self, mock_redis):
+    def test_update_and_get_status(self, mock_redis, mock_depth, mock_completed, mock_failed):
         from src.holly.autonomy import _update_status, get_autonomy_status
 
         r = MagicMock()

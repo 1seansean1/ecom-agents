@@ -90,3 +90,25 @@ async def audit(limit: int = 50, offset: int = 0):
         return resp.json()
     except Exception:
         return JSONResponse({**_503, "logs": [], "total": 0}, status_code=503)
+
+
+@router.get("/recent")
+async def recent(minutes: int = 5, limit: int = 10):
+    """Recently processed tasks (last N minutes)."""
+    client = get_client()
+    try:
+        resp = await client.get("/holly/autonomy/recent", params={"minutes": minutes, "limit": limit})
+        return resp.json()
+    except Exception:
+        return JSONResponse({**_503, "tasks": [], "count": 0}, status_code=503)
+
+
+@router.post("/retry/{task_id}")
+async def retry_task(task_id: str):
+    """Resubmit a failed task to the queue."""
+    client = get_client()
+    try:
+        resp = await client.post(f"/holly/autonomy/retry/{task_id}")
+        return JSONResponse(resp.json(), status_code=resp.status_code)
+    except Exception:
+        return JSONResponse(_503, status_code=503)
