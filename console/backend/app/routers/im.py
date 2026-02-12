@@ -224,3 +224,28 @@ async def pipeline_instantiate(workspace_id: str):
         return JSONResponse(resp.json(), status_code=resp.status_code)
     except Exception:
         return JSONResponse(_503, status_code=503)
+
+
+@router.post("/pipeline/{workspace_id}/load-predicates")
+async def pipeline_load_predicates(workspace_id: str, request: Request):
+    """Load user-authored predicates into a workspace."""
+    client = get_client()
+    body = await request.json()
+    try:
+        resp = await client.post(
+            f"/im/pipeline/{workspace_id}/load-predicates", json=body
+        )
+        return JSONResponse(resp.json(), status_code=resp.status_code)
+    except Exception:
+        return JSONResponse(_503, status_code=503)
+
+
+@router.get("/workspaces/{workspace_id}/full")
+async def workspace_full(workspace_id: str):
+    """Get full workspace with all internal data."""
+    client = get_client()
+    try:
+        resp = await client.get(f"/im/workspaces/{workspace_id}/full")
+        return JSONResponse(resp.json(), status_code=resp.status_code)
+    except Exception:
+        return JSONResponse(_503, status_code=503)

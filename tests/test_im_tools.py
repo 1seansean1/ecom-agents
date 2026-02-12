@@ -705,13 +705,13 @@ class TestDefaultAgentPool:
 # ---------------------------------------------------------------------------
 
 class TestToolRegistry:
-    def test_im_tools_has_all_15(self):
+    def test_im_tools_has_all_17(self):
         from src.im.tools import IM_TOOLS
-        assert len(IM_TOOLS) == 15
+        assert len(IM_TOOLS) == 17
 
-    def test_im_tool_schemas_has_all_15(self):
+    def test_im_tool_schemas_has_all_17(self):
         from src.im.tools import IM_TOOL_SCHEMAS
-        assert len(IM_TOOL_SCHEMAS) == 15
+        assert len(IM_TOOL_SCHEMAS) == 17
 
     def test_schemas_match_tools(self):
         from src.im.tools import IM_TOOLS, IM_TOOL_SCHEMAS

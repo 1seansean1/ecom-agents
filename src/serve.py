@@ -2232,6 +2232,32 @@ async def im_pipeline_instantiate(workspace_id: str):
     return JSONResponse(result)
 
 
+@app.post("/im/pipeline/{workspace_id}/load-predicates")
+async def im_pipeline_load_predicates(workspace_id: str, request: Request):
+    """Load user-authored predicates into a workspace."""
+    body = await request.json()
+    predicates = body.get("predicates", [])
+    if not predicates:
+        return JSONResponse({"error": "predicates array is required"}, status_code=400)
+    mode = body.get("mode", "replace")
+    auto_blocks = body.get("auto_blocks", True)
+    from src.im.tools import im_load_user_predicates
+    result = im_load_user_predicates(workspace_id, predicates, mode, auto_blocks)
+    if "error" in result:
+        return JSONResponse(result, status_code=400)
+    return JSONResponse(result)
+
+
+@app.get("/im/workspaces/{workspace_id}/full")
+async def im_workspace_full(workspace_id: str):
+    """Get full workspace with all internal data (predicates, coupling, etc.)."""
+    from src.im.tools import im_get_workspace_full
+    result = im_get_workspace_full(workspace_id)
+    if "error" in result:
+        return JSONResponse(result, status_code=404)
+    return JSONResponse(result)
+
+
 # ---------------------------------------------------------------------------
 # Holly Grace API endpoints — super-orchestrator chat interface
 # ---------------------------------------------------------------------------

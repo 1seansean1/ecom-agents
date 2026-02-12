@@ -1122,6 +1122,264 @@ def im_instantiate(workspace_id: str) -> dict:
 
 
 # ──────────────────────────────────────────────────────────────
+# Tool 13: Load User-Authored Predicates
+# ──────────────────────────────────────────────────────────────
+
+def im_load_user_predicates(
+    workspace_id: str,
+    predicates: list[dict],
+    mode: str = "replace",
+    auto_blocks: bool = True,
+) -> dict:
+    """Load user-authored failure predicates into a workspace.
+
+    Accepts predicates in either the user schema format (predicate_id,
+    failure_condition_text, tolerance_epsilon, etc.) or the internal
+    pipeline format (id, name, description, epsilon_g, etc.) and
+    normalizes them. Replaces the LLM-generated predicates with
+    expert-authored ones.
+
+    This tool sets the workspace to stage 'predicates_generated' so
+    the pipeline can continue from step 3 (coupling) onward.
+
+    Args:
+        workspace_id: The workspace to load predicates into.
+        predicates: List of predicate dicts (user or internal schema).
+        mode: 'replace' overwrites existing predicates; 'augment' merges.
+        auto_blocks: If True, auto-generate blocks from block_id/coupling_block grouping.
+    """
+    from src.im.store import get_workspace, update_workspace, log_audit
+
+    ws = get_workspace(workspace_id)
+    if not ws:
+        return {"error": f"Workspace {workspace_id} not found"}
+
+    if not predicates:
+        return {"error": "No predicates provided"}
+
+    # ── Normalize predicates to internal format ──
+    normalized = []
+    for i, p in enumerate(predicates):
+        norm = _normalize_predicate(p, i)
+        if norm.get("_error"):
+            return {"error": f"Predicate {i}: {norm['_error']}"}
+        normalized.append(norm)
+
+    # ── Merge or replace ──
+    if mode == "augment" and ws.predicates:
+        existing_ids = {ep["id"] for ep in ws.predicates}
+        for np in normalized:
+            if np["id"] not in existing_ids:
+                ws.predicates.append(np)
+            else:
+                # Update existing predicate in place
+                for j, ep in enumerate(ws.predicates):
+                    if ep["id"] == np["id"]:
+                        ws.predicates[j] = np
+                        break
+    else:
+        ws.predicates = normalized
+
+    # ── Auto-generate blocks from block_id grouping ──
+    if auto_blocks:
+        block_map: dict[str, list[str]] = {}
+        for p in ws.predicates:
+            bid = p.get("block_id", "BLK_UNASSIGNED")
+            block_map.setdefault(bid, []).append(p["id"])
+
+        ws.predicate_blocks = []
+        for bid, pids in sorted(block_map.items()):
+            ws.predicate_blocks.append({
+                "id": bid,
+                "name": bid.replace("BLK_", "").replace("_", " ").title(),
+                "predicate_ids": pids,
+                "intra_rank": min(len(pids), 3),
+            })
+
+        # Auto-generate cross-block coupling from shared severity patterns
+        ws.cross_block_coupling = _generate_cross_block_coupling(
+            ws.predicate_blocks, ws.predicates
+        )
+
+    ws.stage = "predicates_generated"
+    # Clear downstream stages since predicates changed
+    ws.coupling_matrix = {}
+    ws.codimension = {}
+    ws.rank_budget = {}
+    ws.memory = {}
+    ws.assignment = {}
+    ws.workflow = {}
+    ws.feasibility = {}
+    update_workspace(ws)
+
+    log_audit(workspace_id, "predicates_generated", "im_load_user_predicates",
+              input_summary=f"mode={mode}, {len(predicates)} input predicates",
+              output_summary=f"{len(ws.predicates)} predicates, {len(ws.predicate_blocks)} blocks (user-authored)")
+
+    return {
+        "workspace_id": workspace_id,
+        "predicates": ws.predicates,
+        "predicate_blocks": ws.predicate_blocks,
+        "cross_block_coupling": ws.cross_block_coupling,
+        "quality_summary": _assess_quality(ws.predicates),
+        "source": "user_authored",
+    }
+
+
+def _normalize_predicate(p: dict, index: int) -> dict:
+    """Normalize a predicate from user schema to internal format."""
+    # Detect user schema vs internal
+    if "predicate_id" in p or "failure_condition_text" in p:
+        # User schema format
+        pid = p.get("predicate_id", f"f_{index+1:03d}")
+        desc = p.get("failure_condition_text", "")
+        if not desc:
+            return {"_error": "failure_condition_text is required"}
+        name = desc[:80] if len(desc) > 80 else desc
+        eps = p.get("tolerance_epsilon", 0.05)
+        if isinstance(eps, str):
+            try:
+                eps = float(eps)
+            except ValueError:
+                eps = 0.05
+        eps = max(eps, 0.01)  # Floor
+
+        horizon = p.get("horizon_t", 3600)
+        if isinstance(horizon, str):
+            try:
+                horizon = int(horizon)
+            except ValueError:
+                horizon = 3600
+
+        sev = p.get("severity", "medium").lower()
+        if sev not in ("critical", "high", "medium", "low"):
+            sev = "medium"
+
+        block_id = p.get("coupling_block") or p.get("block_id") or p.get("goal_id", "BLK_A")
+        # Ensure block_id has BLK_ prefix
+        if not block_id.startswith("BLK_"):
+            block_id = "BLK_" + block_id.upper().replace(" ", "_")
+
+        return {
+            "id": pid,
+            "name": name,
+            "description": desc,
+            "block_id": block_id,
+            "epsilon_g": round(eps, 4),
+            "horizon_t": horizon,
+            "severity": sev,
+            "measurement_map": p.get("measurable_signal_set", ""),
+            "quality_assessment": "User-authored",
+            "owner_agent": p.get("owner_agent", ""),
+            "intervention_policy": p.get("intervention_policy", ""),
+            "evidence_source": p.get("evidence_source", ""),
+        }
+    else:
+        # Internal format — validate minimally
+        pid = p.get("id", f"f_{index+1:03d}")
+        if not p.get("name") and not p.get("description"):
+            return {"_error": "name or description required"}
+        eps = max(p.get("epsilon_g", 0.05), 0.01)
+        return {
+            "id": pid,
+            "name": p.get("name", p.get("description", "")[:80]),
+            "description": p.get("description", p.get("name", "")),
+            "block_id": p.get("block_id", "BLK_A"),
+            "epsilon_g": round(eps, 4),
+            "horizon_t": p.get("horizon_t", 3600),
+            "severity": p.get("severity", "medium"),
+            "measurement_map": p.get("measurement_map", ""),
+            "quality_assessment": p.get("quality_assessment", "User-authored"),
+            "owner_agent": p.get("owner_agent", ""),
+            "intervention_policy": p.get("intervention_policy", ""),
+            "evidence_source": p.get("evidence_source", ""),
+        }
+
+
+def _generate_cross_block_coupling(blocks: list[dict], predicates: list[dict]) -> list[dict]:
+    """Generate cross-block coupling from severity co-occurrence."""
+    coupling = []
+    block_ids = [b["id"] for b in blocks]
+    n = len(block_ids)
+    for i in range(n):
+        for j in range(i + 1, n):
+            # Estimate coupling strength from shared severity patterns
+            preds_i = [p for p in predicates if p.get("block_id") == block_ids[i]]
+            preds_j = [p for p in predicates if p.get("block_id") == block_ids[j]]
+            if not preds_i or not preds_j:
+                continue
+
+            # Count shared intervention domains
+            agents_i = {p.get("owner_agent", "") for p in preds_i} - {""}
+            agents_j = {p.get("owner_agent", "") for p in preds_j} - {""}
+            shared_agents = agents_i & agents_j
+
+            # Base coupling from block proximity
+            rho = 0.3 if shared_agents else 0.1
+
+            # Boost if both have critical predicates
+            crit_i = any(p.get("severity") == "critical" for p in preds_i)
+            crit_j = any(p.get("severity") == "critical" for p in preds_j)
+            if crit_i and crit_j:
+                rho = min(rho + 0.2, 0.8)
+
+            coupling.append({
+                "from_block": block_ids[i],
+                "to_block": block_ids[j],
+                "rho": round(rho, 2),
+                "mechanism": f"Shared agents: {', '.join(shared_agents)}" if shared_agents else "Structural proximity",
+                "direction": f"{block_ids[i]} ↔ {block_ids[j]}",
+            })
+    return coupling
+
+
+# ──────────────────────────────────────────────────────────────
+# Tool 14: Get Full Workspace (with predicate details)
+# ──────────────────────────────────────────────────────────────
+
+def im_get_workspace_full(workspace_id: str) -> dict:
+    """Get workspace with all internal data including predicates, blocks,
+    coupling matrix, assignment details, etc.
+
+    Unlike im_get_workspace which returns counts, this returns the actual
+    predicate arrays and coupling data for UI inspection.
+
+    Args:
+        workspace_id: The workspace ID to fetch.
+    """
+    from src.im.store import get_workspace, get_audit_trail
+
+    ws = get_workspace(workspace_id)
+    if not ws:
+        return {"error": f"Workspace {workspace_id} not found"}
+
+    audit = get_audit_trail(workspace_id)
+
+    return {
+        "workspace_id": ws.workspace_id,
+        "stage": ws.stage,
+        "version": ws.version,
+        "raw_intent": ws.raw_intent,
+        "created_at": ws.created_at.isoformat() if ws.created_at else None,
+        "updated_at": ws.updated_at.isoformat() if ws.updated_at else None,
+        "goal_tuple": ws.goal_tuple,
+        # Full predicate data
+        "predicates": ws.predicates,
+        "predicate_blocks": ws.predicate_blocks,
+        "cross_block_coupling": ws.cross_block_coupling,
+        "coupling_matrix": ws.coupling_matrix,
+        "codimension": ws.codimension,
+        "rank_budget": ws.rank_budget,
+        "memory": ws.memory,
+        "assignment": ws.assignment,
+        "workflow": ws.workflow,
+        "feasibility": ws.feasibility,
+        "metadata": ws.metadata,
+        "audit_trail": audit,
+    }
+
+
+# ──────────────────────────────────────────────────────────────
 # Tool registry for Holly
 # ──────────────────────────────────────────────────────────────
 
@@ -1140,7 +1398,9 @@ IM_TOOLS = {
     "im_instantiate": im_instantiate,
     "im_list_workspaces": im_list_workspaces,
     "im_get_workspace": im_get_workspace,
+    "im_get_workspace_full": im_get_workspace_full,
     "im_run_full_pipeline": im_run_full_pipeline,
+    "im_load_user_predicates": im_load_user_predicates,
 }
 
 IM_TOOL_SCHEMAS = [
@@ -1321,6 +1581,35 @@ IM_TOOL_SCHEMAS = [
             "type": "object",
             "properties": {
                 "workspace_id": {"type": "string", "description": "The IM workspace ID with verdict=feasible"},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "im_load_user_predicates",
+        "description": "Load user-authored failure predicates into a workspace, replacing or augmenting LLM-generated ones. Accepts predicates in either the user schema (predicate_id, failure_condition_text, tolerance_epsilon, etc.) or internal format (id, name, epsilon_g, etc.). Sets workspace to predicates_generated stage so the pipeline can continue from step 3 onward.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "The IM workspace ID"},
+                "predicates": {
+                    "type": "array",
+                    "items": {"type": "object"},
+                    "description": "Array of predicate dicts. User schema: {predicate_id, failure_condition_text, tolerance_epsilon, horizon_t, severity, coupling_block, measurable_signal_set, owner_agent, intervention_policy, evidence_source}. Internal: {id, name, description, block_id, epsilon_g, horizon_t, severity, measurement_map}",
+                },
+                "mode": {"type": "string", "enum": ["replace", "augment"], "description": "replace = overwrite existing; augment = merge with existing (default: replace)"},
+                "auto_blocks": {"type": "boolean", "description": "Auto-generate blocks from block_id grouping (default: true)"},
+            },
+            "required": ["workspace_id", "predicates"],
+        },
+    },
+    {
+        "name": "im_get_workspace_full",
+        "description": "Get workspace with all internal data: full predicate arrays, blocks, coupling matrix, assignment details, codimension eigenspectrum, workflow topology. For UI inspection and debugging.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "The workspace ID to fetch"},
             },
             "required": ["workspace_id"],
         },
