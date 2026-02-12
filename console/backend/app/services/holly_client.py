@@ -18,7 +18,7 @@ def get_client() -> httpx.AsyncClient:
             headers["Authorization"] = f"Bearer {settings.agents_token}"
         _client = httpx.AsyncClient(
             base_url=settings.agents_url,
-            timeout=30.0,
+            timeout=120.0,
             headers=headers,
         )
     return _client
