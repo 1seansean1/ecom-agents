@@ -719,13 +719,17 @@ def validate_feasibility(
     coupling_coverage = orch_rank >= coupling_c
 
     # Condition (iii): Power coverage
+    # An agent can control a predicate if its steering power suppresses
+    # environmental noise below the damage tolerance.
+    # Formula: eps_eff = NOISE_FLOOR / sigma  (must be < eps_g)
+    NOISE_FLOOR = 0.02  # Baseline environmental noise estimate
     agents = assignment.get("agents", [])
     epsilon_effective = []
     epsilon_damage = []
     axes_violating = []
 
     for p in predicates:
-        eps_g = p.get("epsilon_g", 0.05)
+        eps_g = max(p.get("epsilon_g", 0.05), 0.001)  # Floor: no zero-tolerance
         epsilon_damage.append(eps_g)
 
         # Find assigned agent
@@ -735,8 +739,7 @@ def validate_feasibility(
         )
         if assigned:
             sigma = max(assigned.get("steering_spectrum", [1.0]), default=1.0)
-            noise = p.get("epsilon_g", 0.05) * 0.5  # Estimate noise as fraction of tolerance
-            eps_eff = noise / sigma if sigma > 0 else 1.0
+            eps_eff = NOISE_FLOOR / sigma if sigma > 0 else 1.0
         else:
             eps_eff = 1.0  # Unassigned = worst case
 
