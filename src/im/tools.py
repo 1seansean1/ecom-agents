@@ -706,6 +706,9 @@ def im_get_workspace(workspace_id: str) -> dict:
         "codimension": ws.codimension.get("cod_pi_g"),
         "regime": ws.rank_budget.get("regime"),
         "verdict": ws.feasibility.get("verdict"),
+        "spawned_agents": ws.metadata.get("spawned_agents", []),
+        "workflow_id": ws.metadata.get("workflow_id"),
+        "initial_run_id": ws.metadata.get("initial_run_id"),
         "audit_trail": audit,
     }
 
@@ -785,6 +788,315 @@ def im_run_full_pipeline(
 
 
 # ──────────────────────────────────────────────────────────────
+# Tool 10: Spawn Agents
+# ──────────────────────────────────────────────────────────────
+
+_MODEL_FAMILY_TO_ID = {
+    "GPT-4o": "gpt4o",
+    "gpt-4o": "gpt4o",
+    "GPT-4o-mini": "gpt4o_mini",
+    "gpt-4o-mini": "gpt4o_mini",
+    "Claude Opus 4.6": "claude_opus",
+    "claude-opus-4-6": "claude_opus",
+    "Claude Sonnet 4.5": "gpt4o",       # map to gpt4o as closest available
+    "claude-sonnet-4-5": "gpt4o",
+    "Claude Haiku 4.5": "gpt4o_mini",   # map to gpt4o_mini as closest available
+    "claude-haiku-4-5": "gpt4o_mini",
+    "Ollama Qwen": "ollama_qwen",
+    "ollama_qwen": "ollama_qwen",
+}
+
+
+def im_spawn_agents(workspace_id: str, dry_run: bool = False) -> dict:
+    """Register agents from IM synthesis into the agent registry.
+
+    Reads the synthesized agent specs from the workspace assignment and
+    creates live AgentConfig entries in the agent registry. Each agent
+    gets a system prompt generated from its assigned failure predicates.
+
+    Args:
+        workspace_id: The workspace with completed agent synthesis.
+        dry_run: If True, validate but don't actually create agents.
+    """
+    from src.im.store import get_workspace, update_workspace, log_audit
+
+    ws = get_workspace(workspace_id)
+    if not ws:
+        return {"error": f"Workspace {workspace_id} not found"}
+
+    if ws.feasibility.get("verdict") != "feasible":
+        return {"error": "Workspace must have verdict=feasible before spawning agents"}
+
+    agent_specs = ws.assignment.get("agents", [])
+    if not agent_specs:
+        return {"error": "No agent specs in assignment. Run im_synthesize_agent_specs first."}
+
+    short_id = workspace_id.replace("im_", "")[:8]
+    spawned = []
+    errors = []
+
+    for spec in agent_specs:
+        src_agent_id = spec.get("agent_id", "")
+        agent_id = f"im_{short_id}_{src_agent_id}"
+        model_family = spec.get("model_family", "GPT-4o-mini")
+        model_id = _MODEL_FAMILY_TO_ID.get(model_family, "gpt4o_mini")
+
+        assigned_preds = spec.get("assigned_predicates", [])
+        pred_details = []
+        for pid in assigned_preds:
+            for p in ws.predicates:
+                if p.get("id") == pid:
+                    pred_details.append(f"- {pid}: {p.get('name', '')} ({p.get('severity', 'medium')})")
+                    break
+
+        system_prompt = (
+            f"You are {spec.get('name', agent_id)}, a specialist agent spawned by the "
+            f"Informational Monism Architecture Selection Rule.\n\n"
+            f"Your mission: {ws.raw_intent}\n\n"
+            f"You are responsible for monitoring and handling these failure predicates:\n"
+            + "\n".join(pred_details) + "\n\n"
+            f"Jacobian rank: {spec.get('jacobian_rank', 1)}\n"
+            f"Respond in JSON with: {{\"status\": \"...\", \"analysis\": \"...\", "
+            f"\"recommendations\": [...], \"predicate_status\": {{...}}}}"
+        )
+
+        agent_entry = {
+            "agent_id": agent_id,
+            "channel_id": f"IM_{short_id}",
+            "display_name": spec.get("name", f"IM Agent {src_agent_id}"),
+            "description": f"IM-spawned agent for {ws.raw_intent[:80]}",
+            "model_id": model_id,
+            "system_prompt": system_prompt,
+            "tool_ids": spec.get("tools", []),
+        }
+
+        if dry_run:
+            spawned.append({"agent_id": agent_id, "model_id": model_id, "dry_run": True})
+            continue
+
+        try:
+            from src.agent_registry import get_registry
+            result = get_registry().create(**agent_entry)
+            if result:
+                spawned.append({"agent_id": agent_id, "model_id": model_id, "created": True})
+            else:
+                # Agent may already exist — try to update instead
+                spawned.append({"agent_id": agent_id, "model_id": model_id, "already_exists": True})
+        except Exception as e:
+            errors.append({"agent_id": agent_id, "error": str(e)})
+
+    if not dry_run and spawned:
+        ws.stage = "agents_spawned"
+        ws.metadata["spawned_agents"] = [s["agent_id"] for s in spawned]
+        ws.metadata["spawn_short_id"] = short_id
+        update_workspace(ws)
+
+        log_audit(workspace_id, "agents_spawned", "im_spawn_agents",
+                  input_summary=f"dry_run={dry_run}, {len(agent_specs)} specs",
+                  output_summary=f"{len(spawned)} created, {len(errors)} errors")
+
+    return {
+        "workspace_id": workspace_id,
+        "spawned": spawned,
+        "errors": errors,
+        "dry_run": dry_run,
+        "stage": ws.stage if not dry_run else "preview",
+    }
+
+
+# ──────────────────────────────────────────────────────────────
+# Tool 11: Deploy Workflow
+# ──────────────────────────────────────────────────────────────
+
+def im_deploy_workflow(
+    workspace_id: str,
+    activate: bool = False,
+    auto_start: bool = False,
+) -> dict:
+    """Deploy IM workspace as a live workflow in the workflow registry.
+
+    Converts the synthesized WorkflowSpec topology into a WorkflowDefinition
+    and registers it. Optionally activates it and starts a tower run.
+
+    Args:
+        workspace_id: The workspace with completed workflow synthesis.
+        activate: If True, set this as the active workflow.
+        auto_start: If True, also start a tower run with the new workflow.
+    """
+    from src.im.store import get_workspace, update_workspace, log_audit
+
+    ws = get_workspace(workspace_id)
+    if not ws:
+        return {"error": f"Workspace {workspace_id} not found"}
+
+    if ws.feasibility.get("verdict") != "feasible":
+        return {"error": "Workspace must have verdict=feasible before deploying"}
+
+    topo = ws.workflow.get("topology", {})
+    nodes_raw = topo.get("nodes", [])
+    edges_raw = topo.get("edges", [])
+
+    if not nodes_raw:
+        return {"error": "No workflow topology nodes. Run im_synthesize_workflow_spec first."}
+
+    short_id = ws.metadata.get("spawn_short_id", workspace_id.replace("im_", "")[:8])
+    workflow_id = f"im_{short_id}"
+
+    # Build WorkflowNodeDef list
+    from src.workflow_registry import (
+        WorkflowNodeDef, WorkflowEdgeDef, WorkflowDefinition,
+        get_workflow_registry,
+    )
+
+    wf_nodes = []
+    for i, n in enumerate(nodes_raw):
+        node_id = n.get("node_id", f"node_{i}")
+        raw_agent_id = n.get("agent_id", "")
+        # Map IM agent_id to spawned agent_id if agents were spawned
+        spawned_agents = ws.metadata.get("spawned_agents", [])
+        mapped_agent_id = raw_agent_id
+        for sa in spawned_agents:
+            if sa.endswith(f"_{raw_agent_id}"):
+                mapped_agent_id = sa
+                break
+
+        role = n.get("role", "")
+        wf_nodes.append(WorkflowNodeDef(
+            node_id=node_id,
+            agent_id=mapped_agent_id,
+            position={"x": 100 + (i % 4) * 200, "y": 50 + (i // 4) * 200},
+            is_entry_point=(role == "orchestrator" or i == 0),
+            is_error_handler=False,
+        ))
+
+    wf_edges = []
+    for i, e in enumerate(edges_raw):
+        source = e.get("source", "")
+        target = e.get("target", "")
+        protocol = e.get("protocol", "async")
+        edge_type = "direct" if protocol == "sync" else "direct"
+        wf_edges.append(WorkflowEdgeDef(
+            edge_id=f"im_e{i+1}",
+            source_node_id=source,
+            target_node_id=target,
+            edge_type=edge_type,
+            label=f"{source} -> {target}",
+        ))
+
+    # Ensure there's an edge to __end__ from leaf nodes
+    target_nodes = {e.target_node_id for e in wf_edges}
+    source_nodes = {e.source_node_id for e in wf_edges}
+    leaf_nodes = source_nodes - target_nodes
+    # Also add non-orchestrator nodes that have no outgoing edges
+    all_node_ids = {n.node_id for n in wf_nodes}
+    nodes_with_outgoing = {e.source_node_id for e in wf_edges}
+    terminal_nodes = all_node_ids - nodes_with_outgoing
+    for tn in terminal_nodes:
+        wf_edges.append(WorkflowEdgeDef(
+            edge_id=f"im_end_{tn}",
+            source_node_id=tn,
+            target_node_id="__end__",
+            edge_type="direct",
+            label=f"{tn} -> END",
+        ))
+
+    wf_def = WorkflowDefinition(
+        workflow_id=workflow_id,
+        display_name=f"IM: {ws.raw_intent[:60]}",
+        description=f"Auto-generated from IM workspace {workspace_id}. "
+                    f"Regime: {ws.rank_budget.get('regime', '?')}, "
+                    f"Pattern: {topo.get('pattern', '?')}",
+        nodes=wf_nodes,
+        edges=wf_edges,
+        error_config={"max_retries": 2},
+    )
+
+    # Register workflow
+    registry = get_workflow_registry()
+    result = registry.create(
+        workflow_id=workflow_id,
+        display_name=wf_def.display_name,
+        description=wf_def.description,
+        definition=wf_def.to_dict(),
+    )
+    if not result:
+        # May already exist — that's OK for re-deploy
+        pass
+
+    if activate:
+        registry.activate(workflow_id)
+
+    # Start a tower run if requested
+    run_id = None
+    if auto_start:
+        try:
+            from src.holly.tools import start_workflow
+            run_result = start_workflow(
+                task=ws.raw_intent,
+                workflow_id=workflow_id,
+            )
+            run_id = run_result.get("run_id")
+        except Exception as e:
+            logger.warning("Auto-start tower run failed: %s", e)
+
+    ws.stage = "deployed"
+    ws.metadata["workflow_id"] = workflow_id
+    ws.metadata["activated"] = activate
+    if run_id:
+        ws.metadata["initial_run_id"] = run_id
+    update_workspace(ws)
+
+    log_audit(workspace_id, "deployed", "im_deploy_workflow",
+              input_summary=f"activate={activate}, auto_start={auto_start}",
+              output_summary=f"workflow={workflow_id}, nodes={len(wf_nodes)}, edges={len(wf_edges)}")
+
+    return {
+        "workspace_id": workspace_id,
+        "workflow_id": workflow_id,
+        "nodes": len(wf_nodes),
+        "edges": len(wf_edges),
+        "activated": activate,
+        "run_id": run_id,
+        "stage": "deployed",
+    }
+
+
+# ──────────────────────────────────────────────────────────────
+# Tool 12: Instantiate (convenience: spawn + deploy + start)
+# ──────────────────────────────────────────────────────────────
+
+def im_instantiate(workspace_id: str) -> dict:
+    """One-click: spawn agents + deploy workflow + start tower run.
+
+    Convenience wrapper that calls im_spawn_agents and im_deploy_workflow
+    in sequence, then starts a tower run with the new workflow.
+
+    Args:
+        workspace_id: A workspace with verdict=feasible.
+    """
+    # Step 1: Spawn agents
+    spawn_result = im_spawn_agents(workspace_id)
+    if "error" in spawn_result:
+        return spawn_result
+
+    # Step 2: Deploy workflow + auto-start
+    deploy_result = im_deploy_workflow(workspace_id, activate=False, auto_start=True)
+    if "error" in deploy_result:
+        return {"workspace_id": workspace_id, "spawn": spawn_result, **deploy_result}
+
+    return {
+        "workspace_id": workspace_id,
+        "stage": "deployed",
+        "agents_spawned": len(spawn_result.get("spawned", [])),
+        "workflow_id": deploy_result.get("workflow_id"),
+        "run_id": deploy_result.get("run_id"),
+        "summary": f"Spawned {len(spawn_result.get('spawned', []))} agents, "
+                   f"deployed workflow {deploy_result.get('workflow_id')}, "
+                   f"started run {deploy_result.get('run_id')}",
+    }
+
+
+# ──────────────────────────────────────────────────────────────
 # Tool registry for Holly
 # ──────────────────────────────────────────────────────────────
 
@@ -798,6 +1110,9 @@ IM_TOOLS = {
     "im_synthesize_agent_specs": im_synthesize_agent_specs,
     "im_synthesize_workflow_spec": im_synthesize_workflow_spec,
     "im_validate_feasibility": im_validate_feasibility,
+    "im_spawn_agents": im_spawn_agents,
+    "im_deploy_workflow": im_deploy_workflow,
+    "im_instantiate": im_instantiate,
     "im_list_workspaces": im_list_workspaces,
     "im_get_workspace": im_get_workspace,
     "im_run_full_pipeline": im_run_full_pipeline,
@@ -947,6 +1262,42 @@ IM_TOOL_SCHEMAS = [
                 "tau": {"type": "number", "description": "Eigenvalue threshold (default 0.05)"},
             },
             "required": ["raw_intent"],
+        },
+    },
+    {
+        "name": "im_spawn_agents",
+        "description": "Register agents from IM synthesis into the live agent registry. Creates real AgentConfig entries for each synthesized agent spec. Requires workspace with verdict=feasible.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "The IM workspace ID with completed synthesis"},
+                "dry_run": {"type": "boolean", "description": "If true, validate but don't create agents (default false)"},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "im_deploy_workflow",
+        "description": "Deploy IM workspace topology as a live workflow in the workflow registry. Converts synthesized nodes/edges into a WorkflowDefinition. Optionally activates or auto-starts a tower run.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "The IM workspace ID"},
+                "activate": {"type": "boolean", "description": "Set as active workflow (default false)"},
+                "auto_start": {"type": "boolean", "description": "Start a tower run immediately (default false)"},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    {
+        "name": "im_instantiate",
+        "description": "One-click deployment: spawn agents + deploy workflow + start tower run. Takes a feasible IM workspace and brings it to life.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string", "description": "The IM workspace ID with verdict=feasible"},
+            },
+            "required": ["workspace_id"],
         },
     },
 ]

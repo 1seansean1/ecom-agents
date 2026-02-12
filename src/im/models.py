@@ -25,6 +25,8 @@ class WorkspaceStage(str, Enum):
     AGENTS_SYNTHESIZED = "agents_synthesized"
     WORKFLOW_SYNTHESIZED = "workflow_synthesized"
     FEASIBILITY_VALIDATED = "feasibility_validated"
+    AGENTS_SPAWNED = "agents_spawned"
+    DEPLOYED = "deployed"
 
 
 class Severity(str, Enum):

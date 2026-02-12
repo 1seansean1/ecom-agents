@@ -2197,6 +2197,41 @@ async def im_pipeline_full(request: Request):
     return JSONResponse(result)
 
 
+@app.post("/im/pipeline/{workspace_id}/spawn")
+async def im_pipeline_spawn(workspace_id: str, request: Request):
+    """Step 10: Spawn agents from IM synthesis into the agent registry."""
+    body = await request.json() if request.headers.get("content-type") == "application/json" else {}
+    dry_run = body.get("dry_run", False)
+    from src.im.tools import im_spawn_agents
+    result = im_spawn_agents(workspace_id, dry_run=dry_run)
+    if "error" in result:
+        return JSONResponse(result, status_code=400)
+    return JSONResponse(result)
+
+
+@app.post("/im/pipeline/{workspace_id}/deploy")
+async def im_pipeline_deploy(workspace_id: str, request: Request):
+    """Step 11: Deploy workflow from IM synthesis into the workflow registry."""
+    body = await request.json() if request.headers.get("content-type") == "application/json" else {}
+    activate = body.get("activate", False)
+    auto_start = body.get("auto_start", False)
+    from src.im.tools import im_deploy_workflow
+    result = im_deploy_workflow(workspace_id, activate=activate, auto_start=auto_start)
+    if "error" in result:
+        return JSONResponse(result, status_code=400)
+    return JSONResponse(result)
+
+
+@app.post("/im/pipeline/{workspace_id}/instantiate")
+async def im_pipeline_instantiate(workspace_id: str):
+    """One-click: spawn agents + deploy workflow + start tower run."""
+    from src.im.tools import im_instantiate
+    result = im_instantiate(workspace_id)
+    if "error" in result:
+        return JSONResponse(result, status_code=400)
+    return JSONResponse(result)
+
+
 # ---------------------------------------------------------------------------
 # Holly Grace API endpoints — super-orchestrator chat interface
 # ---------------------------------------------------------------------------

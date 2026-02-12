@@ -184,3 +184,43 @@ async def pipeline_full(request: Request):
         return JSONResponse(resp.json(), status_code=resp.status_code)
     except Exception:
         return JSONResponse(_503, status_code=503)
+
+
+# ---------------------------------------------------------------------------
+# Deployment steps (spawn + deploy + instantiate)
+# ---------------------------------------------------------------------------
+
+
+@router.post("/pipeline/{workspace_id}/spawn")
+async def pipeline_spawn(workspace_id: str, request: Request):
+    """Step 10: Spawn agents from IM synthesis."""
+    client = get_client()
+    body = await request.json() if request.headers.get("content-type") == "application/json" else {}
+    try:
+        resp = await client.post(f"/im/pipeline/{workspace_id}/spawn", json=body)
+        return JSONResponse(resp.json(), status_code=resp.status_code)
+    except Exception:
+        return JSONResponse(_503, status_code=503)
+
+
+@router.post("/pipeline/{workspace_id}/deploy")
+async def pipeline_deploy(workspace_id: str, request: Request):
+    """Step 11: Deploy workflow to registry."""
+    client = get_client()
+    body = await request.json() if request.headers.get("content-type") == "application/json" else {}
+    try:
+        resp = await client.post(f"/im/pipeline/{workspace_id}/deploy", json=body)
+        return JSONResponse(resp.json(), status_code=resp.status_code)
+    except Exception:
+        return JSONResponse(_503, status_code=503)
+
+
+@router.post("/pipeline/{workspace_id}/instantiate")
+async def pipeline_instantiate(workspace_id: str):
+    """One-click: spawn + deploy + start."""
+    client = get_client()
+    try:
+        resp = await client.post(f"/im/pipeline/{workspace_id}/instantiate")
+        return JSONResponse(resp.json(), status_code=resp.status_code)
+    except Exception:
+        return JSONResponse(_503, status_code=503)

@@ -705,13 +705,13 @@ class TestDefaultAgentPool:
 # ---------------------------------------------------------------------------
 
 class TestToolRegistry:
-    def test_im_tools_has_all_12(self):
+    def test_im_tools_has_all_15(self):
         from src.im.tools import IM_TOOLS
-        assert len(IM_TOOLS) == 12
+        assert len(IM_TOOLS) == 15
 
-    def test_im_tool_schemas_has_all_12(self):
+    def test_im_tool_schemas_has_all_15(self):
         from src.im.tools import IM_TOOL_SCHEMAS
-        assert len(IM_TOOL_SCHEMAS) == 12
+        assert len(IM_TOOL_SCHEMAS) == 15
 
     def test_schemas_match_tools(self):
         from src.im.tools import IM_TOOLS, IM_TOOL_SCHEMAS
@@ -744,3 +744,332 @@ class TestDeleteWorkspaceReturnType:
         from src.im.store import delete_workspace
         sig = inspect.signature(delete_workspace)
         assert sig.return_annotation in (bool, "bool")
+
+
+# ---------------------------------------------------------------------------
+# Tool 10: Spawn Agents
+# ---------------------------------------------------------------------------
+
+def _feasible_workspace(**overrides):
+    """Create a workspace that's ready for spawning (feasibility_validated, verdict=feasible)."""
+    defaults = dict(
+        workspace_id="ws-spawn-001",
+        stage="feasibility_validated",
+        raw_intent="Build a customer support chatbot",
+        predicates=SAMPLE_PREDICATES,
+        predicate_blocks=SAMPLE_BLOCKS,
+        cross_block_coupling=SAMPLE_CROSS_COUPLING,
+        coupling_matrix={"M": [[1, 0.2, 0.1], [0.2, 1, 0.15], [0.1, 0.15, 1]], "locked": True},
+        codimension={"cod_pi_g": 3, "eigenspectrum": [{"index": 0, "value": 1.3}]},
+        rank_budget={
+            "regime": "medium",
+            "agent_pool": [
+                {"agent_id": "agent_1", "name": "Quality Agent", "model_family": "GPT-4o",
+                 "jacobian_rank": 2, "steering_spectrum": [1.0, 0.7], "context_window": 200000,
+                 "assigned_predicates": ["f_001", "f_002"], "tools": []},
+                {"agent_id": "agent_2", "name": "Security Agent", "model_family": "GPT-4o-mini",
+                 "jacobian_rank": 1, "steering_spectrum": [1.0], "context_window": 200000,
+                 "assigned_predicates": ["f_003"], "tools": []},
+            ],
+            "orchestrator": {"model_family": "Claude Opus 4.6", "jacobian_rank": 5},
+            "total_rank": 10, "rank_surplus_or_deficit": 2,
+        },
+        assignment={
+            "alpha": [
+                {"predicate_id": "f_001", "agent_id": "agent_1"},
+                {"predicate_id": "f_002", "agent_id": "agent_1"},
+                {"predicate_id": "f_003", "agent_id": "agent_2"},
+            ],
+            "agents": [
+                {"agent_id": "agent_1", "name": "Quality Agent", "model_family": "GPT-4o",
+                 "jacobian_rank": 2, "assigned_predicates": ["f_001", "f_002"], "tools": []},
+                {"agent_id": "agent_2", "name": "Security Agent", "model_family": "GPT-4o-mini",
+                 "jacobian_rank": 1, "assigned_predicates": ["f_003"], "tools": []},
+            ],
+            "delta_rank": 0, "delta_norm": 0.0, "governance_margin": 2,
+        },
+        workflow={
+            "topology": {
+                "pattern": "hierarchical",
+                "nodes": [
+                    {"node_id": "orchestrator", "agent_id": "orchestrator", "role": "orchestrator"},
+                    {"node_id": "agent_1", "agent_id": "agent_1", "role": "task_agent"},
+                    {"node_id": "agent_2", "agent_id": "agent_2", "role": "task_agent"},
+                ],
+                "edges": [
+                    {"source": "orchestrator", "target": "agent_1", "protocol": "async"},
+                    {"source": "orchestrator", "target": "agent_2", "protocol": "async"},
+                ],
+            },
+            "compiled": True, "validation_errors": [],
+        },
+        feasibility={"verdict": "feasible", "rank_coverage": True,
+                     "coupling_coverage": True, "power_coverage": True, "governance_margin": 2},
+        metadata={},
+    )
+    defaults.update(overrides)
+    return _make_workspace(**defaults)
+
+
+AGENT_REG = "src.agent_registry"
+WF_REG = "src.workflow_registry"
+
+
+class TestSpawnAgents:
+    @patch(f"{STORE}.log_audit")
+    @patch(f"{STORE}.update_workspace")
+    @patch(f"{STORE}.get_workspace")
+    @patch(f"{AGENT_REG}.get_registry")
+    def test_spawn_creates_agents(self, mock_registry, mock_get, mock_update, mock_audit):
+        from src.im.tools import im_spawn_agents
+        ws = _feasible_workspace()
+        mock_get.return_value = ws
+        mock_reg_inst = MagicMock()
+        mock_reg_inst.create.return_value = MagicMock()  # Success
+        mock_registry.return_value = mock_reg_inst
+
+        result = im_spawn_agents("ws-spawn-001")
+
+        assert "error" not in result
+        assert len(result["spawned"]) == 2
+        assert result["stage"] == "agents_spawned"
+        assert mock_reg_inst.create.call_count == 2
+        mock_update.assert_called_once()
+        mock_audit.assert_called_once()
+
+    @patch(f"{STORE}.get_workspace")
+    def test_spawn_dry_run(self, mock_get):
+        from src.im.tools import im_spawn_agents
+        mock_get.return_value = _feasible_workspace()
+
+        result = im_spawn_agents("ws-spawn-001", dry_run=True)
+
+        assert result["dry_run"] is True
+        assert len(result["spawned"]) == 2
+        assert result["stage"] == "preview"
+        # No DB writes in dry run
+        for s in result["spawned"]:
+            assert s["dry_run"] is True
+
+    @patch(f"{STORE}.get_workspace", return_value=None)
+    def test_spawn_workspace_not_found(self, mock_get):
+        from src.im.tools import im_spawn_agents
+        result = im_spawn_agents("ws-nonexistent")
+        assert "error" in result
+
+    @patch(f"{STORE}.get_workspace")
+    def test_spawn_requires_feasible_verdict(self, mock_get):
+        from src.im.tools import im_spawn_agents
+        ws = _feasible_workspace(feasibility={"verdict": "infeasible"})
+        mock_get.return_value = ws
+
+        result = im_spawn_agents("ws-spawn-001")
+        assert "error" in result
+        assert "feasible" in result["error"]
+
+    @patch(f"{STORE}.get_workspace")
+    def test_spawn_requires_agent_specs(self, mock_get):
+        from src.im.tools import im_spawn_agents
+        ws = _feasible_workspace(assignment={"agents": [], "alpha": []})
+        mock_get.return_value = ws
+
+        result = im_spawn_agents("ws-spawn-001")
+        assert "error" in result
+
+    @patch(f"{STORE}.log_audit")
+    @patch(f"{STORE}.update_workspace")
+    @patch(f"{STORE}.get_workspace")
+    @patch(f"{AGENT_REG}.get_registry")
+    def test_spawn_handles_registry_error(self, mock_registry, mock_get, mock_update, mock_audit):
+        from src.im.tools import im_spawn_agents
+        mock_get.return_value = _feasible_workspace()
+        mock_reg_inst = MagicMock()
+        mock_reg_inst.create.side_effect = Exception("DB connection failed")
+        mock_registry.return_value = mock_reg_inst
+
+        result = im_spawn_agents("ws-spawn-001")
+
+        assert len(result["errors"]) == 2
+        assert len(result["spawned"]) == 0
+
+    def test_model_family_mapping(self):
+        from src.im.tools import _MODEL_FAMILY_TO_ID
+        assert _MODEL_FAMILY_TO_ID["GPT-4o"] == "gpt4o"
+        assert _MODEL_FAMILY_TO_ID["GPT-4o-mini"] == "gpt4o_mini"
+        assert _MODEL_FAMILY_TO_ID["Claude Opus 4.6"] == "claude_opus"
+        assert _MODEL_FAMILY_TO_ID["Ollama Qwen"] == "ollama_qwen"
+
+
+# ---------------------------------------------------------------------------
+# Tool 11: Deploy Workflow
+# ---------------------------------------------------------------------------
+
+class TestDeployWorkflow:
+    @patch(f"{STORE}.log_audit")
+    @patch(f"{STORE}.update_workspace")
+    @patch(f"{STORE}.get_workspace")
+    @patch(f"{WF_REG}.get_workflow_registry")
+    def test_deploy_creates_workflow(self, mock_wf_reg, mock_get, mock_update, mock_audit):
+        from src.im.tools import im_deploy_workflow
+        ws = _feasible_workspace(metadata={"spawn_short_id": "abc12345"})
+        mock_get.return_value = ws
+        mock_reg_inst = MagicMock()
+        mock_reg_inst.create.return_value = {"workflow_id": "im_abc12345"}
+        mock_wf_reg.return_value = mock_reg_inst
+
+        result = im_deploy_workflow("ws-spawn-001")
+
+        assert "error" not in result
+        assert result["workflow_id"] == "im_abc12345"
+        assert result["nodes"] == 3  # orchestrator + 2 agents
+        assert result["edges"] >= 2  # at least the 2 from topology
+        assert result["stage"] == "deployed"
+        mock_reg_inst.create.assert_called_once()
+        mock_update.assert_called_once()
+
+    @patch(f"{STORE}.log_audit")
+    @patch(f"{STORE}.update_workspace")
+    @patch(f"{STORE}.get_workspace")
+    @patch(f"{WF_REG}.get_workflow_registry")
+    def test_deploy_with_activate(self, mock_wf_reg, mock_get, mock_update, mock_audit):
+        from src.im.tools import im_deploy_workflow
+        mock_get.return_value = _feasible_workspace(metadata={"spawn_short_id": "test1234"})
+        mock_reg_inst = MagicMock()
+        mock_reg_inst.create.return_value = {}
+        mock_wf_reg.return_value = mock_reg_inst
+
+        result = im_deploy_workflow("ws-spawn-001", activate=True)
+
+        assert result["activated"] is True
+        mock_reg_inst.activate.assert_called_once_with("im_test1234")
+
+    @patch(f"{STORE}.log_audit")
+    @patch(f"{STORE}.update_workspace")
+    @patch(f"{STORE}.get_workspace")
+    @patch(f"{WF_REG}.get_workflow_registry")
+    @patch("src.holly.tools.start_workflow")
+    def test_deploy_with_auto_start(self, mock_start, mock_wf_reg, mock_get, mock_update, mock_audit):
+        from src.im.tools import im_deploy_workflow
+        mock_get.return_value = _feasible_workspace(metadata={"spawn_short_id": "auto1234"})
+        mock_reg_inst = MagicMock()
+        mock_reg_inst.create.return_value = {}
+        mock_wf_reg.return_value = mock_reg_inst
+        mock_start.return_value = {"run_id": "run-001"}
+
+        result = im_deploy_workflow("ws-spawn-001", auto_start=True)
+
+        assert result["run_id"] == "run-001"
+        mock_start.assert_called_once()
+
+    @patch(f"{STORE}.get_workspace", return_value=None)
+    def test_deploy_workspace_not_found(self, mock_get):
+        from src.im.tools import im_deploy_workflow
+        result = im_deploy_workflow("ws-nonexistent")
+        assert "error" in result
+
+    @patch(f"{STORE}.get_workspace")
+    def test_deploy_requires_feasible(self, mock_get):
+        from src.im.tools import im_deploy_workflow
+        ws = _feasible_workspace(feasibility={"verdict": "infeasible"})
+        mock_get.return_value = ws
+
+        result = im_deploy_workflow("ws-spawn-001")
+        assert "error" in result
+
+    @patch(f"{STORE}.get_workspace")
+    def test_deploy_requires_workflow_nodes(self, mock_get):
+        from src.im.tools import im_deploy_workflow
+        ws = _feasible_workspace(workflow={"topology": {"nodes": [], "edges": []}})
+        mock_get.return_value = ws
+
+        result = im_deploy_workflow("ws-spawn-001")
+        assert "error" in result
+
+    @patch(f"{STORE}.log_audit")
+    @patch(f"{STORE}.update_workspace")
+    @patch(f"{STORE}.get_workspace")
+    @patch(f"{WF_REG}.get_workflow_registry")
+    def test_deploy_adds_end_edges_for_terminals(self, mock_wf_reg, mock_get, mock_update, mock_audit):
+        from src.im.tools import im_deploy_workflow
+        mock_get.return_value = _feasible_workspace(metadata={"spawn_short_id": "end12345"})
+        mock_reg_inst = MagicMock()
+        mock_reg_inst.create.return_value = {}
+        mock_wf_reg.return_value = mock_reg_inst
+
+        result = im_deploy_workflow("ws-spawn-001")
+
+        # Original topology: orch→a1, orch→a2. a1 and a2 have no outgoing.
+        # Deploy should add __end__ edges for terminals.
+        assert result["edges"] >= 4  # 2 original + at least 2 __end__
+
+
+# ---------------------------------------------------------------------------
+# Tool 12: Instantiate (convenience wrapper)
+# ---------------------------------------------------------------------------
+
+class TestInstantiate:
+    @patch("src.im.tools.im_deploy_workflow")
+    @patch("src.im.tools.im_spawn_agents")
+    def test_instantiate_success(self, mock_spawn, mock_deploy):
+        from src.im.tools import im_instantiate
+        mock_spawn.return_value = {
+            "workspace_id": "ws-inst-001",
+            "spawned": [{"agent_id": "a1"}, {"agent_id": "a2"}],
+            "errors": [],
+            "stage": "agents_spawned",
+        }
+        mock_deploy.return_value = {
+            "workspace_id": "ws-inst-001",
+            "workflow_id": "im_inst001",
+            "nodes": 3,
+            "edges": 4,
+            "activated": False,
+            "run_id": "run-inst-001",
+            "stage": "deployed",
+        }
+
+        result = im_instantiate("ws-inst-001")
+
+        assert result["agents_spawned"] == 2
+        assert result["workflow_id"] == "im_inst001"
+        assert result["run_id"] == "run-inst-001"
+        assert result["stage"] == "deployed"
+        mock_spawn.assert_called_once_with("ws-inst-001")
+        mock_deploy.assert_called_once_with("ws-inst-001", activate=False, auto_start=True)
+
+    @patch("src.im.tools.im_spawn_agents")
+    def test_instantiate_stops_on_spawn_error(self, mock_spawn):
+        from src.im.tools import im_instantiate
+        mock_spawn.return_value = {"error": "Workspace must have verdict=feasible"}
+
+        result = im_instantiate("ws-fail")
+        assert "error" in result
+
+    @patch("src.im.tools.im_deploy_workflow")
+    @patch("src.im.tools.im_spawn_agents")
+    def test_instantiate_propagates_deploy_error(self, mock_spawn, mock_deploy):
+        from src.im.tools import im_instantiate
+        mock_spawn.return_value = {"spawned": [{"agent_id": "a1"}], "errors": []}
+        mock_deploy.return_value = {"error": "No workflow topology nodes"}
+
+        result = im_instantiate("ws-fail-deploy")
+        assert "error" in result
+        assert "spawn" in result  # spawn result preserved
+
+
+# ---------------------------------------------------------------------------
+# New stages in WorkspaceStage enum
+# ---------------------------------------------------------------------------
+
+class TestNewWorkspaceStages:
+    def test_agents_spawned_stage(self):
+        from src.im.models import WorkspaceStage
+        assert WorkspaceStage.AGENTS_SPAWNED.value == "agents_spawned"
+
+    def test_deployed_stage(self):
+        from src.im.models import WorkspaceStage
+        assert WorkspaceStage.DEPLOYED.value == "deployed"
+
+    def test_total_stages(self):
+        from src.im.models import WorkspaceStage
+        assert len(list(WorkspaceStage)) == 12

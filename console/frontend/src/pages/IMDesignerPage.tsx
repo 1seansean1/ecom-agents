@@ -29,6 +29,9 @@ interface IMWorkspaceDetail {
   codimension: number | null;
   regime: string | null;
   verdict: string | null;
+  spawned_agents: string[];
+  workflow_id: string | null;
+  initial_run_id: string | null;
   audit_trail: AuditEntry[];
 }
 
@@ -63,6 +66,8 @@ const STAGES = [
   { key: 'agents_synthesized', label: 'Agents', step: 7 },
   { key: 'workflow_synthesized', label: 'Workflow', step: 8 },
   { key: 'feasibility_validated', label: 'Feasibility', step: 9 },
+  { key: 'agents_spawned', label: 'Spawned', step: 10 },
+  { key: 'deployed', label: 'Deployed', step: 11 },
 ];
 
 const STAGE_INDEX: Record<string, number> = {};
@@ -304,6 +309,34 @@ export default function IMDesignerPage() {
     setRunning(false);
   };
 
+  const handleInstantiate = async () => {
+    if (!selected) return;
+    setRunning(true);
+    setError(null);
+    setPipelineLog((prev) => [...prev, 'Instantiating: spawning agents + deploying workflow...']);
+    try {
+      const url = `/api/im/pipeline/${selected.workspace_id}/instantiate`;
+      const result = await postJson<PipelineResult>(url, {});
+      if (result.error) {
+        setError(result.error);
+        setPipelineLog((prev) => [...prev, `Error: ${result.error}`]);
+      } else {
+        setPipelineLog((prev) => [
+          ...prev,
+          `Deployed! Workflow: ${(result as Record<string, unknown>).workflow_id ?? '?'}`,
+          `Agents spawned: ${(result as Record<string, unknown>).agents_spawned ?? 0}`,
+          `Run ID: ${(result as Record<string, unknown>).run_id ?? 'none'}`,
+        ]);
+        await loadDetail(selected.workspace_id);
+        await loadWorkspaces();
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Instantiation failed');
+      setPipelineLog((prev) => [...prev, `Failed: ${e}`]);
+    }
+    setRunning(false);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       <Header
@@ -484,6 +517,81 @@ export default function IMDesignerPage() {
                   <span className="px-3 py-1 rounded text-xs font-mono bg-[var(--color-bg-hover)] text-[var(--color-text-muted)]">
                     {selected.predicate_count} predicates / {selected.block_count} blocks
                   </span>
+                </div>
+
+                {/* Deploy section */}
+                <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border)] p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold">Deployment</h3>
+                    {selected.stage === 'deployed' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-green-900/40 text-green-400">
+                        LIVE
+                      </span>
+                    )}
+                    {selected.stage === 'agents_spawned' && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-yellow-900/40 text-yellow-400">
+                        AGENTS READY
+                      </span>
+                    )}
+                  </div>
+
+                  {selected.verdict !== 'feasible' ? (
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                      Architecture must be marked <span className="text-green-400">feasible</span> before deployment.
+                    </p>
+                  ) : selected.stage === 'deployed' ? (
+                    <div className="space-y-2">
+                      <p className="text-xs text-green-400">
+                        Workflow deployed and running.
+                      </p>
+                      {selected.workflow_id && (
+                        <div className="text-xs text-[var(--color-text-muted)] font-mono">
+                          Workflow: {selected.workflow_id}
+                        </div>
+                      )}
+                      {selected.spawned_agents?.length > 0 && (
+                        <div className="text-xs text-[var(--color-text-muted)]">
+                          {selected.spawned_agents.length} agent(s): {selected.spawned_agents.join(', ')}
+                        </div>
+                      )}
+                      {selected.initial_run_id && (
+                        <div className="text-xs text-[var(--color-text-muted)] font-mono">
+                          Run: {selected.initial_run_id}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-xs text-[var(--color-text-muted)]">
+                        This architecture is feasible. Deploy to spawn {selected.predicate_count > 0 ? 'agents and ' : ''}register the workflow.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleInstantiate}
+                          disabled={running}
+                          className="flex-1 px-4 py-2 text-sm rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-40 transition-colors font-medium"
+                        >
+                          {running ? 'Deploying...' : 'Deploy to Production'}
+                        </button>
+                        <button
+                          onClick={() => handleStepRun('spawn')}
+                          disabled={running || selected.stage === 'agents_spawned'}
+                          className="px-3 py-2 text-xs rounded-lg bg-[var(--color-bg-hover)] text-[var(--color-text)] hover:bg-[var(--color-accent)] hover:text-white disabled:opacity-40 transition-colors font-mono"
+                          title="Spawn agents only (step 10)"
+                        >
+                          Spawn
+                        </button>
+                        <button
+                          onClick={() => handleStepRun('deploy')}
+                          disabled={running || !['agents_spawned', 'feasibility_validated'].includes(selected.stage)}
+                          className="px-3 py-2 text-xs rounded-lg bg-[var(--color-bg-hover)] text-[var(--color-text)] hover:bg-[var(--color-accent)] hover:text-white disabled:opacity-40 transition-colors font-mono"
+                          title="Deploy workflow only (step 11)"
+                        >
+                          Deploy WF
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Audit trail */}

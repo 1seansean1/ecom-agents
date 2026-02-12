@@ -39,7 +39,7 @@ class TestEnums:
 
     def test_all_stages_exist(self):
         stages = [s.value for s in WorkspaceStage]
-        assert len(stages) == 10
+        assert len(stages) == 12
 
     def test_severity_levels(self):
         assert Severity.CRITICAL.value == "critical"
@@ -81,7 +81,7 @@ class TestIMWorkspace:
         ws = IMWorkspace(workspace_id="test")
         for stage in WorkspaceStage:
             ws.stage = stage.value
-        assert ws.stage == "feasibility_validated"
+        assert ws.stage == "deployed"
 
 
 class TestGoalModels:
