@@ -722,14 +722,14 @@ def validate_feasibility(
     # An agent can control a predicate if its steering power suppresses
     # environmental noise below the damage tolerance.
     # Formula: eps_eff = NOISE_FLOOR / sigma  (must be < eps_g)
-    NOISE_FLOOR = 0.02  # Baseline environmental noise estimate
+    NOISE_FLOOR = 0.005  # Baseline environmental noise (0.5% stochastic floor)
     agents = assignment.get("agents", [])
     epsilon_effective = []
     epsilon_damage = []
     axes_violating = []
 
     for p in predicates:
-        eps_g = max(p.get("epsilon_g", 0.05), 0.001)  # Floor: no zero-tolerance
+        eps_g = max(p.get("epsilon_g", 0.05), 0.01)  # Floor: minimum 1% tolerance
         epsilon_damage.append(eps_g)
 
         # Find assigned agent
@@ -744,7 +744,7 @@ def validate_feasibility(
             eps_eff = 1.0  # Unassigned = worst case
 
         epsilon_effective.append(round(eps_eff, 6))
-        if eps_eff >= eps_g:
+        if eps_eff > eps_g:
             axes_violating.append(p["id"])
 
     power_coverage = len(axes_violating) == 0

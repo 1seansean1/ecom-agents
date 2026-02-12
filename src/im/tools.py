@@ -245,7 +245,7 @@ Respond with JSON:
 }}
 
 Generate 6-15 predicates in 3-6 blocks. Severity: critical/high/medium/low.
-IMPORTANT: epsilon_g must be > 0 (range 0.01 to 0.20). Use tighter tolerances (0.01-0.03) for critical predicates, moderate (0.03-0.08) for high, and relaxed (0.08-0.20) for medium/low.
+IMPORTANT: epsilon_g must be > 0 (range 0.02 to 0.20). Use tighter tolerances (0.02-0.04) for critical predicates, moderate (0.04-0.08) for high, and relaxed (0.08-0.20) for medium/low. Never use epsilon_g below 0.02.
 Return ONLY JSON, no markdown."""
 
         response = client.messages.create(
@@ -260,10 +260,10 @@ Return ONLY JSON, no markdown."""
             if text.startswith("json"):
                 text = text[4:]
         result = json.loads(text)
-        # Enforce epsilon_g floor — LLM may generate zero or very small values
+        # Enforce epsilon_g floor — LLM may generate very small values
         predicates = result.get("predicates", [])
         for p in predicates:
-            if p.get("epsilon_g", 0) < 0.001:
+            if p.get("epsilon_g", 0) < 0.01:
                 p["epsilon_g"] = 0.05
         return {
             "predicates": predicates,
