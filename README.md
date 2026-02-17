@@ -6,6 +6,18 @@ Holly Grace is the reference implementation of the theoretical framework develop
 
 > **Allen, S. P. (2026).** *Informational Monism, Morphogenetic Agency, and Goal-Specification Engineering: A Unified Framework.* v2.0, 289 pp.
 
+## Artifact Genealogy
+
+Every artifact in this codebase traces back through a five-phase derivation chain. The complete derivation graph — every node, every edge — is in [`docs/architecture/Artifact_Genealogy.md`](docs/architecture/Artifact_Genealogy.md). No artifact exists without provenance.
+
+```
+α Research & Theory          62 sources + monograph (289 pp)
+  → β Architecture           Custom SAD tool → SAD v0.1.0.2 + RTD v0.1.0.2
+    → γ Specifications        ICD (49 interfaces), Behavior Specs, Goal Hierarchy, SIL Matrix
+      → δ Process & Governance Design Methodology, Task Manifest (583 tasks), Test Governance (65 controls), Development Procedure
+        → ε Execution          Code, tests, evidence, audit artifacts — the 15-slice spiral
+```
+
 ## From Informational Monism to Autonomous Operations
 
 The framework begins from a single ontological commitment: every system — computational, biological, organizational — is a network of information channels, and the dynamics that matter are the dynamics of those channels. Channel theory supplies the microdynamics: tokens flow through typed conduits whose capacity, noise, and coupling are measurable quantities. When channels compose, they induce macro-channels with emergent bandwidth and loss characteristics that are not simple sums of their parts. Admissibility conditions distinguish passive transport — information flowing through a structure — from active regeneration, where a subsystem reconstructs and redirects its own channels. That distinction is the formal boundary between mechanism and agency.
@@ -19,10 +31,6 @@ Multi-agent feasibility determines whether a given assignment of goals to agents
 ## Architecture
 
 Holly instantiates this theory as a three-layer stack. **Kernel (L1)** is an in-process library that wraps every boundary crossing with invariant enforcement: schema validation, permission gating, bounds checking, trace injection, idempotency, HITL gates, and eval gates. **Core (L2)** receives declarative intent via natural language, classifies it (direct solve, team spawn, or clarify), decomposes it into the 7-level goal hierarchy, and routes it through the APS Controller. APS classifies each goal into one of four tiers — **T0 Reflexive** (single-agent, no coordination), **T1 Deliberative** (single-agent, multi-step reasoning), **T2 Collaborative** (multi-agent team with fixed contracts), **T3 Morphogenetic** (dynamic team that restructures mid-execution) — and dispatches accordingly. The Team Topology Manager spawns agent teams with three binding constraints: inter-agent contracts, per-agent MCP tool permissions, and resource budgets. T3 topologies reshape via steer operations; the eigenspectrum monitors communication patterns against contracted topology and triggers steer or dissolve when divergence exceeds threshold. **Engine (L3)** runs durable workflows with effectively-once semantics across concurrent lanes, an MCP tool registry with per-agent permission masks, and sandboxed code execution over gRPC. Failure detection operates at three levels: K8 eval gates halt on behavioral check failure, the workflow engine fires compensating actions on task-graph node failure, and eigenspectrum divergence triggers topological restructuring. All storage, observability, and egress are tenant-isolated by default. Auth is JWKS-based via Authentik OIDC with short-lived tokens and Redis-backed revocation.
-
-## Artifact Genealogy
-
-Every artifact in this codebase traces back through a five-phase derivation chain: **α Research & Theory** (literature review + monograph) → **β Architecture** (custom SAD tool + SAD/RTD) → **γ Specifications** (ICD, Behavior Specs, Goal Hierarchy, SIL Matrix) → **δ Process & Governance** (Design Methodology, Task Manifest, Test Governance, Development Procedure) → **ε Execution** (code, tests, evidence, audit artifacts). The complete derivation graph — every node, every edge — is in [`docs/architecture/Artifact_Genealogy.md`](docs/architecture/Artifact_Genealogy.md). No artifact exists without provenance.
 
 ## Development Procedure
 
