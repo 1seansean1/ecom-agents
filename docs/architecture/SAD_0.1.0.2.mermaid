@@ -1,0 +1,248 @@
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "14px"}, "flowchart": {"nodeSpacing": 30, "rankSpacing": 40}}}%%
+flowchart TB
+    %% ===================================================
+    %% HOLLY 3.0 - SYSTEM ARCHITECTURE DOCUMENT v0.1.0.5
+    %% Round 5: egress L7/L3 split, canonical redaction module
+    %% Round 4: JWKS verification model (no private key in MW),
+    %%          multi-tenant isolation on all stores,
+    %%          kernel/workflow idempotency ownership split,
+    %%          end-to-end redaction annotations
+    %% Round 3: effectively-once semantics, JWT revocation,
+    %%          Authentik public endpoint, event redaction,
+    %%          per-tenant stream authz, kernel discipline note,
+    %%          deployment topology placeholder
+    %% ===================================================
+
+    %% --- Layer 0: Cloud / VPC ---
+    subgraph VPC["AWS VPC - us-east-1"]
+        direction TB
+
+        subgraph PUB["Public Subnet"]
+            ALB["Application Load Balancer\nTLS Termination\nWAF Rules\nWebSocket Upgrade\nHealth Checks"]
+        end
+
+        subgraph PRIV["Private Subnet"]
+
+            %% Auth is OUT-OF-BAND identity provider, not inline
+            %% Authentik MUST be browser-reachable for OIDC redirects
+            %% Exposed via ALB on /auth/* path prefix
+            AUTH["Authentik - Out of Band\nSSO / OIDC Provider\nToken Issuance via Redirect\nRBAC Policy Engine\nPublic via ALB /auth/*"]
+
+            %% JWT validation is middleware, not a hop to Authentik
+            JWTMW["JWT Middleware\nJWKS Public Key Verification\nClaims Extraction\nNo IdP Call per Request\nShort-Lived Tokens 5-15min\nRevocation Cache in Redis"]
+
+            subgraph KERNEL["Layer 1: Kernel - In-Process Library\nUniversal Invariants Only — Keep Thin"]
+                direction LR
+                KCTX["KernelContext\nasync context manager\nwraps every boundary crossing"]
+                K1["Schema\nValidation"]
+                K2["Permission\nGates"]
+                K3["Bounds\nChecking"]
+                K4["Trace\nInjection"]
+                K5["Idempotency Key\nGeneration\nRFC 8785"]
+                K6["Durability\nWAL"]
+                K7["HITL\nGates"]
+                K8["Eval\nGates"]
+            end
+
+            subgraph CORE["Layer 2: Holly Core - The Orchestrator"]
+                direction TB
+                CONV["Conversation\nInterface"]
+                INTENT["Intent Classifier\nDirect Solve | Team Spawn | Clarify"]
+                GOALS["Goal Decomposer\nCelestial L0-L4 | Terrestrial L5-L6\nLexicographic Gating"]
+                APS["APS Controller\nT0 Reflexive | T1 Deliberative\nT2 Collaborative | T3 Morphogenetic"]
+                TOPO["Team Topology Manager\nContracts | Tool Permissions\nResource Budgets | Eigenspectrum"]
+                MEM["Memory System"]
+                CFG["Config Control Plane\nHot Reload | Audit Log\nHITL for Dangerous Keys\nVersion History + Rollback"]
+            end
+
+            subgraph ENGINE["Layer 3: Execution Engine"]
+                direction LR
+                MAIN["Main Lane\nUser Tasks"]
+                CRON["Cron Lane\nScheduled Ops"]
+                SUB["Subagent Lane\nTeam Tasks"]
+                MCP["MCP Tool Registry\nIntrospectable Catalog\nPer-Agent Permissions"]
+                WF["Workflow Engine\nDurable Task Graphs\nCheckpoint / Resume\nEffectively-Once Semantics\nIdempotency Keys + Dedupe\nCompensating Actions"]
+                LANEPOL["Lane Policy\nDynamic Concurrency Limits\nPer-Tenant Quotas\nPer-Workflow Budgets"]
+            end
+
+            subgraph OBS["Layer 4: Observability - Full Visibility"]
+                direction LR
+                EVBUS["Event Bus\nUnified Ingest\nSampling + Filters\nBackpressure Control\nEvent-Level PII Redaction\nTenant-Scoped Fanout"]
+                WS["WebSocket Channels\nagent_trace | goal_progress\nteam_topology | lane_status\nmemory_ops | tool_invocations\nerror_stream | metrics | notify\nPer-Tenant AuthZ on Streams"]
+                LOGS["Structured Logging\nJSON + Correlation IDs\nAgent Decision Trees\nRedact Before Persist"]
+                DASH["Goal Dashboard\nLive Goal Tree\nFailure Rates\nMutation History"]
+            end
+
+            %% --- Egress Control ---
+            %% L7 = application-layer enforcement (runs in-process or as sidecar)
+            %% L3 = NAT Gateway provides outbound routing only
+            EGRESS["Egress Control\nL7: Domain Allowlist + Redact Before Egress\nL7: Prompt/Response Redaction\nL7: Rate Limits + Budget Enforcement\nL7: Request Logging\nL3: NAT Gateway (outbound routing)"]
+
+            %% --- Secrets / KMS ---
+            KMS["Secrets Manager\nAWS KMS / Vault\nAPI Key Rotation\nTool Credential Store\nAudit Trail\nLeast-Privilege Access"]
+        end
+    end
+
+    %% --- Sandbox: Isolated Code Execution ---
+    subgraph SANDBOX["Sandbox - Isolated Container"]
+        direction LR
+        SEXEC["Code Executor\ngRPC Server\nLanguage Runtimes"]
+        SSEC["Security Boundary\nNamespace Isolation\nSeccomp Profiles\nNo Network Egress\ngVisor / Firecracker"]
+    end
+
+    %% --- Layer 5: Console UI (External) ---
+    subgraph UI["Layer 5: Console - React"]
+        direction LR
+        CHAT["Chat Interface\nBidirectional WS"]
+        TOPOVIZ["Topology Visualizer\nLive Agent Compositions"]
+        GOALVIZ["Goal Tree Explorer\nCelestial / Terrestrial"]
+        AUDIT["Audit Log Viewer\nFull Trace Replay"]
+    end
+
+    %% --- Data Stores (Lateral) ---
+    subgraph DATA["Data Stores"]
+        direction TB
+        PG["PostgreSQL 16\nPartitioned Tables\nRow-Level Security per Tenant\nTransactional: agents, goals, topologies\nExecution: task state, workflow checkpoints\nAudit: traces, logs, config history\nRetention Policies + S3 Archival"]
+        RD["Redis 7 Sentinel/Cluster\nTenant-Namespaced Keys\nPub/Sub Channels\nExecution Queues\nSession Cache\nMetric Streams\nPersistence: AOF + RDB"]
+        CHROMA["ChromaDB\nVector Store\nTenant-Isolated Collections\nLong-Term Memory\nDocument Embeddings"]
+        OLLAMA["Ollama\nLocal Inference\nCost-Sensitive Tasks"]
+    end
+
+    %% --- External LLM ---
+    LLM["Claude API\nOpus 4.6 / Sonnet 4.5\nPrimary Inference"]
+
+    %% ===================================================
+    %% CONNECTIONS
+    %% ===================================================
+
+    %% Request flow: ALB -> JWT validation (middleware) -> Core
+    %% Auth is NOT in the request path, only for initial login
+    UI -->|"HTTPS / WSS"| ALB
+    ALB -->|"Forward"| JWTMW
+    JWTMW -->|"Validated Claims"| CORE
+    AUTH -.->|"OIDC Login/Redirect\nToken Issuance"| UI
+    ALB -->|"/auth/* path"| AUTH
+
+    %% Kernel is IN-PROCESS: embedded in Core and Engine, not a network hop
+    %% KernelContext wraps every boundary crossing as a context manager
+    CORE -.->|"KernelContext\nin-process"| KERNEL
+    ENGINE -.->|"KernelContext\nin-process"| KERNEL
+
+    %% Core internal flow
+    CONV --> INTENT
+    INTENT --> GOALS
+    GOALS --> APS
+    APS --> TOPO
+    TOPO --> ENGINE
+
+    %% Execution lanes (concurrency governed by policy, not constants)
+    CORE -->|"Dispatch"| MAIN
+    CORE -->|"Schedule"| CRON
+    TOPO -->|"Spawn Agents"| SUB
+    LANEPOL -.->|"Governs"| MAIN
+    LANEPOL -.->|"Governs"| CRON
+    LANEPOL -.->|"Governs"| SUB
+    MAIN --> MCP
+    SUB --> MCP
+    MCP --> WF
+
+    %% Sandbox isolation (code exec is a remote call, not in-process)
+    MCP -->|"gRPC"| SANDBOX
+
+    %% Observability: events flow through bus with backpressure
+    ENGINE -->|"Emit Events"| EVBUS
+    CORE -->|"Emit Events"| EVBUS
+    EVBUS -->|"Filtered Stream"| WS
+    EVBUS --> LOGS
+    OBS -->|"Stream"| UI
+
+    %% Egress: all outbound LLM/internet traffic through proxy
+    CORE -->|"LLM Calls"| EGRESS
+    SUB -->|"Agent LLM Calls"| EGRESS
+    EGRESS -->|"Allowlisted"| LLM
+    CORE ---|"Local Inference"| OLLAMA
+
+    %% Data store connections
+    CORE ---|"State / History"| PG
+    CORE ---|"Short-Term Memory"| RD
+    CORE ---|"Long-Term Memory"| CHROMA
+    ENGINE ---|"Queue / Pub-Sub"| RD
+    OBS ---|"Partitioned Logs"| PG
+    OBS ---|"Real-Time Metrics"| RD
+
+    %% Durability ownership:
+    %% - Workflow engine owns effectively-once / replay / recovery
+    %%   (idempotency keys + dedupe + compensating actions for external side effects)
+    %% - Kernel WAL is audit-only (who did what, not replay)
+    %% - PG task state is queryable projection, not source of truth for recovery
+    KERNEL ---|"Audit WAL"| PG
+    WF ---|"Checkpoints\nSource of Truth\nfor Recovery"| PG
+    ENGINE ---|"Task State\nQueryable Projection"| PG
+
+    %% Memory detail
+    MEM ---|"Short-Term"| RD
+    MEM ---|"Medium-Term"| PG
+    MEM ---|"Long-Term"| CHROMA
+
+    %% Secrets: KMS provides credentials to services that need them
+    KMS -.->|"API Keys"| EGRESS
+    KMS -.->|"DB Creds"| PG
+    KMS -.->|"Tool Creds"| MCP
+    %% JWTMW verifies tokens using Authentik's JWKS public keys
+    %% KMS does NOT hold the IdP signing key — Authentik owns that
+    AUTH -.->|"JWKS Public Keys\n(cached)"| JWTMW
+    KMS -.->|"Authentik\nClient Secret"| AUTH
+
+    %% JWT revocation cache in Redis
+    JWTMW -.->|"Revocation\nCache Lookup"| RD
+
+    %% Deployment topology (multi-AZ, scaling, HA, DR)
+    %% specified in separate Deployment Architecture Document (DAD)
+    %% See: docs/deployment-topology.md
+
+    %% ===================================================
+    %% STYLES
+    %% ===================================================
+
+    classDef vpc fill:#1a1a2e,stroke:#16213e,color:#e0e0e0
+    classDef pub fill:#0f3460,stroke:#533483,color:#e0e0e0
+    classDef priv fill:#162447,stroke:#1f4068,color:#e0e0e0
+    classDef kernel fill:#6b0000,stroke:#ff4444,color:#ffffff,stroke-width:3px
+    classDef core fill:#1b4332,stroke:#40916c,color:#ffffff
+    classDef engine fill:#2d3047,stroke:#7678ed,color:#e0e0e0
+    classDef obs fill:#4a1942,stroke:#c060a1,color:#e0e0e0
+    classDef ui fill:#1d3557,stroke:#457b9d,color:#e0e0e0
+    classDef data fill:#2c2c54,stroke:#706fd3,color:#e0e0e0
+    classDef llm fill:#ff6b35,stroke:#ff9f1c,color:#000000,stroke-width:2px
+    classDef kernelNode fill:#8b0000,stroke:#ff6666,color:#ffffff
+    classDef coreNode fill:#245c3a,stroke:#52b788,color:#ffffff
+    classDef engineNode fill:#3d405b,stroke:#9ea0d5,color:#e0e0e0
+    classDef obsNode fill:#5c2751,stroke:#d478b6,color:#e0e0e0
+    classDef uiNode fill:#264653,stroke:#5fa8c7,color:#e0e0e0
+    classDef dataNode fill:#3a3a7a,stroke:#9090e0,color:#e0e0e0
+    classDef sandboxDef fill:#4a2800,stroke:#ff8c00,color:#ffffff,stroke-width:3px
+    classDef sandboxNode fill:#5c3400,stroke:#ffaa33,color:#ffffff
+    classDef infra fill:#1a3a5c,stroke:#4a7a9c,color:#e0e0e0,stroke-width:2px
+    classDef secrets fill:#3a1a3a,stroke:#8a4a8a,color:#e0e0e0,stroke-width:2px
+
+    class VPC vpc
+    class PUB pub
+    class PRIV priv
+    class KERNEL kernel
+    class KCTX,K1,K2,K3,K4,K5,K6,K7,K8 kernelNode
+    class CORE core
+    class CONV,INTENT,GOALS,APS,TOPO,MEM,CFG coreNode
+    class ENGINE engine
+    class MAIN,CRON,SUB,MCP,WF,LANEPOL engineNode
+    class OBS obs
+    class WS,LOGS,DASH,EVBUS obsNode
+    class UI ui
+    class CHAT,TOPOVIZ,GOALVIZ,AUDIT uiNode
+    class DATA data
+    class PG,RD,CHROMA,OLLAMA dataNode
+    class LLM llm
+    class SANDBOX sandboxDef
+    class SEXEC,SSEC sandboxNode
+    class JWTMW,EGRESS infra
+    class AUTH infra
+    class KMS secrets
