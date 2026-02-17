@@ -1,93 +1,124 @@
-# Holly Grace
+# Holly 3.0 Development Roadmap v0.2
 
-Holly 3.0 — Autonomous AI Operations Agent Platform
+Holly is an AI assistant that can do real work on its own. Instead of needing a person to guide every single step, Holly takes a high-level goal — like "investigate why our website is slow" or "set up a new project environment" — and figures out the steps, runs them, and checks the results. When something important comes up that needs a human decision, Holly stops and asks before continuing. Think of it like having a very capable coworker who can handle complex, multi-step tasks across different tools and systems, but always checks in with you before doing anything risky or irreversible.
 
-## Getting started
+Holly exists because today's AI tools are either too simple (just answering questions) or too dangerous (taking actions without enough guardrails). Holly is built from the ground up with safety, auditability, and multi-user support baked in — not bolted on after the fact. Every action Holly takes is logged, every external call is filtered and monitored, and every piece of sensitive data is automatically scrubbed before it hits a log file. As a user, you interact with Holly through a chat interface or a web console. You tell her what you need in plain English, she breaks it down into a plan, and you watch the work happen in real time. You can pause, redirect, or approve at any point. She's your teammate, not a black box.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Design Methodology
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Holly's development methodology is synthesized from ISO systems-engineering standards (42010 architecture descriptions, 25010 quality models, 15288/12207 lifecycle processes), safety-critical practices (SIL-based rigor mapping, FMEA/FTA, formal verification on high-risk paths), and the operational philosophies of SpaceX (responsible-engineer ownership, rapid build-test-build iteration, stratified requirements with HITL in CI), OpenAI (eval-driven development where evaluations are the source of truth, staged rollouts, feature flags for AI behavior), and Anthropic (constitutional AI as executable specification, five-layer defense-in-depth safety, security boundary patterns). The core principle is a traceable chain — stakeholder concern → requirement → architecture decision → decorated code → automated test → deployment proof — enforced by architecture fitness functions that run as CI gates, ensuring the SAD and codebase never drift apart.
 
-## Add your files
+The build process follows an architecture-as-code discipline: the SAD is machine-parsed into `architecture.yaml`, which drives a decorator registry (`@kernel_boundary`, `@tenant_scoped`, etc.) that stamps every module with its architectural contract. AST scanners and ArchUnit-style validators block merges when decorators are missing or boundary crossings violate the ICD. Agent orchestration borrows from durable-execution frameworks (Temporal.io patterns) with kernel-level invariant enforcement at every boundary — schema validation, permission checks, bounds enforcement, trace injection, idempotency, and HITL gates — because multi-agent systems exhibit 41–87% failure rates without structural safeguards. Eval-driven development (EDDOps) governs the agent layer: property-based tests and adversarial eval suites gate every agent prompt and constitution change, treating behavioral specifications as first-class, version-controlled artifacts with the same rigor as code.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Execution Model
 
-```
-cd existing_repo
-git remote add origin https://gitlab.sdataplab.com/hackathon/holly-grace.git
-git branch -M main
-git push -uf origin main
-```
+Phases follow a **spiral** cadence, not waterfall. Phase A steps 1–3 execute first, then a thin Kernel slice (B.15–B.16) validates the enforcement loop end-to-end before backfilling the rest of A and B. Each phase ends with an explicit quality gate; no phase starts until its predecessor's gate passes. Critical-path components (Kernel L1, Sandbox L7, Egress) carry **SIL-3 rigor** (formal specs, property-based tests, independent verification). Standard-path components (Console L5, Config) carry **SIL-1 rigor** (unit tests, code review).
 
-## Integrate with your tools
+---
 
-- [ ] [Set up project integrations](https://gitlab.sdataplab.com/hackathon/holly-grace/-/settings/integrations)
+| # | Step | Description |
+|---|---|---|
+| | **Phase A — Architecture Enforcement** | |
+| 1 | Extract | Published SAD → `architecture.yaml` |
+| 2 | Registry | Python singleton loads YAML, exposes lookups |
+| 3 | Decorators | `@kernel_boundary`, `@tenant_scoped`, etc. — stamp arch metadata |
+| 3a | Spiral gate | Build thin Kernel slice (B.15–B.16), validate enforcement loop e2e |
+| 4 | Scaffold | Generate package skeleton from repo tree |
+| 5 | ICD | Contract specs per boundary crossing |
+| 5a | ATAM | Architecture quality-attribute evaluation against stakeholder scenarios |
+| 6 | Validate | YAML ↔ SAD drift detection |
+| 7 | Scan | AST-walk for missing/wrong decorators |
+| 8 | Test | Arch contract fixtures + property-based boundary fuzzing (Hypothesis) |
+| 9 | Fitness fns | Continuous fitness functions — run on every commit, not just merge |
+| 10 | RTM gen | Auto-generate living Requirements Traceability Matrix from decorators |
+| 11 | CI gate | Block merge on drift, decorator, fitness, or RTM failure; staged canary |
+| | **Phase B — Failure Analysis & Kernel (L1)** | |
+| 12 | SIL mapping | Assign criticality tiers to every component (SIL-1 → SIL-3) |
+| 13 | FMEA | Failure-mode analysis: kernel invariants, sandbox escape, egress bypass, goal injection |
+| 14 | Formal specs | TLA+ specs for kernel invariant state machine + sandbox isolation |
+| 15 | KernelContext | Async context manager, boundary wrapping |
+| 16 | K1–K4 | Schema validation, permissions, bounds, trace injection |
+| 17 | K5–K6 | Idempotency key gen (RFC 8785), audit WAL |
+| 18 | K7–K8 | HITL gates, eval gates |
+| 19 | Exceptions | KernelViolation, BoundsExceeded, HITLRequired |
+| 20 | Dissimilar verify | Independent verification channel for kernel safety checks |
+| 21 | Kernel tests | Formal verification + property-based + unit + integration (SIL-3) |
+| | **Phase C — Storage Layer** | |
+| 22 | Postgres | Async pool, models, RLS policies, migrations |
+| 23 | Partitioning | Time-based partitions, auto-create, archival to S3 |
+| 24 | Redis | Pool, pub/sub, queues, cache, HA config |
+| 25 | ChromaDB | Client, tenant-isolated collections, embedding pipeline |
+| 26 | Storage tests | Connection, RLS enforcement, partition lifecycle (SIL-2) |
+| | **Phase D — Safety & Infra** | |
+| 27 | Redaction | Canonical library — single source of truth |
+| 28 | Guardrails | Input sanitization, output redaction, injection detection |
+| 29 | Governance | Forbidden paths, code review analysis |
+| 30 | Secret scanner | Detect + redact in traces |
+| 31 | Egress | L7 allowlist/redact/rate-limit, L3 NAT routing |
+| 32 | Secrets | KMS/Vault client, key rotation, credential store |
+| 33 | Safety case | Structured safety argument (claims → evidence → context) for D.27–D.32 |
+| | **Phase E — Core (L2)** | |
+| 34 | Conversation | Bidirectional WS chat interface |
+| 35 | Intent | Classifier: direct_solve / team_spawn / clarify |
+| 36 | Goals | Decomposer, 7-level hierarchy, lexicographic gating |
+| 37 | APS | Controller, T0–T3 tiers, Assembly Index |
+| 38 | Topology | Team spawn/steer/dissolve, contracts, eigenspectrum |
+| 39 | Memory | 3-tier: short (Redis), medium (PG), long (Chroma) |
+| 40 | Core tests | Intent → goal → APS → topology integration (SIL-2) |
+| | **Phase F — Engine (L3)** | |
+| 41 | Lanes | Manager, policy, main/cron/subagent dispatchers |
+| 42 | MCP | Registry, per-agent permissions, introspection |
+| 43 | MCP builtins | code (gRPC→sandbox), web, filesystem, database |
+| 44 | Workflow | Durable engine, saga patterns, compensation logic, dead-letter, DAG compiler |
+| 45 | Engine tests | Goal → lane → workflow → tool → result e2e (SIL-2) |
+| | **Phase G — Sandbox** | |
+| 46 | Sandbox image | Minimal container, no network, no holly deps |
+| 47 | gRPC service | ExecutionRequest/Result proto, server, executor |
+| 48 | Isolation | Namespaces (PID/NET/MNT), seccomp, resource limits |
+| 49 | gVisor/Firecracker | Production runtime configs |
+| 50 | Sandbox tests | Network escape, filesystem escape, resource limits (SIL-3) |
+| | **Phase H — API & Auth** | |
+| 51 | Server | Starlette app factory, middleware stack |
+| 52 | JWT middleware | JWKS verification, claims extraction, revocation cache |
+| 53 | Auth | RBAC enforcement from JWT claims |
+| 54 | Routes | chat, goals, agents, topology, execution, audit, config, health |
+| 55 | WebSockets | Manager, 9 channels, tenant-scoped authz, re-auth |
+| 56 | API tests | Auth, routing, WS channel delivery (SIL-2) |
+| | **Phase I — Observability** | |
+| 57 | Event bus | Unified ingest, sampling, backpressure, tenant-scoped fanout |
+| 58 | Logger | Structured JSON, correlation-aware, redact-before-persist |
+| 59 | Trace store | Decision tree persistence, redact payloads |
+| 60 | Metrics | Prometheus collectors |
+| 61 | Exporters | PG (partitioned), Redis (real-time streams) |
+| | **Phase J — Agents** | |
+| 62 | BaseAgent | Lifecycle, message protocol, kernel binding |
+| 63 | Agent registry | Type catalog, capability declarations |
+| 64 | Prompts | Holly, researcher, builder, reviewer, planner |
+| 65 | Constitution | Celestial L0–L4 (immutable), Terrestrial L5–L6 — as executable specs |
+| | **Phase K — Eval Infrastructure (EDDOps)** | |
+| 66 | Eval framework | Harness, dataset loaders, metric collectors, regression tracker |
+| 67 | Behavioral suites | Per-agent property-based + adversarial eval suites |
+| 68 | Constitution gate | Automated behavioral regression on every constitution/prompt change |
+| 69 | Eval CI | Eval pipeline as CI stage — blocks agent merges on regression |
+| | **Phase L — Config** | |
+| 70 | Settings | Pydantic env-driven config |
+| 71 | Hot reload | Runtime updates without restart |
+| 72 | Audit + rollback | Change logging, HITL on dangerous keys, version revert |
+| | **Phase M — Console (L5)** | |
+| 73 | Shell | React + Vite + Tailwind + Zustand scaffold |
+| 74 | Chat | Panel, message bubbles, input bar |
+| 75 | Topology | Live agent graph, contract cards |
+| 76 | Goals | Tree explorer, celestial badges |
+| 77 | Execution | Lane monitor, task timeline |
+| 78 | Audit | Log viewer, trace tree, metrics dashboard |
+| | **Phase N — Deploy & Ops** | |
+| 79 | Docker | Compose (dev), production Dockerfile |
+| 80 | AWS | VPC/CFn, ALB/WAF, ECS Fargate task defs |
+| 81 | Authentik | OIDC flows, RBAC policies |
+| 82 | Staged rollout | Feature flags, canary deploys, progressive delivery gates |
+| 83 | Scripts | seed_db, migrate, dev, partition maintenance |
+| 84 | Safety case | Full system safety argument (claims → evidence → context) for release |
+| 85 | Runbook | Operational procedures, DR/restore |
+| 86 | Docs | Glossary, sandbox security, egress model, deployment topology |
 
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+> Previous codebase (ecom-agents / Holly v2) archived on `archive/v2` branch.
