@@ -68,7 +68,12 @@ P0.7  Load spec state:
         - Component_Behavior_Specs_SIL3.md → formal state machines
         - Goal_Hierarchy_Formal_Spec.md → goal predicates
         - Monograph_Glossary_Extract.md → theory-to-implementation mapping
-P0.8  Emit context digest: {slice, phase, step, pending_tasks[], blocked_tasks[],
+        - Test_Governance_Spec.md → control library, maturity profile, artifact checklists
+        - docs/audit/trace_matrix.csv → current trace chain state (if exists)
+        - docs/audit/finding_register.csv → open findings (if exists)
+P0.8  Determine current maturity profile:
+        Slices 1–5 → Early | Slices 6–10 → Operational | Slices 11–15 → Hardened
+P0.9  Emit context digest: {slice, phase, step, pending_tasks[], blocked_tasks[],
         critical_path_next, ci_status, coverage_pct, drift_warnings[]}
 ```
 
@@ -104,14 +109,32 @@ P1.6  For each selected task, extract from manifest:
         - Referenced behavior specs
         - Referenced goal predicates
         - SIL level → verification method set (from SIL Classification Matrix)
-P1.7  Emit Task Batch: [{task_id, description, acceptance_criteria,
+P1.7  Test Governance Derivation (per Test_Governance_Spec.md §3):
+  P1.7.1  Build control applicability matrix:
+           For each task, walk the 65-control library (SEC/TST/ARC/OPS/CQ/GOV).
+           A control is APPLICABLE when task.sil_level >= ctrl.sil_threshold
+           AND ctrl.domain intersects task.affected_domains.
+  P1.7.2  Derive test requirements per applicable control:
+           Each requirement = {ctrl_id, claim, adversary, verification_method,
+           test_type, falsification_required}
+  P1.7.3  Assemble trace chain stubs:
+           Monograph Concept → Requirement → Control → Test (stub) → Evidence
+  P1.7.4  Select SIL-appropriate test artifact checklist (TGS §3.4)
+  P1.7.5  Determine maturity gates for current slice:
+           Slices 1–5:  Security Gate + Test Gate
+           Slices 6–10: + Traceability Gate
+           Slices 11–15: + Ops Gate
+
+P1.8  Emit Task Batch: [{task_id, description, acceptance_criteria,
         icd_refs[], behavior_spec_refs[], goal_refs[], sil_level,
-        verification_methods[], estimated_effort}]
+        verification_methods[], estimated_effort,
+        applicable_controls[], test_requirements[], trace_stubs[],
+        artifact_checklist, maturity_gates[]}]
 ```
 
-**Output:** Ordered Task Batch.
+**Output:** Ordered Task Batch with full test governance derivation.
 
-**Exit Criterion:** Non-empty batch selected, or all tasks in current slice are completed (→ skip to P8).
+**Exit Criterion:** Non-empty batch selected with test governance derivation complete, or all tasks in current slice are completed (→ skip to P8).
 
 ---
 
@@ -222,33 +245,75 @@ P3B.3  Emit: {tla_specs[], hypothesis_strategies[], invariants_defined}
 
 ### P3C: Test Authoring (parallel with P3A)
 
-**Purpose:** Write all test levels required by the task's SIL classification.
+**Purpose:** Write all test levels required by the task's SIL classification AND its test governance obligations from P1.7.
 
-**Inputs:** Cleared Task Batch, SIL_Classification_Matrix.md (verification requirements per SIL).
+**Inputs:** Cleared Task Batch with test governance derivation (P1.7/P1.8), SIL_Classification_Matrix.md, Test_Governance_Spec.md.
 
 **Procedure:**
 
 ```
-P3C.1  For each task, author tests per SIL level:
+P3C.0  Load test governance derivation from P1.7 for each task:
+         - applicable_controls[] — which controls this task must satisfy
+         - test_requirements[] — specific test requirements per control
+         - trace_stubs[] — trace chain stubs to be completed
+         - artifact_checklist — SIL-appropriate checklist from TGS §3.4
+
+P3C.1  For each task, author tests per BOTH SIL level AND applicable controls:
 
   SIL-3 requires ALL of:
     P3C.1.1  TLA+ invariant checks (authored in P3B)
     P3C.1.2  Property-based tests (Hypothesis) — minimum 3 properties per component
-    P3C.1.3  Unit tests (pytest) — minimum 90% branch coverage on touched code
+    P3C.1.3  Unit tests (pytest) — minimum 95% branch coverage on touched code
     P3C.1.4  Integration tests — every ICD interface exercised
-    P3C.1.5  Adversarial tests — known attack vectors for component type
+    P3C.1.5  Adversarial tests — ≥1 per FMEA failure mode + known attack vectors
     P3C.1.6  Dissimilar verification test (independent code path)
+    P3C.1.7  Falsification ratio: negative tests ≥ positive tests
+    P3C.1.8  Concurrency tests for shared-state components
+    P3C.1.9  Boundary tests for all bounded resources at/beyond limits
 
   SIL-2 requires:
-    P3C.1.2 through P3C.1.4 (property-based, unit, integration)
-    P3C.1.7  FMEA-driven tests — one test per identified failure mode
+    P3C.1.2 through P3C.1.5 (property-based, unit, integration, adversarial)
+    P3C.1.10 FMEA-driven tests — one test per identified failure mode
+    P3C.1.11 Falsification: negative tests ≥ 50% of positive test paths
+    P3C.1.8  Concurrency tests if component has shared state
+    P3C.1.9  Boundary tests for bounded resources
 
   SIL-1 requires:
     P3C.1.3 through P3C.1.4 (unit, integration)
+    P3C.1.12 Regression test: fails on old behavior, passes on new
 
-P3C.2  Test naming convention: test_{component}_{behavior}_{condition}_{expected}
-P3C.3  Test location per RTD: tests/unit/, tests/integration/, tests/property/, tests/adversarial/
-P3C.4  Emit: {test_files[], test_count_by_type, coverage_target_pct}
+P3C.2  Control-driven test authoring (per Test_Governance_Spec.md §3.2):
+         For each applicable control in test_requirements[]:
+           - Write test that FALSIFIES the control's claim (adversary test)
+           - Write test that CONFIRMS the control holds (positive test)
+           - Naming: test_{component}_{ctrl_id}_{adversary}_{expected}
+           - Each test function docstring cites: ctrl_id, claim, adversary
+
+P3C.3  Trace chain completion:
+         For each trace_stub from P1.7.3:
+           - Fill in test file:function reference
+           - Verify chain: Monograph Concept → Requirement → Control → Test → Evidence
+           - Write trace_matrix_entry row
+
+P3C.4  Agentic-specific tests (if task touches agents/LLM/MCP/sandbox):
+         Per Test_Governance_Spec.md §4.1:
+           - WebSocket origin bypass (if WS involved)
+           - Plugin endpoint unauthenticated access (if MCP involved)
+           - Outbound payload secret redaction (if egress involved)
+           - Capability manifest boundary violation (if permissions involved)
+           - Prompt injection detection (if agent involved)
+           - Loop detection (if workflow involved)
+
+P3C.5  Test location per RTD: tests/unit/, tests/integration/, tests/property/, tests/adversarial/
+P3C.6  Artifact checklist verification:
+         Walk the SIL-appropriate checklist from TGS §3.4.
+         Every checkbox must be satisfied before P3C emits.
+         Unsatisfied checkboxes → specific gap listed in emit.
+
+P3C.7  Emit: {test_files[], test_count_by_type, coverage_target_pct,
+         trace_matrix_entries[], control_coverage: {covered, total},
+         falsification_ratio, artifact_checklist_status: COMPLETE/GAPS,
+         gaps[] (if any)}
 ```
 
 ---
@@ -292,19 +357,39 @@ P4.5  Acceptance criteria verification:
   P4.5.2  Each criterion must be demonstrably met (test passes, metric achieved)
   P4.5.3  Record evidence: {criterion, evidence_type, evidence_location}
 
-P4.6  Emit Verification Report:
+P4.6  Test Governance Compliance Check (per Test_Governance_Spec.md §8, P4.5a):
+  P4.6.1  Control coverage: every applicable control has ≥1 test
+  P4.6.2  Falsification ratio meets SIL threshold:
+           - SIL-3: negative tests ≥ positive tests
+           - SIL-2: negative tests ≥ 50% of positive tests
+  P4.6.3  Trace chain complete: every test → control → requirement →
+           (monograph concept if SIL-2+)
+  P4.6.4  No orphan tests (tests not linked to any control)
+  P4.6.5  No orphan controls (applicable controls without tests)
+  P4.6.6  Artifact checklist fully satisfied (from P3C.6)
+  P4.6.7  Agentic test categories present (if task touches agents)
+
+P4.7  Emit Verification Report:
         {static_analysis: PASS/FAIL, tlc_result: PASS/FAIL/NA,
          tests: {unit: n/n, property: n/n, integration: n/n, adversarial: n/n},
          coverage: {touched_files_pct, delta_pct},
-         acceptance: [{criterion, met: bool, evidence}]}
+         acceptance: [{criterion, met: bool, evidence}],
+         test_governance: {control_coverage: n/n, falsification_ratio: float,
+           trace_completeness: n/n, orphan_tests: n, orphan_controls: n,
+           artifact_checklist: PASS/FAIL, agentic_coverage: PASS/FAIL/NA}}
 
-P4.7  Gate: ALL must be true to proceed:
+P4.8  Gate: ALL must be true to proceed:
         - static_analysis == PASS
         - tlc_result ∈ {PASS, NA}
         - all test suites: 0 failures
         - coverage thresholds met
         - all acceptance criteria met
-       If ANY fails → cycle back to P3A with failure report
+        - test_governance.control_coverage == n/n (100%)
+        - test_governance.falsification_ratio meets SIL threshold
+        - test_governance.orphan_tests == 0
+        - test_governance.orphan_controls == 0
+        - test_governance.artifact_checklist == PASS
+       If ANY fails → cycle back to P3A/P3C with specific gaps identified
 ```
 
 ---
@@ -479,6 +564,19 @@ P8.2  Evaluate gate:
   P8.2.3  No open SPEC_GAPs or THEORY_GAPs for this slice?
   P8.2.4  Coverage baseline meets slice's SIL floor?
   P8.2.5  CI pipeline green on develop/master?
+  P8.2.6  Maturity gate evaluation (per Test_Governance_Spec.md §5):
+           Slices 1–5 (Early):
+             - Security Gate: zero Critical/High findings, SEC-001–015 satisfied
+             - Test Gate: TST-001 zero failures, TST-002 coverage thresholds,
+               TST-009/010 no creds/live calls
+           Slices 6–10 (Operational): above PLUS:
+             - Traceability Gate: zero orphan Tier 1 controls/requirements,
+               Tier 1 trace coverage ≥ 90%
+           Slices 11–15 (Hardened): above PLUS:
+             - Ops Gate: OPS-001 health endpoint, OPS-004 rollback tested,
+               OPS-005 CI pipeline stages, OPS-008 runbook-linked alerts
+  P8.2.7  Test governance self-test (per Test_Governance_Spec.md §9):
+           ST-01 through ST-10 all pass for every task in this slice
 
 P8.3  If gate NOT met → loop to P1 (continue tasks in current slice)
        If gate MET → proceed to P9
@@ -559,6 +657,9 @@ These invariants are checked continuously, not just at gates:
 | **I8** | Task Manifest is the single source of truth for work items | P6.1 sync; no work done outside manifest |
 | **I9** | SAD/RTD match actual repo structure | P0.6 drift detection; P6.2 sync |
 | **I10** | Lexicographic goal ordering is never violated in code | K8 eval gate; P4.5 acceptance check |
+| **I11** | Every test traces to a control, every control traces to a requirement | P4.6 test governance compliance check |
+| **I12** | Falsification-first: no SIL-2+ task completes without negative tests | P4.6.2 falsification ratio check |
+| **I13** | No applicable control left untested at gate passage | P8.2.6 maturity gate; P4.6.1 coverage |
 
 ---
 
@@ -626,16 +727,16 @@ These invariants are checked continuously, not just at gates:
 | Procedure Phase | Primary Documents Consumed | Documents Updated |
 |----------------|---------------------------|-------------------|
 | P0 Context Sync | All docs (read-only) | — |
-| P1 Task Derivation | Task_Manifest.md, SIL_Classification_Matrix.md | — |
+| P1 Task Derivation | Task_Manifest.md, SIL_Classification_Matrix.md, **Test_Governance_Spec.md §2–3** | — |
 | P2 Spec Pre-Check | ICD_v0.1.md, Component_Behavior_Specs_SIL3.md, Goal_Hierarchy_Formal_Spec.md, Monograph_Glossary_Extract.md | — (or creates spec-fill tasks) |
 | P3A Implementation | ICD, Behavior Specs, Goal Hierarchy, Monograph Glossary, Dev_Environment_Spec.md | — |
 | P3B Formal Verification | Component_Behavior_Specs_SIL3.md | TLA+ specs (new files) |
-| P3C Test Authoring | SIL_Classification_Matrix.md (verification requirements) | Test files (new) |
-| P4 Verification | Dev_Environment_Spec.md §7 (CI pipeline) | — |
+| P3C Test Authoring | SIL_Classification_Matrix.md, **Test_Governance_Spec.md §3–4** | Test files, **trace_matrix_entries**, **artifact_checklist** |
+| P4 Verification | Dev_Environment_Spec.md §7, **Test_Governance_Spec.md §8** | — |
 | P5 Regression | SIL_Classification_Matrix.md (boundary rules), ICD (schemas) | — |
-| P6 Doc Sync | Task_Manifest.md, SAD, RTD, ICD | Task_Manifest.md, SAD, RTD, ICD, ADRs, README |
+| P6 Doc Sync | Task_Manifest.md, SAD, RTD, ICD | Task_Manifest.md, SAD, RTD, ICD, ADRs, README, **trace_matrix.csv** |
 | P7 Commit | Dev_Environment_Spec.md §9 (branch strategy) | — |
-| P8 Gate Check | Task_Manifest.md (gate criteria) | — |
+| P8 Gate Check | Task_Manifest.md, **Test_Governance_Spec.md §5 (maturity gates)** | **gate_assessment.csv, kpi_snapshot.csv** |
 | P9 Ceremony | All docs | Task_Manifest.md, README, git tags |
 
 ---
