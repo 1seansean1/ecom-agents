@@ -15,16 +15,16 @@ graph TD
     %% PHASE α: RESEARCH & THEORY
     %% ═══════════════════════════════════════════
 
-    subgraph ALPHA["Phase α — Research & Theory"]
+    subgraph ALPHA["Phase α - Research and Theory"]
         direction TB
-        LIT["Literature Review<br/>(62 sources: Landauer, Bennett,<br/>Zurek, Baez, Friston, Anthropic...)"]
-        ISO["ISO Sweep<br/>(42010, 25010,<br/>15288, 12207)"]
-        SPX["SpaceX Model<br/>(responsible-engineer,<br/>SIL stratification)"]
-        OAI["OpenAI Methodology<br/>(eval-driven dev,<br/>staged rollouts)"]
-        ANTH["Anthropic Safety<br/>(constitutional AI,<br/>defense-in-depth)"]
-        FAIL["Failure Research<br/>(41-87% multi-agent failure,<br/>FMEA/FTA)"]
-        FIT["Fitness Functions<br/>Research"]
-        MONO["Monograph v2.0<br/>(289 pp, Allen 2026)<br/>Informational Monism,<br/>Morphogenetic Agency,<br/>Goal-Spec Engineering"]
+        LIT["Literature Review\n62 sources: Landauer, Bennett,\nZurek, Baez, Friston, Anthropic"]
+        ISO["ISO Sweep\n42010, 25010,\n15288, 12207"]
+        SPX["SpaceX Model\nresponsible-engineer,\nSIL stratification"]
+        OAI["OpenAI Methodology\neval-driven dev,\nstaged rollouts"]
+        ANTH["Anthropic Safety\nconstitutional AI,\ndefense-in-depth"]
+        FAIL["Failure Research\n41-87% multi-agent failure,\nFMEA/FTA"]
+        FIT["Fitness Functions\nResearch"]
+        MONO["Monograph v2.0\n289 pp, Allen 2026\nInformational Monism,\nMorphogenetic Agency,\nGoal-Spec Engineering"]
 
         LIT --> MONO
     end
@@ -35,12 +35,12 @@ graph TD
     %% PHASE β: ARCHITECTURE
     %% ═══════════════════════════════════════════
 
-    subgraph BETA["Phase β — Architecture"]
+    subgraph BETA["Phase β - Architecture"]
         direction TB
-        SADTOOL["Custom SAD Iteration Tool<br/>(rapid mermaid generation<br/>+ validation pipeline)"]
-        SAD["SAD v0.1.0.2<br/>(System Architecture Document)<br/>Mermaid flowchart:<br/>L0-L5, 40+ components"]
-        RTD["RTD v0.1.0.2<br/>(Repository Tree Document)<br/>Mermaid tree:<br/>deploy/, holly/, console/,<br/>tests/, docs/"]
-        REPOTREE["repo-tree.md<br/>(Flat file listing)"]
+        SADTOOL["Custom SAD Iteration Tool\nrapid mermaid generation\n+ validation pipeline"]
+        SAD["SAD v0.1.0.2\nSystem Architecture Document\nMermaid flowchart:\nL0-L5, 40+ components"]
+        RTD["RTD v0.1.0.2\nRepository Tree Document\nMermaid tree:\ndeploy/, holly/, console/,\ntests/, docs/"]
+        REPOTREE["repo-tree.md\nFlat file listing"]
     end
 
     style BETA fill:#eff6ff,stroke:#2563eb
@@ -49,15 +49,15 @@ graph TD
     %% PHASE γ: SPECIFICATIONS
     %% ═══════════════════════════════════════════
 
-    subgraph GAMMA["Phase γ — Specifications"]
+    subgraph GAMMA["Phase γ - Specifications"]
         direction TB
-        ICD["ICD v0.1<br/>(49 interface contracts)<br/>Schema, error, latency,<br/>backpressure, redaction"]
-        CBS["Component Behavior Specs<br/>(SIL-3 state machines)<br/>Kernel, Sandbox, Egress"]
-        GHS["Goal Hierarchy<br/>Formal Spec<br/>(7-level hierarchy,<br/>L0-L6 predicates,<br/>3 theorems)"]
-        SIL["SIL Classification<br/>Matrix v1.0<br/>(51 components,<br/>SIL-1/2/3)"]
-        DEV["Dev Environment<br/>Spec v1.0<br/>(toolchain, CI,<br/>branch strategy)"]
-        MGE["Monograph Glossary<br/>Extract<br/>(60+ symbols,<br/>theory↔impl mapping)"]
-        DM["Design Methodology<br/>v1.0 (.docx)"]
+        ICD["ICD v0.1\n49 interface contracts\nSchema, error, latency,\nbackpressure, redaction"]
+        CBS["Component Behavior Specs\nSIL-3 state machines\nKernel, Sandbox, Egress"]
+        GHS["Goal Hierarchy\nFormal Spec\n7-level hierarchy,\nL0-L6 predicates,\n3 theorems"]
+        SIL["SIL Classification\nMatrix v1.0\n51 components,\nSIL-1/2/3"]
+        DEV["Dev Environment\nSpec v1.0\ntoolchain, CI,\nbranch strategy"]
+        MGE["Monograph Glossary\nExtract\n60+ symbols,\ntheory-impl mapping"]
+        DM["Design Methodology\nv1.0 docx"]
     end
 
     style GAMMA fill:#f0fdf4,stroke:#16a34a
@@ -66,13 +66,13 @@ graph TD
     %% PHASE δ: PROCESS & GOVERNANCE
     %% ═══════════════════════════════════════════
 
-    subgraph DELTA["Phase δ — Process & Governance"]
+    subgraph DELTA["Phase δ - Process and Governance"]
         direction TB
-        README["README.md<br/>(Meta Procedure 14-step,<br/>Task Derivation Protocol,<br/>Designer's Diary)"]
-        TM["Task Manifest v2<br/>(583 tasks, 15 slices,<br/>86 roadmap steps)"]
-        DPG["Development Procedure<br/>Graph v1.0<br/>(P0-P11 execution loop)"]
-        TGS["Test Governance<br/>Spec v1.0<br/>(65 controls, falsification-first,<br/>maturity gates)"]
-        AUDIT["END_TO_END_AUDIT<br/>CHECKLIST<br/>(12-stage, P0-P11,<br/>4 release gates)"]
+        README["README.md\nMeta Procedure 14-step,\nTask Derivation Protocol,\nDesigners Diary"]
+        TM["Task Manifest v2\n583 tasks, 15 slices,\n86 roadmap steps"]
+        DPG["Development Procedure\nGraph v1.0\nP0-P11 execution loop"]
+        TGS["Test Governance\nSpec v1.0\n65 controls, falsification-first,\nmaturity gates"]
+        AUDIT["END_TO_END_AUDIT\nCHECKLIST\n12-stage, P0-P11,\n4 release gates"]
     end
 
     style DELTA fill:#fdf4ff,stroke:#9333ea
@@ -81,11 +81,11 @@ graph TD
     %% PHASE ε: EXECUTION OUTPUTS (future)
     %% ═══════════════════════════════════════════
 
-    subgraph EPSILON["Phase ε — Execution Outputs (Slice 1+)"]
+    subgraph EPSILON["Phase ε - Execution Outputs Slice 1+"]
         direction TB
         AYML["architecture.yaml"]
         AREG["ArchitectureRegistry"]
-        DECO["Decorator Registry<br/>(@kernel_boundary,<br/>@tenant_scoped, ...)"]
+        DECO["Decorator Registry\n@kernel_boundary,\n@tenant_scoped, ..."]
         AST["AST Scanner"]
         KCTX["KernelContext"]
         K18["K1-K8 Gates"]
