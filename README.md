@@ -136,3 +136,25 @@ Phases follow a **spiral** cadence. Phase A steps 1–3 execute first, then a th
 | 86 | Docs | Glossary, sandbox security, egress model, deployment topology |
 
 > Previous codebase (ecom-agents / Holly v2) archived on `archive/v2` branch.
+
+---
+
+## Designer's Diary
+
+### Entry #1 — 17 February 2026
+
+Twelve research agents swept six domains today: ISO systems-engineering standards, SpaceX's engineering culture, OpenAI's deployment methodology, Anthropic's safety architecture, architecture fitness functions, and failure analysis techniques. The goal was to stress-test the v0.1 roadmap — 73 steps, 13 phases, linear execution — against what the field actually knows about building safety-critical autonomous systems.
+
+The ISO sweep (42010, 25010, 15288, 12207) exposed the first gap: traceability was implicit. The plan said "we'll test things" but never enforced a structural chain from stakeholder concern through architecture decision to deployment proof. 15288's verification process definitions demanded a living Requirements Traceability Matrix, auto-generated from decorators so it can't drift. That became step 10, and fitness functions (step 9) became the CI-level enforcement mechanism — architecture constraints checked on every commit, not just at design review.
+
+SpaceX's responsible-engineer model resolved the rigor question. The original plan treated all components uniformly, which is both wasteful (a config UI doesn't need formal verification) and dangerous (a kernel invariant enforcer needs more than unit tests). Their stratified requirements framework — safety constraints non-negotiable, performance constraints iteratively negotiable — mapped directly onto SIL-tiered rigor: SIL-3 for Kernel, Sandbox, and Egress; SIL-1 for Console and Config.
+
+OpenAI's eval-driven development was the single largest structural addition. Their internal methodology treats evaluations, not prompts or code, as the source of truth for AI behavior. The original roadmap had testing but no eval infrastructure. This finding created Phase K (EDDOps) wholesale — steps 66–69 — and changed step 8 from unit tests to property-based boundary fuzzing. If evaluations define behavior, testing must be generative rather than example-based.
+
+Anthropic contributed two things. First, constitutional AI as executable specification: Holly's Celestial L0–L4 goals aren't documentation, they're machine-checkable predicates running in the eval pipeline. Second, defense-in-depth exposed that the original safety model was single-layer. That drove the safety case steps (33, 84) — structured arguments in claims → evidence → context format — and the dissimilar verification step (20), because a safety check shouldn't rely solely on the mechanism it's checking.
+
+The failure analysis research was sobering. Published data shows 41–87% failure rates in multi-agent systems without structural safeguards. Dominant failure modes: goal injection, sandbox escape, egress bypass, invariant desynchronization. This drove FMEA (step 13), TLA+ formal specs (step 14), and the requirement that every identified failure mode either has a mitigation traced to a test or is explicitly accepted as residual risk.
+
+Two meta-conclusions emerged. First, execution had to shift from waterfall to spiral — you cannot validate an architecture by building it linearly. Step 3a (spiral gate) forces a thin vertical slice early: one kernel invariant enforced through one boundary crossing with one eval gate, proving the loop works before committing to 86 steps on top of it. Second, failure predicates needed promotion from implicit to explicit. The SAD defines eigenspectrum monitoring, K8 eval gates, and compensating actions, but nowhere did the plan specify what constitutes a failure predicate. The monograph formalizes this as the infeasibility residual — a measurable quantity — and steps 13–14 exist to produce an explicit, testable catalog rather than an implicit hope that monitoring catches problems.
+
+Net result: 73 steps → 86. 13 phases → 14. Waterfall → spiral. Uniform rigor → SIL-tiered. Every addition traces to a specific research finding, and every finding traces to a specific gap.
