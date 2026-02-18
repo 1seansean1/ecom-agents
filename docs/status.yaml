@@ -74,6 +74,7 @@ tasks:
     note: "Core decorators: @kernel_boundary, @tenant_scoped, @lane_dispatch, @mcp_tool, @eval_gated (37 tests)"
   3.7:
     status: done
+    commit: 6fb886b
     date: "2026-02-18"
     note: "K1 schema validation gate, SchemaRegistry, ICD contract enforcement via @kernel_boundary (37 tests)"
   3.8: pending
