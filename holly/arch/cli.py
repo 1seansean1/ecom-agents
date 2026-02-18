@@ -26,7 +26,11 @@ def cmd_extract(args: argparse.Namespace) -> None:
         print(f"ERROR: SAD file not found: {sad_path}", file=sys.stderr)
         sys.exit(1)
 
-    doc = extract_from_file(sad_path)
+    try:
+        doc = extract_from_file(sad_path)
+    except Exception as exc:
+        print(f"ERROR: Failed to extract from {sad_path}: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     if args.output:
         output_path = Path(args.output)
@@ -45,8 +49,12 @@ def cmd_stats(args: argparse.Namespace) -> None:
         print(f"ERROR: SAD file not found: {sad_path}", file=sys.stderr)
         sys.exit(1)
 
-    ast = parse_sad_file(sad_path)
-    doc = extract_from_file(sad_path)
+    try:
+        ast = parse_sad_file(sad_path)
+        doc = extract_from_file(sad_path)
+    except Exception as exc:
+        print(f"ERROR: Failed to parse {sad_path}: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     print(f"SAD: {sad_path.name}")
     print(f"  Version:      {doc.metadata.sad_version}")
@@ -96,9 +104,6 @@ def cmd_gantt(args: argparse.Namespace) -> None:
 
     if not manifest_path.exists():
         print(f"ERROR: Manifest not found: {manifest_path}", file=sys.stderr)
-        sys.exit(1)
-    if not status_path.exists():
-        print(f"ERROR: Status file not found: {status_path}", file=sys.stderr)
         sys.exit(1)
 
     try:
