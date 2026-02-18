@@ -72,28 +72,28 @@ Full design methodology, meta procedure, and task derivation protocol: [`Design_
 
 Audit instrument: [`Artifact_Genealogy_Checklist.md`](docs/audit/Artifact_Genealogy_Checklist.md)
 
-### Task Manifest
+### Task Manifest and Current Progress
 
-583 tasks across 15 spiral slices, validated against ICD v0.1, Component Behavior Specs SIL-3, and Goal Hierarchy Formal Spec. Full manifest: [`Task_Manifest.md`](docs/Task_Manifest.md)
+583 tasks across 15 spiral slices, validated against ICD v0.1, Component Behavior Specs SIL-3, and Goal Hierarchy Formal Spec. Full manifest: [`Task_Manifest.md`](docs/Task_Manifest.md) | Gantt: [`GANTT.mermaid`](docs/architecture/GANTT.mermaid) | Critical path: [`GANTT_critical.mermaid`](docs/architecture/GANTT_critical.mermaid)
 
-| Slice | Phase | Steps | Tasks | SIL | Gate |
-|---|---|---|---|---|---|
-| 1 | A (spiral) | 1, 2, 3, 3a | 39 | 2–3 | Spiral gate: enforcement loop e2e |
-| 2 | A (backfill) | 4–11 | 44 | 2 | Phase A: arch enforcement complete |
-| 3 | B | 12–21 | 86 | 3 | Phase B: kernel verified SIL-3 |
-| 4 | C | 22–26 | 30 | 2 | Phase C: storage tested |
-| 5 | D | 27–33 | 44 | 2–3 | Phase D: safety case for infra |
-| 6 | E | 34–40 | 55 | 2 | Phase E: core integration tested |
-| 7 | F | 41–45 | 32 | 2 | Phase F: engine e2e tested |
-| 8 | G | 46–50 | 45 | 3 | Phase G: sandbox SIL-3 pass |
-| 9 | H | 51–56 | 37 | 2 | Phase H: API + auth tested |
-| 10 | I | 57–61 | 25 | 2 | Phase I: observability live |
-| 11 | J | 62–65 | 34 | 2 | Phase J: agents + constitution exec |
-| 12 | K | 66–69 | 26 | 2 | Phase K: eval pipeline gates merges |
-| 13 | L | 70–72 | 14 | 1 | Phase L: config operational |
-| 14 | M | 73–78 | 28 | 1 | Phase M: console functional |
-| 15 | N | 79–86 | 48 | 1–3 | Phase N: release safety case |
-| | | **86 steps** | **583** | | |
+| Slice | Phase | Done | Total | Progress | Critical Path |
+|------:|-------|-----:|------:|---------:|---------------|
+| 1 | Phase A Spiral (Steps 1, 2, 3, 3a) | 4 | 39 | 10% [##........] | 4/12 |
+| 2 | Phase A Backfill (Steps 4-11) | 0 | 39 | 0% [..........] | 0/10 |
+| 3 | Phase B: Failure Analysis & Kernel | 0 | 62 | 0% [..........] | 0/19 |
+| 4 | Phase C: Storage Layer (Steps 22-26) | 0 | 23 | 0% [..........] | 0/7 |
+| 5 | Phase D: Safety & Infra (Steps 27-33) | 0 | 33 | 0% [..........] | 0/10 |
+| 6 | Phase E: Core L2 (Steps 34-40) | 0 | 45 | 0% [..........] | 0/12 |
+| 7 | Phase F: Engine L3 (Steps 41-45) | 0 | 24 | 0% [..........] | 0/6 |
+| 8 | Phase G: Sandbox (Steps 46-50) | 0 | 29 | 0% [..........] | 0/10 |
+| 9 | Phase H: API & Auth (Steps 51-56) | 0 | 24 | 0% [..........] | 0/8 |
+| 10 | Phase I: Observability (Steps 57-61) | 0 | 21 | 0% [..........] | 0/7 |
+| 11 | Phase J: Agents (Steps 62-65) | 0 | 25 | 0% [..........] | 0/10 |
+| 12 | Phase K: Eval / EDDOps (Steps 66-69) | 0 | 19 | 0% [..........] | 0/10 |
+| 13 | Phase L: Config (Steps 70-72) | 0 | 12 | 0% [..........] | 0/4 |
+| 14 | Phase M: Console L5 (Steps 73-78) | 0 | 18 | 0% [..........] | 0/7 |
+| 15 | Phase N: Deploy & Ops (Steps 79-86) | 0 | 29 | 0% [..........] | 0/14 |
+| **Σ** | **All** | **4** | **442** | **0%** | |
 
 ---
 
