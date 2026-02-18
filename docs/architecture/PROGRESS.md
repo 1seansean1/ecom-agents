@@ -4,7 +4,7 @@ _Generated: 2026-02-18_
 
 | Slice | Phase | Done | Total | Progress | Critical Path |
 |------:|-------|-----:|------:|---------:|---------------|
-| 1 | Phase A Spiral (Steps 1, 2, 3, 3a) | 7 | 39 | 17% [#.........] | 7/12 |
+| 1 | Phase A Spiral (Steps 1, 2, 3, 3a) | 8 | 39 | 20% [##........] | 8/12 |
 | 2 | Phase A Backfill (Steps 4–11) | 0 | 39 | 0% [..........] | 0/10 |
 | 3 | Phase B: Failure Analysis & Kernel (Step | 0 | 62 | 0% [..........] | 0/19 |
 | 4 | Phase C: Storage Layer (Steps 22–26) | 0 | 23 | 0% [..........] | 0/7 |
@@ -19,7 +19,7 @@ _Generated: 2026-02-18_
 | 13 | Phase L: Config (Steps 70–72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73–78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79–86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **7** | **442** | **1%** | |
+| **Σ** | **All** | **8** | **442** | **1%** | |
 
 ## Task Detail
 
@@ -48,7 +48,7 @@ _Generated: 2026-02-18_
 | 3.3 | Document decorator pattern trade-offs | pending | 0.5d | 3.2 |  |
 | 3.4 | Assign SIL-2 | pending | 0.5d | 3.3 |  |
 | 3.5 | Enumerate failure modes | pending | 0.5d | 3.4 |  |
-| 3.6 | Implement core decorators | pending (crit) | 1d | 2.8, 3.5 |  |
+| 3.6 | Implement core decorators | done (crit) | 1d | 2.8, 3.5 |  |
 | 3.7 | Implement ICD contract enforcement | pending (crit) | 1d | 3.6 |  |
 | 3.8 | Build AST scanner | pending | 1d | 3.7 |  |
 | 3.9 | Map decorators to test requirements | pending | 0.5d | 3.8 |  |

@@ -91,12 +91,13 @@ graph TD
         DEPS["Dependency Graph\ndependencies.py\nDAG + duration model"]
         GVALID["Gantt Validator\ngantt_validator.py\nmermaid rendering checks"]
         REG["Architecture Registry\nregistry.py\nsingleton loader"]
+        DEC["Decorators\ndecorators.py\n5 arch decorators"]
         CLI["CLI Module\ncli.py\ncommand-line entry"]
         AYML["architecture.yaml"]
         GANTT["GANTT.mermaid\nGANTT_critical.mermaid"]
         PROG["PROGRESS.md"]
         STATYS["status.yaml"]
-        TESTS["Test Suite\n158 tests across\n10 test modules"]
+        TESTS["Test Suite\n195 tests across\n11 test modules"]
         CODE["holly/ source tree"]
     end
 
@@ -290,13 +291,14 @@ Phase ε execution has begun. The tooling foundation (Tasks 1.5-1.8) is complete
 | `dependencies.py` | (infra) | Builds task dependency DAG, MP-based duration estimation |
 | `gantt_validator.py` | (infra) | Validates mermaid Gantt charts for rendering correctness |
 | `registry.py` | 2.6, 2.7, 2.8 | Thread-safe singleton loader + component/boundary/ICD lookups + hot-reload |
+| `decorators.py` | 3.6 | Core architectural decorators: @kernel_boundary, @tenant_scoped, @lane_dispatch, @mcp_tool, @eval_gated |
 | `cli.py` | (infra) | Command-line entry point for arch-tool operations |
 
 The tracker pipeline now includes a mandatory rendering validation gate: generated Gantt charts are validated for undefined alias references, circular dependencies, unicode issues, and label truncation before being written to disk. This prevents silent rendering failures in mermaid.js viewers.
 
-158 unit tests across 10 test modules verify the complete extraction, tracking, and registry pipeline. The test harness covers SAD parsing, schema validation, architecture extraction, manifest parsing, dependency graph construction, Gantt generation, Gantt rendering validation, registry singleton lifecycle, component/boundary/ICD lookups, and hot-reload with validation.
+195 unit tests across 11 test modules verify the complete extraction, tracking, registry, and decorator pipeline. The test harness covers SAD parsing, schema validation, architecture extraction, manifest parsing, dependency graph construction, Gantt generation, Gantt rendering validation, registry singleton lifecycle, component/boundary/ICD lookups, hot-reload with validation, and core architectural decorators (property-based).
 
-Remaining Slice 1 critical path: `3.6 -> 3.7 -> 3a.8 -> 3a.10 -> 3a.12` (decorators, ICD enforcement, kernel gate).
+Remaining Slice 1 critical path: `3.7 -> 3a.8 -> 3a.10 -> 3a.12` (ICD enforcement, pipeline validation, eval gate, spiral gate).
 
 ---
 
@@ -333,7 +335,8 @@ Remaining Slice 1 critical path: `3.6 -> 3.7 -> 3a.8 -> 3a.10 -> 3a.12` (decorat
 | 27 | GANTT_critical.mermaid | `docs/architecture/GANTT_critical.mermaid` | ε | 7 KB | Tracker + Dep Graph + status.yaml |
 | 28 | PROGRESS.md | `docs/architecture/PROGRESS.md` | ε | 25 KB | Tracker + Dep Graph + status.yaml |
 | 29 | Architecture Registry | `holly/arch/registry.py` | ε | 9 KB | Schema + Extract (Tasks 2.6, 2.7, 2.8) |
-| 30 | Test Suite (158 tests) | `tests/unit/test_*.py` (10 modules) | ε | 40 KB | All ε modules + TGS |
+| 30 | Core Decorators | `holly/arch/decorators.py` | ε | 12 KB | Registry API (Task 3.6) |
+| 31 | Test Suite (195 tests) | `tests/unit/test_*.py` (11 modules) | ε | 45 KB | All ε modules + TGS |
 | — | END_TO_END_AUDIT_CHECKLIST | `(external, user desktop)` | α | 12 KB | Audit process research (Allen) |
 | — | **Total in-repo documentation + code** | | | **~750 KB** | |
 
@@ -418,7 +421,13 @@ These rules govern how new artifacts enter the genealogy:
                      Generation counter for staleness detection
                      Failed reload retains previous state
                      18 hot-reload tests (lifecycle, thread-safety, failure retention)
-                     158 total tests across 10 test modules
+                     195 total tests across 11 test modules
+2026-02-18  Core decorators (decorators.py, Task 3.6):
+                     @kernel_boundary, @tenant_scoped, @lane_dispatch,
+                     @mcp_tool, @eval_gated with registry validation
+                     Property-based tests via hypothesis
+                     37 decorator tests (metadata stamping, registry validation, cross-decorator)
+                     195 total tests across 11 test modules
 2026-02-18  Artifact Genealogy updated with Phase ε execution artifacts
 ```
 

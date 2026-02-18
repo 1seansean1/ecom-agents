@@ -68,7 +68,10 @@ tasks:
   3.3: pending
   3.4: pending
   3.5: pending
-  3.6: pending
+  3.6:
+    status: done
+    date: "2026-02-18"
+    note: "Core decorators: @kernel_boundary, @tenant_scoped, @lane_dispatch, @mcp_tool, @eval_gated (37 tests)"
   3.7: pending
   3.8: pending
   3.9: pending
