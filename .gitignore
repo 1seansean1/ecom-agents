@@ -40,3 +40,10 @@ htmlcov/
 *.whl
 *.tar.gz
 .hypothesis/
+
+# Session temp files
+*_out.txt
+*_output.txt
+_regen.py
+tmp_msg.txt
+uv.lock

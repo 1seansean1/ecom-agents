@@ -109,6 +109,12 @@ def load_status(path: Path) -> dict[str, TaskState]:
     if not isinstance(data, dict):
         return {}
     tasks_raw = data.get("tasks", {})
+    if not isinstance(tasks_raw, dict):
+        logging.getLogger(__name__).warning(
+            "status.yaml 'tasks' is %s, expected dict — returning empty",
+            type(tasks_raw).__name__,
+        )
+        return {}
     states: dict[str, TaskState] = {}
     _log = logging.getLogger(__name__)
     for task_id, info in tasks_raw.items():

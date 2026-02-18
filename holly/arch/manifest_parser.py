@@ -86,17 +86,20 @@ _RE_TASK_ROW = re.compile(
     r"^\|\s*(\d+a?\.\d+)\s*\|\s*(\d+)\s*\|\s*(.+?)\s*\|"
 )
 _RE_CRITICAL_PATH = re.compile(
-    r"^(\d+a?\.\d+(?:\s*[→→]\s*\d+a?\.\d+)+)\s*$"
+    r"^(\d+a?\.\d+(?:\s*(?:→|->)\s*\d+a?\.\d+)+)\s*$"
 )
 
 
 def _parse_critical_path_line(line: str) -> list[str]:
-    """Parse a critical path line like '1.5 → 1.6 → 1.7' into task IDs."""
+    """Parse a critical path line like '1.5 → 1.6 → 1.7' into task IDs.
+
+    Supports both Unicode arrow (→) and ASCII arrow (->) syntax.
+    """
     stripped = line.strip()
     if not stripped or not re.match(r"\d+a?\.\d+", stripped):
         return []
-    # Split on arrow variants
-    parts = re.split(r"\s*[→→]\s*", stripped)
+    # Split on arrow variants: Unicode → or ASCII ->
+    parts = re.split(r"\s*(?:→|->)\s*", stripped)
     ids = [p.strip() for p in parts if p.strip()]
     # Validate all parts are task IDs
     if all(re.match(r"^\d+a?\.\d+$", p) for p in ids):

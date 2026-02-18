@@ -5,6 +5,8 @@ Covers fixes from the dual-repo review:
   2. SchemaRegistry 'type' key validation
   3. TaskStatus graceful degradation on unknown values
   4. C011 diff counting accuracy
+  5. load_status() tasks shape guard (list → AttributeError)
+  6. Critical path ASCII arrow support
 """
 
 from __future__ import annotations
@@ -181,3 +183,99 @@ class TestC011DiffCounting:
             1 for i in range(min_len) if gen_lines[i] != file_lines[i]
         ) + abs(len(gen_lines) - len(file_lines))
         assert diff_count == 0
+
+
+# ══════════════════════════════════════════════════════════
+# load_status(): tasks shape guard
+# ══════════════════════════════════════════════════════════
+
+
+class TestLoadStatusShapeGuard:
+    def test_tasks_as_list_returns_empty(self, tmp_path: Path) -> None:
+        from holly.arch.tracker import load_status
+
+        status_file = tmp_path / "status.yaml"
+        status_file.write_text(
+            "version: '1.0'\ntasks:\n  - item1\n  - item2\n",
+            encoding="utf-8",
+        )
+        states = load_status(status_file)
+        assert states == {}
+
+    def test_tasks_as_list_logs_warning(self, tmp_path: Path, caplog: Any) -> None:
+        from holly.arch.tracker import load_status
+
+        status_file = tmp_path / "status.yaml"
+        status_file.write_text(
+            "version: '1.0'\ntasks:\n  - item1\n",
+            encoding="utf-8",
+        )
+        with caplog.at_level(logging.WARNING):
+            load_status(status_file)
+        assert any("expected dict" in r.message for r in caplog.records)
+
+    def test_tasks_as_string_returns_empty(self, tmp_path: Path) -> None:
+        from holly.arch.tracker import load_status
+
+        status_file = tmp_path / "status.yaml"
+        status_file.write_text(
+            "version: '1.0'\ntasks: not_a_dict\n",
+            encoding="utf-8",
+        )
+        states = load_status(status_file)
+        assert states == {}
+
+    def test_missing_tasks_key_returns_empty(self, tmp_path: Path) -> None:
+        from holly.arch.tracker import load_status
+
+        status_file = tmp_path / "status.yaml"
+        status_file.write_text(
+            "version: '1.0'\n",
+            encoding="utf-8",
+        )
+        states = load_status(status_file)
+        assert states == {}
+
+
+# ══════════════════════════════════════════════════════════
+# Critical path: ASCII arrow support
+# ══════════════════════════════════════════════════════════
+
+
+class TestCriticalPathArrowParsing:
+    def test_unicode_arrow(self) -> None:
+        from holly.arch.manifest_parser import _parse_critical_path_line
+
+        result = _parse_critical_path_line("1.5 → 1.6 → 1.7")
+        assert result == ["1.5", "1.6", "1.7"]
+
+    def test_ascii_arrow(self) -> None:
+        from holly.arch.manifest_parser import _parse_critical_path_line
+
+        result = _parse_critical_path_line("1.5 -> 1.6 -> 1.7")
+        assert result == ["1.5", "1.6", "1.7"]
+
+    def test_mixed_arrows(self) -> None:
+        from holly.arch.manifest_parser import _parse_critical_path_line
+
+        result = _parse_critical_path_line("1.5 → 1.6 -> 1.7")
+        assert result == ["1.5", "1.6", "1.7"]
+
+    def test_single_task_returns_single_id(self) -> None:
+        from holly.arch.manifest_parser import _parse_critical_path_line
+
+        result = _parse_critical_path_line("1.5")
+        assert result == ["1.5"]
+
+    def test_alpha_slice_ids(self) -> None:
+        from holly.arch.manifest_parser import _parse_critical_path_line
+
+        result = _parse_critical_path_line("3a.8 -> 3a.10 -> 3a.12")
+        assert result == ["3a.8", "3a.10", "3a.12"]
+
+    def test_regex_matches_ascii_arrow_line(self) -> None:
+        from holly.arch.manifest_parser import _RE_CRITICAL_PATH
+
+        assert _RE_CRITICAL_PATH.match("1.1 -> 1.2 -> 1.3")
+        assert _RE_CRITICAL_PATH.match("1.1 → 1.2 → 1.3")
+        assert not _RE_CRITICAL_PATH.match("not a path")
