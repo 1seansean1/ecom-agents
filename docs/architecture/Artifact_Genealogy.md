@@ -244,9 +244,9 @@ Seven specification documents were derived from the SAD, monograph, and research
 | **ICD v0.1** | SAD (40+ arrows → 49 contracts) | Schema, error codes, latency budgets, backpressure, tenant isolation, redaction per interface |
 | **Component Behavior Specs** | SAD (SIL-3 nodes) + Monograph (state machines) + Anthropic (defense-in-depth) | Formal state machines for Kernel, Sandbox, Egress |
 | **Goal Hierarchy Formal Spec** | Monograph (Ch 6–9) | 7-level hierarchy, L0–L6 predicates, 3 theorems, 4 APIs |
-| **SIL Classification Matrix** | SAD (51 components) + SpaceX (stratification) + Failure Research (consequence analysis) | SIL-1/2/3 per component, verification requirements |
+| **SIL Classification Matrix** | SAD (45 components) + SpaceX (stratification) + Failure Research (consequence analysis) | SIL-1/2/3 per component, verification requirements |
 | **Dev Environment Spec** | SAD + RTD + ISO (process) + OpenAI (CI) | Toolchain, 10-stage CI, branch strategy, ADR template |
-| **Monograph Glossary Extract** | Monograph (289 pp) + SAD (implementation constructs) | 60+ symbols, bidirectional theory↔impl mapping |
+| **Monograph Glossary Extract** | Monograph (289 pp) + SAD (implementation constructs) | 104 symbols, bidirectional theory↔impl mapping |
 | **Design Methodology** | All 6 research agents | 14-step meta procedure, worked examples |
 
 The **Task Manifest** was then derived from the README's meta procedure applied to all 86 roadmap steps, producing 583 tasks. A validation pass against ICD, Behavior Specs, and Goal Hierarchy added 38 tasks and refined 47 acceptance criteria.
