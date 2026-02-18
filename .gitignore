@@ -39,3 +39,4 @@ htmlcov/
 # Build artifacts
 *.whl
 *.tar.gz
+.hypothesis/

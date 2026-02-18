@@ -105,15 +105,33 @@ def _decorate(fn: F, meta: dict[str, Any]) -> F:
 
     Classes receive metadata directly — no wrapper — to preserve
     ``isinstance``, ``issubclass``, and class attribute access.
-    Functions get a thin ``functools.wraps`` wrapper for future
-    runtime enforcement hooks (Task 3.7+).
+    Functions get a thin ``functools.wraps`` wrapper that includes
+    K1 runtime enforcement when ``gate_id="K1"`` and ``icd_schema``
+    is set (Task 3.7).
     """
     if isinstance(fn, type):
         # Class: attach metadata directly, return unchanged class.
         return _attach_meta(fn, meta)  # type: ignore[return-value]
-    # Function: wrap to enable future runtime enforcement.
+
+    icd_schema = meta.get("icd_schema")
+    icd_field = meta.get("icd_field", 0)  # positional index or kwarg name
+
+    # Function: wrap with optional K1 enforcement.
     @functools.wraps(fn)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
+        # K1 gate: validate first positional arg (or named field)
+        # against the registered ICD schema.
+        if icd_schema and meta.get("gate_id") == "K1":
+            from holly.kernel.k1 import k1_validate
+
+            if isinstance(icd_field, str) and icd_field in kwargs:
+                payload = kwargs[icd_field]
+            elif isinstance(icd_field, int) and icd_field < len(args):
+                payload = args[icd_field]
+            else:
+                payload = None
+            if payload is not None:
+                k1_validate(payload, icd_schema)
         return fn(*args, **kwargs)
 
     return _attach_meta(wrapper, meta)  # type: ignore[return-value]
@@ -153,6 +171,8 @@ def kernel_boundary(
     invariant: str = "",
     component_id: str | None = None,
     validate: bool = True,
+    icd_schema: str = "",
+    icd_field: int | str = 0,
 ) -> Callable[[F], F]: ...
 
 
@@ -163,11 +183,14 @@ def kernel_boundary(
     invariant: str = "",
     component_id: str | None = None,
     validate: bool = True,
+    icd_schema: str = "",
+    icd_field: int | str = 0,
 ) -> F | Callable[[F], F]:
     """Mark a function or class as a kernel boundary gate.
 
     Can be used bare (``@kernel_boundary``) or with arguments
-    (``@kernel_boundary(gate_id="K1", invariant="schema_validation")``).
+    (``@kernel_boundary(gate_id="K1", invariant="schema_validation",
+    icd_schema="ICD-006")``).
 
     Parameters
     ----------
@@ -179,6 +202,13 @@ def kernel_boundary(
         Optional SAD component ID for registry validation.
     validate:
         If True and the registry is loaded, validate *component_id*.
+    icd_schema:
+        ICD identifier for K1 schema validation.  When non-empty and
+        ``gate_id="K1"``, the decorated function's payload argument
+        is validated against this schema at call time (Task 3.7).
+    icd_field:
+        Which argument to validate: positional index (int, default 0)
+        or keyword name (str).
     """
 
     def decorator(fn: F) -> F:
@@ -189,6 +219,8 @@ def kernel_boundary(
             "invariant": invariant,
             "component_id": component_id,
             "layer": "L1",
+            "icd_schema": icd_schema,
+            "icd_field": icd_field,
         })
 
     if func is not None:

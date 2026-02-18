@@ -108,7 +108,7 @@ Audit instrument: [`Artifact_Genealogy_Checklist.md`](docs/audit/Artifact_Geneal
 
 | Slice | Phase | Done | Total | Progress | Critical Path |
 |------:|-------|-----:|------:|---------:|---------------|
-| 1 | Phase A Spiral (Steps 1, 2, 3, 3a) | 8 | 39 | 20% [##........] | 8/12 |
+| 1 | Phase A Spiral (Steps 1, 2, 3, 3a) | 9 | 39 | 23% [##........] | 9/12 |
 | 2 | Phase A Backfill (Steps 4-11) | 0 | 39 | 0% [..........] | 0/10 |
 | 3 | Phase B: Failure Analysis & Kernel | 0 | 62 | 0% [..........] | 0/19 |
 | 4 | Phase C: Storage Layer (Steps 22-26) | 0 | 23 | 0% [..........] | 0/7 |
@@ -123,7 +123,7 @@ Audit instrument: [`Artifact_Genealogy_Checklist.md`](docs/audit/Artifact_Geneal
 | 13 | Phase L: Config (Steps 70-72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73-78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79-86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **8** | **442** | **1%** | |
+| **Σ** | **All** | **9** | **442** | **2%** | |
 
 ---
 
@@ -228,7 +228,7 @@ The meta-lesson is about agent reliability as auditors. Of the 7 agents, two pro
 
 Net result: first audit run complete, 12/12 findings resolved, specification corpus internally consistent, baseline established. The repo is clean for slice 1.
 
-> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 3.7 — ICD contract enforcement. Remaining critical path: `3.7 → 3a.8 → 3a.10 → 3a.12`.
+> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 3a.8 — Full pipeline validation. Remaining critical path: `3a.8 → 3a.10 → 3a.12`.
 
 > **Standing Process Reminder — execute before every task:**
 > 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts
@@ -257,7 +257,7 @@ The meta-pattern across entries #3, #4, and #5 is worth noting. Every external a
 
 Six findings registered (F-025 through F-030), 195 tests passing, ruff and mypy clean.
 
-> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 3.7 — ICD contract enforcement. Remaining critical path: `3.7 → 3a.8 → 3a.10 → 3a.12`.
+> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 3a.8 — Full pipeline validation. Remaining critical path: `3a.8 → 3a.10 → 3a.12`.
 
 > **Standing Process Reminder — execute before every task:**
 > 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts

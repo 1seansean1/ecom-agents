@@ -72,7 +72,10 @@ tasks:
     status: done
     date: "2026-02-18"
     note: "Core decorators: @kernel_boundary, @tenant_scoped, @lane_dispatch, @mcp_tool, @eval_gated (37 tests)"
-  3.7: pending
+  3.7:
+    status: done
+    date: "2026-02-18"
+    note: "K1 schema validation gate, SchemaRegistry, ICD contract enforcement via @kernel_boundary (37 tests)"
   3.8: pending
   3.9: pending
   3.10: pending
