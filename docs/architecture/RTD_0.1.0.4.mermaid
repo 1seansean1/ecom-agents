@@ -1,2 +1,230 @@
 %%{init: {"theme": "dark", "themeVariables": {"fontSize": "12px"}, "flowchart": {"nodeSpacing": 12, "rankSpacing": 30, "curve": "stepBefore"}}}%%
 graph LR
+    %% ===================================================
+    %% HOLLY 3.0 - REPOSITORY TREE DOCUMENT
+    %% Flat tree layout: depth = indentation
+    %% Color = SAD layer membership
+    %% Synced with SAD v0.1.0.5 changes:
+    %%   Round 5: egress L7/L3 split, canonical redaction module
+    %%   Round 4: JWKS verification model, multi-tenant isolation,
+    %%   idempotency ownership split, end-to-end redaction,
+    %%   secrets.py rename
+    %%   Round 3: effectively-once, JWT revocation,
+    %%   Authentik public endpoint, event redaction,
+    %%   per-tenant stream authz, kernel discipline
+    %% ===================================================
+
+    ROOT["holly-3/"]
+
+    %% ── Level 1: top-level dirs ──
+
+    ROOT --- D["deploy/"]
+    ROOT --- SBX["sandbox/"]
+    ROOT --- MIG["migrations/"]
+    ROOT --- H["holly/"]
+    ROOT --- CON["console/"]
+    ROOT --- T["tests/"]
+    ROOT --- SC["scripts/"]
+    ROOT --- DOC["docs/"]
+
+    %% ── deploy/ ──
+
+    D --- DA["aws/\nalb.yaml\nvpc-cfn.yaml\necs-task-def.json"]
+    D --- DN["nginx/ DEV ONLY\nnginx.conf"]
+    D --- DK["authentik/\nflows.yaml\nrbac-policies.yaml\nPublic via ALB /auth/*"]
+
+    %% ── sandbox/ (isolated container) ──
+
+    SBX --- SBXS["sandbox/\nserver.py  gRPC\nexecutor.py\nruntime.py"]
+    SBX --- SBXT["tests/"]
+    SBX --- SBXD["deploy/\ngvisor-runsc.yaml\nfirecracker.yaml"]
+    SBXS --- SBXP["proto/\nexecution.proto"]
+    SBXS --- SBXSC["security/\nnamespace.py\nseccomp.py\nlimits.py"]
+
+    %% ── holly/ ──
+
+    H --- HK["kernel/\nIn-Process Library"]
+    H --- HC["core/\nOrchestrator"]
+    H --- HE["engine/\nExecution"]
+    H --- HA["agents/"]
+    H --- HL["llm/"]
+    H --- HP["api/"]
+    H --- HO["observability/"]
+    H --- HS["storage/"]
+    H --- HF["safety/"]
+    H --- HG["config/"]
+
+    %% ── holly/kernel/ ──
+
+    HK --- HKC["context.py\nKernelContext\nasync context manager\nUniversal invariants only"]
+    HK --- HKI["K1-K8 invariants\nschema  perms  bounds\ntrace  idemp-keygen  wal\nhitl  eval"]
+
+    %% ── holly/core/ ──
+
+    HC --- HCC["conversation.py\nintent.py\nsession.py"]
+    HC --- HCG["goals/\ndecomposer  hierarchy\nlexicographic  coupling\npredicates"]
+    HC --- HCA["aps/\ncontroller  tiers\nassembly  partitions"]
+    HC --- HCT["topology/\nmanager  contracts\neigenspectrum  templates"]
+    HC --- HCM["memory/\nshort  medium  long"]
+
+    %% ── holly/engine/ ──
+
+    HE --- HEL["lanes/\nmanager  main  cron  subagent\npolicy.py  dynamic limits"]
+    HE --- HEM["mcp/\nregistry  permissions\nintrospection"]
+    HE --- HEW["workflow/\nengine  checkpoint\nretry  compiler\nEffectively-once\nidempotency + dedupe"]
+    HEM --- HEMB["builtin/\ncode.py  gRPC client\nweb  filesystem  database"]
+
+    %% ── holly/agents/ ──
+
+    HA --- HAB["base.py  registry.py"]
+    HA --- HAP["prompts/\nholly  researcher\nbuilder  reviewer  planner"]
+    HA --- HAC["constitution/\ncelestial.py\nterrestrial.py"]
+
+    %% ── holly/llm/ ──
+
+    HL --- HLR["router.py  claude.py\nollama.py  budget.py\nretry.py"]
+
+    %% ── holly/api/ ──
+
+    HP --- HPM["middleware/\njwt.py  JWKS public key verify\nclaims extraction\nrevocation cache  short TTL\nauth.py  cors  rate_limit  trace"]
+    HP --- HPR["routes/\nchat  goals  agents\ntopology  execution\nmemory  tools  audit\nconfig  health"]
+    HP --- HPW["websockets/\nmanager  channels\nserializers\nper-tenant stream authz"]
+
+    %% ── holly/observability/ ──
+
+    HO --- HOEB["event_bus.py\nunified ingest\nsampling  filters\nbackpressure control\nevent-level PII redaction\ntenant-scoped fanout"]
+    HO --- HOL["logger  metrics\nevents  trace_store\nredact before persist"]
+    HO --- HOE["exporters/\npostgres.py  redis.py"]
+
+    %% ── holly/storage/ ──
+
+    HS --- HSP["postgres/\nconnection  models\npartitioning  archival\nqueries/\nRow-Level Security per tenant"]
+    HS --- HSR["redis/\nconnection  pubsub\nqueues  cache\nSentinel/Cluster  AOF+RDB\ntenant-namespaced keys"]
+    HS --- HSC["chroma/\nclient  collections\nembeddings\ntenant-isolated collections"]
+
+    %% ── holly/safety/ ──
+
+    HF --- HFR["redaction.py\ncanonical redaction library\nall redactors import this"]
+    HF --- HFG["guardrails/\ninput.py  output.py\nPII redaction"]
+    HF --- HFV["governance/\nforbidden_paths.py\ncode_review.py"]
+    HF --- HFS["secret_scanner.py\ndetect + redact in traces"]
+
+    %% ── holly/config/ ──
+
+    HG --- HGS["settings.py\ndefaults.yaml"]
+    HG --- HGH["hot_reload.py\naudit.py  rollback.py"]
+
+    %% ── holly/infra/ (new: egress + secrets) ──
+
+    H --- HI["infra/"]
+    HI --- HIE["egress.py\nL7: domain allowlist\nL7: redact before egress\nL7: prompt/response redaction\nL7: rate limits  budget\nL7: request logging\nL3: NAT gateway routing"]
+    HI --- HIK["secrets.py\nKMS / Vault client\nkey rotation  audit\ntool credential store\nAuthentik client secret"]
+
+    %% ── console/ ──
+
+    CON --- CONS["src/\nApp.tsx  main.tsx"]
+    CONS --- CONC["components/\nChat  Topology  Goals\nExecution  Audit  Layout"]
+    CONS --- CONH["hooks/\nuseWebSocket  useGoalTree\nuseTopology  useAgentTrace"]
+    CONS --- CONT["stores/\nchat  topology\ngoal  metrics"]
+
+    %% ── tests/ ──
+
+    T --- TU["unit/\nkernel  core  engine\nsandbox  storage\nconfig  safety  infra"]
+    T --- TI["integration/\nkernel_context  goal_to_exec\nteam_lifecycle  sandbox_e2e\nobservability  egress"]
+    T --- TE["e2e/\nchat_flow  team_spawn"]
+
+    %% ── scripts/ ──
+
+    SC --- SCF["seed_db  migrate  dev\npartition_maint\ngenerate_architecture\nrotate_secrets"]
+
+    %% ── docs/ ──
+
+    DOC --- DOCF["architecture.yaml\ngoal-hierarchy.md\nmorphogenetic-agency.md\nsandbox-security.md\negress-model.md\nglossary.md\ndeployment-topology.md\nrunbook.md"]
+
+    %% ===================================================
+    %% CROSS-CUTTING (dotted)
+    %% ===================================================
+
+    HEMB -.->|"gRPC"| SBX
+    HK -.->|"wraps"| HC
+    HK -.->|"wraps"| HE
+    HIE -.->|"egress for"| HL
+    HIK -.->|"creds to"| HEM
+
+    %% ===================================================
+    %% STYLES - layer colors from SAD
+    %% ===================================================
+
+    classDef root fill:#1a1a2e,stroke:#e0e0e0,color:#ffffff,stroke-width:2px,font-weight:bold
+    classDef infra fill:#0f3460,stroke:#533483,color:#e0e0e0
+    classDef infraLeaf fill:#0a2540,stroke:#3a2663,color:#c0c0c0
+    classDef sandbox fill:#4a2800,stroke:#ff8c00,color:#ffffff,stroke-width:2px
+    classDef sandboxLeaf fill:#3a2000,stroke:#cc7000,color:#e0d0b0
+    classDef kernel fill:#6b0000,stroke:#ff4444,color:#ffffff,stroke-width:2px
+    classDef kernelLeaf fill:#500000,stroke:#cc3333,color:#ffcccc
+    classDef core fill:#1b4332,stroke:#40916c,color:#ffffff
+    classDef coreLeaf fill:#142e24,stroke:#306850,color:#c0e0d0
+    classDef engine fill:#2d3047,stroke:#7678ed,color:#e0e0e0
+    classDef engineLeaf fill:#22243a,stroke:#5a5cc0,color:#c0c0e0
+    classDef agents fill:#2d3047,stroke:#7678ed,color:#e0e0e0
+    classDef agentsLeaf fill:#22243a,stroke:#5a5cc0,color:#c0c0e0
+    classDef llm fill:#ff6b35,stroke:#ff9f1c,color:#000000,stroke-width:2px
+    classDef llmLeaf fill:#cc5528,stroke:#cc7f16,color:#1a1a1a
+    classDef api fill:#2d3047,stroke:#7678ed,color:#e0e0e0
+    classDef apiLeaf fill:#22243a,stroke:#5a5cc0,color:#c0c0e0
+    classDef obs fill:#4a1942,stroke:#c060a1,color:#e0e0e0
+    classDef obsLeaf fill:#3a1232,stroke:#a04880,color:#e0c0d8
+    classDef stor fill:#2c2c54,stroke:#706fd3,color:#e0e0e0
+    classDef storLeaf fill:#202044,stroke:#5856aa,color:#c0c0e0
+    classDef safety fill:#6b0000,stroke:#ff4444,color:#ffffff
+    classDef safetyLeaf fill:#500000,stroke:#cc3333,color:#ffcccc
+    classDef config fill:#245c3a,stroke:#52b788,color:#ffffff
+    classDef configLeaf fill:#1a4028,stroke:#3a8a60,color:#c0e0d0
+    classDef console fill:#1d3557,stroke:#457b9d,color:#e0e0e0
+    classDef consoleLeaf fill:#142840,stroke:#355a7a,color:#b0c8e0
+    classDef tests fill:#3a3a3a,stroke:#888,color:#e0e0e0
+    classDef testsLeaf fill:#2a2a2a,stroke:#666,color:#c0c0c0
+    classDef aux fill:#3a3a3a,stroke:#888,color:#e0e0e0
+    classDef auxLeaf fill:#2a2a2a,stroke:#666,color:#c0c0c0
+    classDef migLeaf fill:#2a2a2a,stroke:#666,color:#c0c0c0
+    classDef infraPkg fill:#1a3a5c,stroke:#4a7a9c,color:#e0e0e0,stroke-width:2px
+    classDef infraPkgLeaf fill:#132a42,stroke:#3a6080,color:#b0c8e0
+    classDef secrets fill:#3a1a3a,stroke:#8a4a8a,color:#e0e0e0,stroke-width:2px
+
+    class ROOT root
+    class D infra
+    class DA,DN,DK infraLeaf
+    class SBX sandbox
+    class SBXS,SBXT,SBXD,SBXP,SBXSC sandboxLeaf
+    class MIG migLeaf
+    class H root
+    class HK kernel
+    class HKC,HKI kernelLeaf
+    class HC core
+    class HCC,HCG,HCA,HCT,HCM coreLeaf
+    class HE engine
+    class HEL,HEM,HEW,HEMB engineLeaf
+    class HA agents
+    class HAB,HAP,HAC agentsLeaf
+    class HL llm
+    class HLR llmLeaf
+    class HP api
+    class HPM,HPR,HPW apiLeaf
+    class HO obs
+    class HOEB,HOL,HOE obsLeaf
+    class HS stor
+    class HSP,HSR,HSC storLeaf
+    class HF safety
+    class HFR,HFS,HFG,HFV safetyLeaf
+    class HG config
+    class HGS,HGH configLeaf
+    class HI infraPkg
+    class HIE,HIK infraPkgLeaf
+    class CON console
+    class CONS,CONC,CONH,CONT consoleLeaf
+    class T tests
+    class TU,TI,TE testsLeaf
+    class SC aux
+    class SCF auxLeaf
+    class DOC aux
+    class DOCF auxLeaf
