@@ -1,6 +1,7 @@
 """Thread-safe singleton registry for architecture.yaml.
 
 Task 2.6 — Implement singleton loader.
+Task 2.7 — Component / boundary / ICD lookups.
 
 The ``ArchitectureRegistry`` is the single Python entry-point for
 querying the machine-readable SAD.  It lazily loads and validates
@@ -19,6 +20,10 @@ Design decisions (per Task 2.3 ADR scope):
   once loaded, reads are lock-free (the reference swap is atomic in
   CPython, and we use a snapshot pattern for correctness on other
   runtimes).
+- **Typed lookups** (Task 2.7): ``get_component``, ``get_boundary``,
+  ``get_icd`` provide O(1) or O(n) access to components, boundary-
+  crossing connections, and per-component interface control documents.
+  Unknown keys raise ``ComponentNotFoundError``.
 """
 
 from __future__ import annotations
@@ -29,7 +34,7 @@ from typing import ClassVar
 
 import yaml
 
-from holly.arch.schema import ArchitectureDocument
+from holly.arch.schema import ArchitectureDocument, Component, Connection, LayerID
 
 
 class RegistryNotLoadedError(RuntimeError):
@@ -38,6 +43,17 @@ class RegistryNotLoadedError(RuntimeError):
 
 class RegistryValidationError(ValueError):
     """Raised when architecture.yaml fails Pydantic validation."""
+
+
+class ComponentNotFoundError(KeyError):
+    """Raised when a component ID is not present in the architecture."""
+
+    def __init__(self, component_id: str) -> None:
+        super().__init__(component_id)
+        self.component_id = component_id
+
+    def __str__(self) -> str:
+        return f"No component with id {self.component_id!r} in architecture.yaml"
 
 
 class ArchitectureRegistry:
@@ -124,6 +140,99 @@ class ArchitectureRegistry:
     def path(self) -> Path:
         """Resolved path of the loaded YAML."""
         return self._resolve_path()
+
+    # ── Task 2.7 — typed lookups ─────────────────────────
+
+    def get_component(self, component_id: str) -> Component:
+        """Look up a component by its mermaid node ID.
+
+        Parameters
+        ----------
+        component_id:
+            Mermaid node ID (e.g. ``"K1"``, ``"CONV"``, ``"PG"``).
+
+        Returns
+        -------
+        Component
+            The matching ``Component`` model instance.
+
+        Raises
+        ------
+        ComponentNotFoundError
+            If *component_id* is not present in the architecture.
+        """
+        try:
+            return self._document.components[component_id]
+        except KeyError:
+            raise ComponentNotFoundError(component_id) from None
+
+    def get_boundary(
+        self,
+        source_layer: LayerID,
+        target_layer: LayerID,
+    ) -> list[Connection]:
+        """Return all boundary-crossing connections between two layers.
+
+        Only connections where ``crosses_boundary is True`` and where
+        ``source_layer`` / ``target_layer`` match the given pair are
+        returned.  Order is preserved from the SAD parse order.
+
+        Parameters
+        ----------
+        source_layer:
+            Origin layer of the connection.
+        target_layer:
+            Destination layer of the connection.
+
+        Returns
+        -------
+        list[Connection]
+            May be empty if no boundary crossings exist between the
+            specified layers.
+        """
+        sl = LayerID(source_layer)
+        tl = LayerID(target_layer)
+        return [
+            c
+            for c in self._document.connections
+            if c.crosses_boundary
+            and c.source_layer == sl
+            and c.target_layer == tl
+        ]
+
+    def get_icd(self, component_id: str) -> list[Connection]:
+        """Return the Interface Control Document for a component.
+
+        The ICD is the set of *boundary-crossing* connections where
+        *component_id* appears as either source or target.  This
+        defines the component's external interface surface.
+
+        Parameters
+        ----------
+        component_id:
+            Mermaid node ID.  Must exist in the architecture.
+
+        Returns
+        -------
+        list[Connection]
+            Boundary-crossing connections involving the component.
+            May be empty if the component has no cross-layer edges.
+
+        Raises
+        ------
+        ComponentNotFoundError
+            If *component_id* is not present in the architecture.
+        """
+        # Validate existence first.
+        if component_id not in self._document.components:
+            raise ComponentNotFoundError(component_id)
+
+        return [
+            c
+            for c in self._document.connections
+            if c.crosses_boundary
+            and (c.source_id == component_id or c.target_id == component_id)
+        ]
 
     # ── internal helpers ─────────────────────────────────
 

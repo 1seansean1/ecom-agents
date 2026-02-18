@@ -52,7 +52,10 @@ tasks:
     status: done
     date: "2026-02-18"
     note: "ArchitectureRegistry singleton, thread-safe lazy init (18 tests)"
-  2.7: pending
+  2.7:
+    status: done
+    date: "2026-02-18"
+    note: "get_component/get_boundary/get_icd lookups (24 tests)"
   2.8: pending
   2.9: pending
 

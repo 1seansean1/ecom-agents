@@ -96,7 +96,7 @@ graph TD
         GANTT["GANTT.mermaid\nGANTT_critical.mermaid"]
         PROG["PROGRESS.md"]
         STATYS["status.yaml"]
-        TESTS["Test Suite\n116 tests across\n8 test modules"]
+        TESTS["Test Suite\n140 tests across\n9 test modules"]
         CODE["holly/ source tree"]
     end
 
@@ -289,14 +289,14 @@ Phase ε execution has begun. The tooling foundation (Tasks 1.5-1.8) is complete
 | `tracker.py` | (infra) | Merges Manifest + status.yaml, generates Gantt + PROGRESS.md |
 | `dependencies.py` | (infra) | Builds task dependency DAG, MP-based duration estimation |
 | `gantt_validator.py` | (infra) | Validates mermaid Gantt charts for rendering correctness |
-| `registry.py` | 2.6 | Thread-safe singleton loader for architecture.yaml |
+| `registry.py` | 2.6, 2.7 | Thread-safe singleton loader + component/boundary/ICD lookups |
 | `cli.py` | (infra) | Command-line entry point for arch-tool operations |
 
 The tracker pipeline now includes a mandatory rendering validation gate: generated Gantt charts are validated for undefined alias references, circular dependencies, unicode issues, and label truncation before being written to disk. This prevents silent rendering failures in mermaid.js viewers.
 
-98 unit tests across 8 test modules verify the complete extraction and tracking pipeline. The test harness covers SAD parsing, schema validation, architecture extraction, manifest parsing, dependency graph construction, Gantt generation, and Gantt rendering validation.
+140 unit tests across 9 test modules verify the complete extraction, tracking, and registry pipeline. The test harness covers SAD parsing, schema validation, architecture extraction, manifest parsing, dependency graph construction, Gantt generation, Gantt rendering validation, registry singleton lifecycle, and component/boundary/ICD lookups.
 
-Remaining Slice 1 critical path: `2.6 -> 2.7 -> 2.8 -> 3.6 -> 3.7 -> 3a.8 -> 3a.10 -> 3a.12` (registry, decorators, kernel gate).
+Remaining Slice 1 critical path: `2.8 -> 3.6 -> 3.7 -> 3a.8 -> 3a.10 -> 3a.12` (hot-reload, decorators, kernel gate).
 
 ---
 
@@ -332,8 +332,8 @@ Remaining Slice 1 critical path: `2.6 -> 2.7 -> 2.8 -> 3.6 -> 3.7 -> 3a.8 -> 3a.
 | 26 | GANTT.mermaid | `docs/architecture/GANTT.mermaid` | ε | 18 KB | Tracker + Dep Graph + status.yaml |
 | 27 | GANTT_critical.mermaid | `docs/architecture/GANTT_critical.mermaid` | ε | 7 KB | Tracker + Dep Graph + status.yaml |
 | 28 | PROGRESS.md | `docs/architecture/PROGRESS.md` | ε | 25 KB | Tracker + Dep Graph + status.yaml |
-| 29 | Architecture Registry | `holly/arch/registry.py` | ε | 5 KB | Schema + Extract (Task 2.6) |
-| 30 | Test Suite (116 tests) | `tests/unit/test_*.py` (8 modules) | ε | 30 KB | All ε modules + TGS |
+| 29 | Architecture Registry | `holly/arch/registry.py` | ε | 7 KB | Schema + Extract (Tasks 2.6, 2.7) |
+| 30 | Test Suite (140 tests) | `tests/unit/test_*.py` (9 modules) | ε | 35 KB | All ε modules + TGS |
 | — | END_TO_END_AUDIT_CHECKLIST | `(external, user desktop)` | α | 12 KB | Audit process research (Allen) |
 | — | **Total in-repo documentation + code** | | | **~750 KB** | |
 
@@ -408,6 +408,11 @@ These rules govern how new artifacts enter the genealogy:
                      architecture.yaml generated from SAD (48 components)
                      18 registry tests (singleton, threads, validation)
                      116 total tests across 8 test modules
+2026-02-18  Component/boundary/ICD lookups (registry.py, Task 2.7):
+                     get_component(), get_boundary(), get_icd()
+                     ComponentNotFoundError for unknown keys
+                     24 lookup tests (property-based, exhaustive real YAML)
+                     140 total tests across 9 test modules
 2026-02-18  Artifact Genealogy updated with Phase ε execution artifacts
 ```
 

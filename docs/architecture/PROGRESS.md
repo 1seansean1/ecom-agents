@@ -4,7 +4,7 @@ _Generated: 2026-02-18_
 
 | Slice | Phase | Done | Total | Progress | Critical Path |
 |------:|-------|-----:|------:|---------:|---------------|
-| 1 | Phase A Spiral (Steps 1, 2, 3, 3a) | 5 | 39 | 12% [#.........] | 5/12 |
+| 1 | Phase A Spiral (Steps 1, 2, 3, 3a) | 6 | 39 | 15% [#.........] | 6/12 |
 | 2 | Phase A Backfill (Steps 4–11) | 0 | 39 | 0% [..........] | 0/10 |
 | 3 | Phase B: Failure Analysis & Kernel (Step | 0 | 62 | 0% [..........] | 0/19 |
 | 4 | Phase C: Storage Layer (Steps 22–26) | 0 | 23 | 0% [..........] | 0/7 |
@@ -19,7 +19,7 @@ _Generated: 2026-02-18_
 | 13 | Phase L: Config (Steps 70–72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73–78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79–86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **5** | **442** | **1%** | |
+| **Σ** | **All** | **6** | **442** | **1%** | |
 
 ## Task Detail
 
@@ -40,7 +40,7 @@ _Generated: 2026-02-18_
 | 2.4 | Assign SIL-2 | pending | 0.5d | 2.3 |  |
 | 2.5 | Enumerate failure modes | pending | 0.5d | 2.4 |  |
 | 2.6 | Implement singleton loader | done (crit) | 1d | 1.8, 2.5 |  |
-| 2.7 | Implement component/boundary/ICD lookups | pending (crit) | 1d | 2.6 |  |
+| 2.7 | Implement component/boundary/ICD lookups | done (crit) | 1d | 2.6 |  |
 | 2.8 | Implement hot-reload with validation | pending (crit) | 1d | 2.7 |  |
 | 2.9 | Link lookups to YAML source entries | pending | 0.5d | 2.8 |  |
 | 3.1 | Map decorator names to monograph concepts | pending | 0.5d |  |  |
