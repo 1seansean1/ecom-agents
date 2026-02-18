@@ -1,4 +1,4 @@
-# Holly Grace — Development Progress
+# Holly Grace - Development Progress
 
 _Generated: 2026-02-17_
 
@@ -84,7 +84,7 @@ _Generated: 2026-02-17_
 | 5.4 | Assign SIL per ICD based on connected components | pending | 0.5d | 5.3 |  |
 | 5.5 | Implement ICD as Pydantic models | pending (crit) | 0.5d | 5.8, 5.4 |  |
 | 5.6 | Register ICDs in architecture.yaml | pending (crit) | 0.5d | 5.5 |  |
-| 5.7 | Link ICDs to SAD boundary crossings | pending | 0.5d | 5.6 |  |
+| 5.7 | Link ICDs to SAD boundary crossings | pending | 0.5d |  |  |
 | 5.8 | Build ICD Schema Registry | pending (crit) | 0.5d | 5.7, 3a.12 |  |
 | 5.9 | Implement ICD Validation Test Harness | pending | 0.5d | 5.8 |  |
 | 5a.1 | Identify stakeholder scenarios | pending | 0.5d |  |  |
@@ -225,7 +225,7 @@ _Generated: 2026-02-17_
 | 33.2 | Build structured safety argument | pending (crit) | 1d | 33.1 |  |
 | 33.3 | Link safety case to FMEA and test artifacts | pending | 0.5d | 33.2 |  |
 | 33.4 | Phase D gate checklist | pending (crit) | 0.5d | 33.5, 33.3 |  |
-| 33.5 | Integrate all 49 ICDs into Phase D Safety Case | pending (crit) | 0.5d | 33.2, 33.4 |  |
+| 33.5 | Integrate all 49 ICDs into Phase D Safety Case | pending (crit) | 0.5d | 33.2 |  |
 | | **Slice 6** | | | | |
 | 34.1 | Map conversation to monograph channel theory | pending | 0.5d |  |  |
 | 34.2 | Assign SIL-2 | pending | 0.5d | 34.1 |  |
@@ -243,7 +243,7 @@ _Generated: 2026-02-17_
 | 36.3 | FMEA: goal injection, Celestial override, codimens | pending | 0.5d | 36.2 |  |
 | 36.4 | Implement 7-level hierarchy + lexicographic gating | pending (crit) | 0.5d | 36.9, 36.3 |  |
 | 36.5 | Implement Celestial L0–L4 as executable predicates | pending (crit) | 0.5d | 36.4 |  |
-| 36.6 | Register, decorate per ICD-010 | pending | 0.5d | 36.5 |  |
+| 36.6 | Register, decorate per ICD-010 | pending | 0.5d |  |  |
 | 36.7 | Link | pending | 0.5d | 36.6 |  |
 | 36.8 | Implement L0–L4 Predicate Functions | pending (crit) | 0.5d | 36.7, 33.4 |  |
 | 36.9 | Validate L0–L4 Predicates with Property-Based Test | pending (crit) | 0.5d | 36.8 |  |

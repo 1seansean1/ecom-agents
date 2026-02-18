@@ -113,6 +113,46 @@ class DependencyGraph:
         return bool(self.predecessors.get(task_id))
 
 
+def _break_cycles(graph: DependencyGraph) -> None:
+    """Detect and break circular dependencies by removing back-edges.
+
+    Uses iterative DFS. When a back-edge is found (node → ancestor on
+    the current DFS path), the back-edge is removed from the predecessor
+    list of the ancestor's successor. This preserves the majority of the
+    DAG structure while eliminating cycles.
+    """
+    all_nodes = set(graph.predecessors.keys())
+    for deps in graph.predecessors.values():
+        all_nodes.update(deps)
+
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color: dict[str, int] = {n: WHITE for n in all_nodes}
+    path_set: set[str] = set()
+    edges_to_remove: list[tuple[str, str]] = []
+
+    def dfs(node: str) -> None:
+        color[node] = GRAY
+        path_set.add(node)
+        for dep in list(graph.predecessors.get(node, [])):
+            if dep in path_set:
+                # Back-edge: node depends on dep, but dep is on current path
+                edges_to_remove.append((node, dep))
+            elif color.get(dep, WHITE) == WHITE:
+                dfs(dep)
+        path_set.discard(node)
+        color[node] = BLACK
+
+    for node in all_nodes:
+        if color.get(node, WHITE) == WHITE:
+            dfs(node)
+
+    for node, dep in edges_to_remove:
+        if dep in graph.predecessors.get(node, []):
+            graph.predecessors[node].remove(dep)
+            if not graph.predecessors[node]:
+                del graph.predecessors[node]
+
+
 def _task_id_sort_key(task_id: str) -> tuple[str, int]:
     """Sort key for task IDs like '1.5', '3a.8'."""
     m = re.match(r"(\d+a?)\.(\d+)", task_id)
@@ -189,6 +229,9 @@ def build_dependency_graph(manifest: Manifest) -> DependencyGraph:
 
         if deps:
             graph.predecessors[tid] = deps
+
+    # Break any circular dependencies introduced by manifest inconsistencies
+    _break_cycles(graph)
 
     # Estimate durations
     for tid, task in manifest.tasks.items():

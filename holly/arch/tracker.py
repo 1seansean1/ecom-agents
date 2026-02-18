@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 from holly.arch.dependencies import DependencyGraph, build_dependency_graph
+from holly.arch.gantt_validator import validate_gantt
 from holly.arch.manifest_parser import Manifest, parse_manifest_file
 
 
@@ -153,8 +154,27 @@ def _task_sort_key(task_id: str) -> tuple[str, int]:
 # ── Gantt generation ─────────────────────────────────────────
 
 def _mermaid_safe(text: str) -> str:
-    """Escape text for mermaid labels."""
-    return text.replace('"', "'").replace(":", " -")[:60]
+    """Escape text for mermaid labels.
+
+    Rules:
+    - Replace colons (mermaid delimiter) with dashes
+    - Replace quotes with single quotes
+    - Normalize unicode arrows to ASCII
+    - Truncate to 60 chars at word boundary to avoid broken labels
+    """
+    text = text.replace('"', "'").replace(":", " -")
+    # Normalize unicode arrows/dashes to ASCII equivalents
+    text = text.replace("→", "->").replace("←", "<-").replace("↔", "<->")
+    text = text.replace("\u21d2", "=>").replace("\u2014", "-").replace("\u2013", "-")
+    # Truncate at word boundary
+    if len(text) > 60:
+        truncated = text[:57]
+        # Find last space to avoid mid-word cut
+        last_space = truncated.rfind(" ")
+        if last_space > 40:
+            truncated = truncated[:last_space]
+        text = truncated
+    return text
 
 
 def _task_gantt_status(state: TaskState, is_critical: bool) -> str:
@@ -179,7 +199,7 @@ def generate_gantt(
     """
     lines: list[str] = []
     lines.append("gantt")
-    lines.append("    title Holly Grace — Development Progress")
+    lines.append("    title Holly Grace - Development Progress")
     lines.append("    dateFormat YYYY-MM-DD")
     lines.append("    axisFormat %b %d")
     lines.append("    excludes weekends")
@@ -227,16 +247,26 @@ def generate_gantt_critical_only(
     registry: StatusRegistry,
     dep_graph: DependencyGraph | None = None,
 ) -> str:
-    """Generate a compact Gantt showing only critical-path tasks per slice."""
+    """Generate a compact Gantt showing only critical-path tasks per slice.
+
+    Unlike the full Gantt, this only emits critical-path tasks. Therefore
+    `after` references must be filtered to only include aliases that are
+    actually emitted in this chart (otherwise mermaid silently fails).
+    """
     lines: list[str] = []
     lines.append("gantt")
-    lines.append("    title Holly Grace — Critical Path Progress")
+    lines.append("    title Holly Grace - Critical Path Progress")
     lines.append("    dateFormat YYYY-MM-DD")
     lines.append("    axisFormat %b %d")
     lines.append("    excludes weekends")
     lines.append("")
 
     today = date.today().isoformat()
+
+    # Collect the set of all task IDs that will appear in this chart
+    emitted_ids: set[str] = set()
+    for sl in registry.manifest.slices:
+        emitted_ids.update(sl.critical_path)
 
     for sl in registry.manifest.slices:
         if not sl.critical_path:
@@ -264,12 +294,22 @@ def generate_gantt_critical_only(
                     f"    {label} :{status_tag}{task_alias}, {state.date_completed}, {duration}"
                 )
             elif dep_graph and dep_graph.has_deps(task_id):
-                dep_aliases = ", ".join(
-                    f"t{d.replace('.', '_')}" for d in dep_graph.deps_of(task_id)
-                )
-                lines.append(
-                    f"    {label} :{status_tag}{task_alias}, after {dep_aliases}, {duration}"
-                )
+                # FILTER: only reference aliases that are emitted in this chart
+                valid_deps = [
+                    d for d in dep_graph.deps_of(task_id)
+                    if d in emitted_ids
+                ]
+                if valid_deps:
+                    dep_aliases = ", ".join(
+                        f"t{d.replace('.', '_')}" for d in valid_deps
+                    )
+                    lines.append(
+                        f"    {label} :{status_tag}{task_alias}, after {dep_aliases}, {duration}"
+                    )
+                else:
+                    lines.append(
+                        f"    {label} :{status_tag}{task_alias}, {today}, {duration}"
+                    )
             else:
                 lines.append(
                     f"    {label} :{status_tag}{task_alias}, {today}, {duration}"
@@ -364,27 +404,38 @@ def generate_progress_report(
     """Generate all tracking artifacts.
 
     Returns dict of artifact_name → output_path.
+    Raises ValueError if generated Gantt charts fail rendering validation.
     """
     registry = build_registry(manifest_path, status_path)
     dep_graph = build_dependency_graph(registry.manifest)
     outputs: dict[str, Path] = {}
 
     # Full Gantt (with dependencies and durations)
+    gantt_source = generate_gantt(registry, dep_graph)
+    gantt_validation = validate_gantt(gantt_source)
+    if not gantt_validation.ok:
+        msg = f"Full Gantt rendering validation failed:\n{gantt_validation}"
+        raise ValueError(msg)
+
     gantt_path = output_dir / "GANTT.mermaid"
-    gantt_path.write_text(generate_gantt(registry, dep_graph), encoding="utf-8")
+    gantt_path.write_text(gantt_source, encoding="utf-8")
     outputs["gantt"] = gantt_path
 
     # Critical-path Gantt (with dependencies and durations)
+    crit_source = generate_gantt_critical_only(registry, dep_graph)
+    crit_validation = validate_gantt(crit_source)
+    if not crit_validation.ok:
+        msg = f"Critical-path Gantt rendering validation failed:\n{crit_validation}"
+        raise ValueError(msg)
+
     crit_path = output_dir / "GANTT_critical.mermaid"
-    crit_path.write_text(
-        generate_gantt_critical_only(registry, dep_graph), encoding="utf-8"
-    )
+    crit_path.write_text(crit_source, encoding="utf-8")
     outputs["gantt_critical"] = crit_path
 
     # Summary table
     summary_path = output_dir / "PROGRESS.md"
     header = (
-        f"# Holly Grace — Development Progress\n\n"
+        f"# Holly Grace - Development Progress\n\n"
         f"_Generated: {date.today().isoformat()}_\n\n"
     )
     detail_header = "\n\n## Task Detail\n\n"
@@ -397,5 +448,9 @@ def generate_progress_report(
         encoding="utf-8",
     )
     outputs["summary"] = summary_path
+
+    # Store validation results for reporting
+    outputs["_gantt_validation"] = gantt_path  # signals validation passed
+    outputs["_crit_validation"] = crit_path
 
     return outputs

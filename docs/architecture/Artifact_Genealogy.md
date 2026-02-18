@@ -83,16 +83,19 @@ graph TD
 
     subgraph EPSILON["Phase ε - Execution Outputs Slice 1+"]
         direction TB
+        SADPARSE["SAD Parser\nsad_parser.py\nmermaid -> AST"]
+        SCHEMA["Architecture Schema\nschema.py\nPydantic models"]
+        EXTRACT["Extraction Pipeline\nextract.py\nSAD -> YAML"]
+        MPARSE["Manifest Parser\nmanifest_parser.py\nTask Manifest -> Manifest"]
+        TRACK["Status Tracker\ntracker.py\nGantt + PROGRESS.md"]
+        DEPS["Dependency Graph\ndependencies.py\nDAG + duration model"]
+        GVALID["Gantt Validator\ngantt_validator.py\nmermaid rendering checks"]
+        CLI["CLI Module\ncli.py\ncommand-line entry"]
         AYML["architecture.yaml"]
-        AREG["ArchitectureRegistry"]
-        DECO["Decorator Registry\n@kernel_boundary,\n@tenant_scoped, ..."]
-        AST["AST Scanner"]
-        KCTX["KernelContext"]
-        K18["K1-K8 Gates"]
-        TLA["TLA+ Specs"]
-        TESTS["Test Suite"]
-        TRACE["trace_matrix.csv"]
-        GATE["gate_assessment.csv"]
+        GANTT["GANTT.mermaid\nGANTT_critical.mermaid"]
+        PROG["PROGRESS.md"]
+        STATYS["status.yaml"]
+        TESTS["Test Suite\n97 tests across\n7 test modules"]
         CODE["holly/ source tree"]
     end
 
@@ -175,36 +178,45 @@ graph TD
     TGS --> DPG
 
     %% Phase δ → ε (Process → Execution)
-    DPG --> AYML
-    DPG --> AREG
-    DPG --> DECO
-    DPG --> AST
-    DPG --> KCTX
-    DPG --> K18
-    DPG --> TLA
+    DPG --> SADPARSE
+    DPG --> MPARSE
+    DPG --> TRACK
     DPG --> TESTS
     DPG --> CODE
 
-    %% Specs → Execution
+    %% Specs → Execution (architecture)
+    SAD --> SADPARSE
+    SAD --> SCHEMA
+    SAD --> EXTRACT
     SAD --> AYML
     ICD --> CODE
-    CBS --> KCTX
-    CBS --> K18
-    CBS --> TLA
+    CBS --> CODE
     GHS --> CODE
-    SIL --> TLA
     SIL --> TESTS
     DEV --> CODE
     MGE --> CODE
     TGS --> TESTS
-    TGS --> TRACE
-    TGS --> GATE
 
-    %% Execution internal
-    AYML --> AREG
-    AREG --> DECO
-    DECO --> AST
-    KCTX --> K18
+    %% Task Manifest → Execution (tracking)
+    TM --> MPARSE
+    TM --> TRACK
+    TM --> DEPS
+
+    %% Execution internal derivations
+    SADPARSE --> SCHEMA
+    SCHEMA --> EXTRACT
+    EXTRACT --> AYML
+    MPARSE --> TRACK
+    MPARSE --> DEPS
+    DEPS --> TRACK
+    DEPS --> GANTT
+    TRACK --> GANTT
+    TRACK --> PROG
+    GVALID --> TRACK
+    STATYS --> TRACK
+    STATYS --> PROG
+    CLI --> TRACK
+    CLI --> EXTRACT
     RTD --> CODE
 ```
 
@@ -261,15 +273,26 @@ Three process documents govern execution:
 | **Test Governance Spec** | END_TO_END_AUDIT_CHECKLIST + SIL Matrix + Procedure Graph | 62-control library, per-task test derivation, maturity gates |
 | **README** (Meta Procedure + Task Derivation Protocol) | Monograph + Design Methodology + SAD + all research | Entry point; contains 14-step MP, TDP, Designer's Diary |
 
-### Phase ε — Execution (current: pre-Slice 1)
+### Phase ε — Execution (current: Slice 1 in progress)
 
-All Phase ε artifacts are produced by executing the Development Procedure Graph. The first execution cycle (Slice 1, Phase A, Steps 1–3 + 3a) will produce:
+Phase ε execution has begun. The tooling foundation (Tasks 1.5-1.8) is complete, producing:
 
-- `architecture.yaml` (from SAD parser)
-- `ArchitectureRegistry` (Python singleton loading YAML)
-- Decorator registry (`@kernel_boundary`, `@tenant_scoped`)
-- AST scanner (enforce decorators on boundaries)
-- Thin kernel slice (KernelContext + K1 gate) for spiral gate validation
+| Module | Task | Role |
+|--------|------|------|
+| `sad_parser.py` | 1.5 | Parses mermaid SAD into structured AST |
+| `schema.py` | 1.6 | Pydantic models for architecture.yaml schema |
+| `extract.py` | 1.7 | Full pipeline: SAD mermaid -> architecture.yaml |
+| `manifest_parser.py` | 1.8 | Parses Task Manifest markdown into structured Manifest |
+| `tracker.py` | (infra) | Merges Manifest + status.yaml, generates Gantt + PROGRESS.md |
+| `dependencies.py` | (infra) | Builds task dependency DAG, MP-based duration estimation |
+| `gantt_validator.py` | (infra) | Validates mermaid Gantt charts for rendering correctness |
+| `cli.py` | (infra) | Command-line entry point for arch-tool operations |
+
+The tracker pipeline now includes a mandatory rendering validation gate: generated Gantt charts are validated for undefined alias references, circular dependencies, unicode issues, and label truncation before being written to disk. This prevents silent rendering failures in mermaid.js viewers.
+
+97 unit tests across 7 test modules verify the complete extraction and tracking pipeline. The test harness covers SAD parsing, schema validation, architecture extraction, manifest parsing, dependency graph construction, Gantt generation, and Gantt rendering validation.
+
+Remaining Slice 1 critical path: `2.6 -> 2.7 -> 2.8 -> 3.6 -> 3.7 -> 3a.8 -> 3a.10 -> 3a.12` (registry, decorators, kernel gate).
 
 ---
 
@@ -293,8 +316,21 @@ All Phase ε artifacts are produced by executing the Development Procedure Graph
 | 14 | Development Procedure Graph | `docs/Development_Procedure_Graph.md` | δ | 32 KB | Task Manifest + all γ specs + Glossary |
 | 15 | Test Governance Spec | `docs/Test_Governance_Spec.md` | δ | 25 KB | Audit Checklist + SIL Matrix + DPG |
 | 16 | Artifact Genealogy | `docs/architecture/Artifact_Genealogy.md` | δ | (this file) | All of the above |
+| 17 | SAD Parser | `holly/arch/sad_parser.py` | ε | 8 KB | SAD + DPG (Task 1.5) |
+| 18 | Architecture Schema | `holly/arch/schema.py` | ε | 6 KB | SAD + SAD Parser (Task 1.6) |
+| 19 | Extraction Pipeline | `holly/arch/extract.py` | ε | 7 KB | Schema + SAD Parser (Task 1.7) |
+| 20 | Manifest Parser | `holly/arch/manifest_parser.py` | ε | 9 KB | Task Manifest + DPG (Task 1.8) |
+| 21 | Status Tracker | `holly/arch/tracker.py` | ε | 14 KB | Manifest Parser + status.yaml + DPG |
+| 22 | Dependency Graph | `holly/arch/dependencies.py` | ε | 7 KB | Manifest Parser + Task Manifest |
+| 23 | Gantt Validator | `holly/arch/gantt_validator.py` | ε | 8 KB | Tracker (rendering correctness) |
+| 24 | CLI Module | `holly/arch/cli.py` | ε | 3 KB | Tracker + Extraction Pipeline |
+| 25 | status.yaml | `docs/status.yaml` | ε | 4 KB | Task Manifest (task completion state) |
+| 26 | GANTT.mermaid | `docs/architecture/GANTT.mermaid` | ε | 18 KB | Tracker + Dep Graph + status.yaml |
+| 27 | GANTT_critical.mermaid | `docs/architecture/GANTT_critical.mermaid` | ε | 7 KB | Tracker + Dep Graph + status.yaml |
+| 28 | PROGRESS.md | `docs/architecture/PROGRESS.md` | ε | 25 KB | Tracker + Dep Graph + status.yaml |
+| 29 | Test Suite (97 tests) | `tests/unit/test_*.py` (7 modules) | ε | 22 KB | All ε modules + TGS |
 | — | END_TO_END_AUDIT_CHECKLIST | `(external, user desktop)` | α | 12 KB | Audit process research (Allen) |
-| — | **Total in-repo documentation** | | | **~612 KB** | |
+| — | **Total in-repo documentation + code** | | | **~750 KB** | |
 
 ---
 
@@ -343,6 +379,26 @@ These rules govern how new artifacts enter the genealogy:
                    README updated with procedure graph prominence
 2026-02-17  23:30  Artifact Genealogy graph generated (this document)
                    ──── Phase δ complete. Ready for Phase ε (Slice 1). ────
+2026-02-18  Tasks 1.5-1.8 completed:
+                     sad_parser.py — mermaid SAD to AST
+                     schema.py — architecture.yaml Pydantic models
+                     extract.py — full SAD extraction pipeline
+                     manifest_parser.py — Task Manifest markdown parser
+                     tracker.py — Gantt + PROGRESS.md generation
+                     status.yaml initialized (4 tasks done)
+                     12 unit tests (parser, schema, extract, tracker)
+2026-02-18  Dependency graph module (dependencies.py):
+                     DAG from 3 sources (critical path, step-internal, inter-slice gates)
+                     MP-based duration estimation with SIL multipliers
+                     Gantt `after` syntax integration
+                     18 dependency tests
+2026-02-18  Gantt rendering validator (gantt_validator.py):
+                     Alias uniqueness, reference integrity, cycle detection
+                     Unicode/truncation warnings
+                     Integrated into tracker pipeline (raise on error)
+                     16 validator tests
+                     97 total tests across 7 test modules
+2026-02-18  Artifact Genealogy updated with Phase ε execution artifacts
 ```
 
 ---
