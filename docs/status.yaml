@@ -121,7 +121,10 @@ tasks:
     status: done
     date: "2026-02-18"
     note: "49 ICD Pydantic models, ICD_MODEL_MAP, register_all_icd_models(), enum constraints (120 tests)"
-  5.6: pending
+  5.6:
+    status: done
+    date: "2026-02-18"
+    note: "49 ICDs in architecture.yaml with component mapping, protocol, SIL; registry lookups (165 tests)"
   5.7: pending
   5.8:
     status: done

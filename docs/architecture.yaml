@@ -1476,4 +1476,299 @@ kernel_invariants:
     file: docs\architecture\SAD_0.1.0.5.mermaid
     line: 44
     raw: Eval\nGates
+icds:
+- id: ICD-001
+  name: Client → ALB (HTTPS/WSS ingress)
+  source_component: UI
+  target_component: ALB
+  protocol: HTTPS/WSS
+  sil: SIL-3
+- id: ICD-002
+  name: ALB → JWT Middleware (forward)
+  source_component: ALB
+  target_component: JWTMW
+  protocol: HTTPS
+  sil: SIL-3
+- id: ICD-003
+  name: JWT Middleware → Core (validated claims)
+  source_component: JWTMW
+  target_component: CORE
+  protocol: in-process
+  sil: SIL-3
+- id: ICD-004
+  name: Authentik → UI (OIDC login/redirect)
+  source_component: AUTH
+  target_component: UI
+  protocol: HTTPS
+  sil: SIL-3
+- id: ICD-005
+  name: ALB → Authentik (token exchange)
+  source_component: ALB
+  target_component: AUTH
+  protocol: HTTPS
+  sil: SIL-3
+- id: ICD-006
+  name: Core → Kernel (boundary check request)
+  source_component: CORE
+  target_component: KERNEL
+  protocol: in-process
+  sil: SIL-3
+- id: ICD-007
+  name: Engine → Kernel (boundary check dispatch)
+  source_component: ENGINE
+  target_component: KERNEL
+  protocol: in-process
+  sil: SIL-3
+- id: ICD-008
+  name: Conversation Manager → Intent Classifier
+  source_component: CONV
+  target_component: INTENT
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-009
+  name: Intent Classifier → Goal Decomposer
+  source_component: INTENT
+  target_component: GOALS
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-010
+  name: Goal Decomposer → APS Controller
+  source_component: GOALS
+  target_component: APS
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-011
+  name: APS Controller → Topology Manager
+  source_component: APS
+  target_component: TOPO
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-012
+  name: Topology Manager → Engine
+  source_component: TOPO
+  target_component: ENGINE
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-013
+  name: Core → Main Lane (task dispatch)
+  source_component: CORE
+  target_component: MAIN
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-014
+  name: Core → Cron Lane (scheduled task)
+  source_component: CORE
+  target_component: CRON
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-015
+  name: Topology Manager → Subagent Lane
+  source_component: TOPO
+  target_component: SUB
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-016
+  name: Lane Policy → Main Lane (governance)
+  source_component: LANEPOL
+  target_component: MAIN
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-017
+  name: Lane Policy → Cron Lane (governance)
+  source_component: LANEPOL
+  target_component: CRON
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-018
+  name: Lane Policy → Subagent Lane (governance)
+  source_component: LANEPOL
+  target_component: SUB
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-019
+  name: Main Lane → MCP Registry (tool request)
+  source_component: MAIN
+  target_component: MCP
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-020
+  name: Subagent Lane → MCP Registry (tool request)
+  source_component: SUB
+  target_component: MCP
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-021
+  name: MCP Registry → Workflow Engine (task graph)
+  source_component: MCP
+  target_component: WF
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-022
+  name: MCP Registry → Sandbox (code execution)
+  source_component: MCP
+  target_component: SEXEC
+  protocol: gRPC
+  sil: SIL-3
+- id: ICD-023
+  name: Engine → Event Bus (emit events)
+  source_component: ENGINE
+  target_component: EVBUS
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-024
+  name: Core → Event Bus (emit events)
+  source_component: CORE
+  target_component: EVBUS
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-025
+  name: Event Bus → WebSocket Channels (stream)
+  source_component: EVBUS
+  target_component: WS
+  protocol: WebSocket
+  sil: SIL-2
+- id: ICD-026
+  name: Event Bus → Structured Logging
+  source_component: EVBUS
+  target_component: LOGS
+  protocol: in-process
+  sil: SIL-2
+- id: ICD-027
+  name: Observability → UI (WebSocket)
+  source_component: OBS
+  target_component: UI
+  protocol: WebSocket
+  sil: SIL-1
+- id: ICD-028
+  name: Core → Egress Gateway (LLM request)
+  source_component: CORE
+  target_component: EGRESS
+  protocol: in-process
+  sil: SIL-3
+- id: ICD-029
+  name: Subagent → Egress Gateway (LLM request)
+  source_component: SUB
+  target_component: EGRESS
+  protocol: in-process
+  sil: SIL-3
+- id: ICD-030
+  name: Egress Gateway → Claude API
+  source_component: EGRESS
+  target_component: LLM
+  protocol: HTTPS
+  sil: SIL-3
+- id: ICD-031
+  name: Core → Ollama (local LLM)
+  source_component: CORE
+  target_component: OLLAMA
+  protocol: HTTP
+  sil: SIL-2
+- id: ICD-032
+  name: Core → PostgreSQL (goal store)
+  source_component: CORE
+  target_component: PG
+  protocol: TCP/SQL
+  sil: SIL-2
+- id: ICD-033
+  name: Core → Redis (cache)
+  source_component: CORE
+  target_component: RD
+  protocol: TCP/RESP
+  sil: SIL-2
+- id: ICD-034
+  name: Core → ChromaDB (vector store)
+  source_component: CORE
+  target_component: CHROMA
+  protocol: HTTP
+  sil: SIL-2
+- id: ICD-035
+  name: Engine → Redis (task queue)
+  source_component: ENGINE
+  target_component: RD
+  protocol: TCP/RESP
+  sil: SIL-2
+- id: ICD-036
+  name: Observability → PostgreSQL (audit log)
+  source_component: OBS
+  target_component: PG
+  protocol: TCP/SQL
+  sil: SIL-2
+- id: ICD-037
+  name: Observability → Redis (metrics cache)
+  source_component: OBS
+  target_component: RD
+  protocol: TCP/RESP
+  sil: SIL-1
+- id: ICD-038
+  name: Kernel → PostgreSQL (audit trail)
+  source_component: KERNEL
+  target_component: PG
+  protocol: TCP/SQL
+  sil: SIL-3
+- id: ICD-039
+  name: Workflow Engine → PostgreSQL (checkpoints)
+  source_component: WF
+  target_component: PG
+  protocol: TCP/SQL
+  sil: SIL-2
+- id: ICD-040
+  name: Engine → PostgreSQL (task state)
+  source_component: ENGINE
+  target_component: PG
+  protocol: TCP/SQL
+  sil: SIL-2
+- id: ICD-041
+  name: Memory System → Redis (memory cache)
+  source_component: MEM
+  target_component: RD
+  protocol: TCP/RESP
+  sil: SIL-2
+- id: ICD-042
+  name: Memory System → PostgreSQL (memory store)
+  source_component: MEM
+  target_component: PG
+  protocol: TCP/SQL
+  sil: SIL-2
+- id: ICD-043
+  name: Memory System → ChromaDB (embeddings)
+  source_component: MEM
+  target_component: CHROMA
+  protocol: HTTP
+  sil: SIL-2
+- id: ICD-044
+  name: KMS → Egress Gateway (secret injection)
+  source_component: KMS
+  target_component: EGRESS
+  protocol: in-process
+  sil: SIL-3
+- id: ICD-045
+  name: KMS → PostgreSQL (key store)
+  source_component: KMS
+  target_component: PG
+  protocol: TCP/SQL
+  sil: SIL-3
+- id: ICD-046
+  name: KMS → MCP Registry (credential provisioning)
+  source_component: KMS
+  target_component: MCP
+  protocol: in-process
+  sil: SIL-3
+- id: ICD-047
+  name: Authentik → JWT Middleware (JWKS)
+  source_component: AUTH
+  target_component: JWTMW
+  protocol: HTTPS
+  sil: SIL-3
+- id: ICD-048
+  name: KMS → Authentik (OIDC config)
+  source_component: KMS
+  target_component: AUTH
+  protocol: HTTPS
+  sil: SIL-3
+- id: ICD-049
+  name: JWT Middleware → Redis (revocation cache)
+  source_component: JWTMW
+  target_component: RD
+  protocol: TCP/RESP
+  sil: SIL-3
 Annotated_version: 1.0.0

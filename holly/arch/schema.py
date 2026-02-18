@@ -137,6 +137,24 @@ class KernelInvariant(BaseModel):
     source: SourceRef = Field(description="SAD source line")
 
 
+class ICDEntry(BaseModel):
+    """An Interface Control Document entry mapping ICD ID to boundary crossing.
+
+    Each ICD defines the contract for a single boundary crossing between
+    two SAD components, per ICD v0.1.
+    """
+    id: str = Field(description="ICD identifier, e.g. 'ICD-001'")
+    name: str = Field(description="Human-readable name of the boundary crossing")
+    source_component: str = Field(description="SAD component ID of the source")
+    target_component: str = Field(description="SAD component ID of the target")
+    protocol: str = Field(default="", description="Wire protocol (e.g. HTTPS, gRPC, in-process)")
+    sil: str = Field(default="", description="SIL classification (e.g. SIL-3, SIL-2, SIL-1)")
+    model_module: str = Field(
+        default="holly.kernel.icd_models",
+        description="Python module containing the Pydantic model",
+    )
+
+
 # ── Top-level document ───────────────────────────────
 
 class SADMetadata(BaseModel):
@@ -171,6 +189,10 @@ class ArchitectureDocument(BaseModel):
     kernel_invariants: list[KernelInvariant] = Field(
         default_factory=list,
         description="K1-K8 invariant gates",
+    )
+    icds: list[ICDEntry] = Field(
+        default_factory=list,
+        description="ICD boundary contract entries (ICD-001 through ICD-049)",
     )
 
     @property

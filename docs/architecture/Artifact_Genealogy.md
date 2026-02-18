@@ -97,7 +97,7 @@ graph TD
         GANTT["GANTT.mermaid\nGANTT_critical.mermaid"]
         PROG["PROGRESS.md"]
         STATYS["status.yaml"]
-        TESTS["Test Suite\n471 tests across\n18 test modules"]
+        TESTS["Test Suite\n636 tests across\n19 test modules"]
         CODE["holly/ source tree"]
     end
 
@@ -336,7 +336,7 @@ Remaining Slice 1 critical path: `3.7 -> 3a.8 -> 3a.10 -> 3a.12` (ICD enforcemen
 | 28 | PROGRESS.md | `docs/architecture/PROGRESS.md` | ε | 25 KB | Tracker + Dep Graph + status.yaml |
 | 29 | Architecture Registry | `holly/arch/registry.py` | ε | 9 KB | Schema + Extract (Tasks 2.6, 2.7, 2.8) |
 | 30 | Core Decorators | `holly/arch/decorators.py` | ε | 12 KB | Registry API (Task 3.6) |
-| 31 | Test Suite (471 tests) | `tests/unit/test_*.py` (17 modules) | ε | 62 KB | All ε modules + TGS |
+| 31 | Test Suite (636 tests) | `tests/unit/test_*.py` (17 modules) | ε | 62 KB | All ε modules + TGS |
 | — | END_TO_END_AUDIT_CHECKLIST | `(external, user desktop)` | α | 12 KB | Audit process research (Allen) |
 | — | **Total in-repo documentation + code** | | | **~750 KB** | |
 
@@ -454,6 +454,12 @@ These rules govern how new artifacts enter the genealogy:
                      holly/kernel/icd_models.py — all 49 ICD boundary models with enums
                      tests/unit/test_icd_models.py — 120 new tests
                      471 total tests across 18 test modules
+2026-02-18  Task 5.6: Register ICDs in architecture.yaml
+                     docs/architecture.yaml — 49 ICD entries with component mapping, protocol, SIL
+                     holly/arch/schema.py — ICDEntry model
+                     holly/arch/registry.py — ICD lookup methods
+                     tests/unit/test_icd_registration.py — 165 new tests
+                     636 total tests across 19 test modules
 ```
 
 ---

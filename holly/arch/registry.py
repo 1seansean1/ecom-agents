@@ -41,7 +41,7 @@ from typing import ClassVar
 
 import yaml
 
-from holly.arch.schema import ArchitectureDocument, Component, Connection, LayerID
+from holly.arch.schema import ArchitectureDocument, Component, Connection, ICDEntry, LayerID
 
 
 class RegistryNotLoadedError(RuntimeError):
@@ -61,6 +61,17 @@ class ComponentNotFoundError(KeyError):
 
     def __str__(self) -> str:
         return f"No component with id {self.component_id!r} in architecture.yaml"
+
+
+class ICDNotFoundError(KeyError):
+    """Raised when an ICD ID is not present in the architecture."""
+
+    def __init__(self, icd_id: str) -> None:
+        super().__init__(icd_id)
+        self.icd_id = icd_id
+
+    def __str__(self) -> str:
+        return f"No ICD with id {self.icd_id!r} in architecture.yaml"
 
 
 class ArchitectureRegistry:
@@ -292,6 +303,66 @@ class ArchitectureRegistry:
             for c in self._document.connections
             if c.crosses_boundary
             and (c.source_id == component_id or c.target_id == component_id)
+        ]
+
+    # ── Task 5.6 — ICD boundary contract lookups ────────
+
+    def get_icd_entry(self, icd_id: str) -> ICDEntry:
+        """Look up an ICD boundary contract by its ID.
+
+        Parameters
+        ----------
+        icd_id:
+            ICD identifier (e.g. ``"ICD-001"``).
+
+        Returns
+        -------
+        ICDEntry
+            The matching ICD entry.
+
+        Raises
+        ------
+        ICDNotFoundError
+            If *icd_id* is not registered in architecture.yaml.
+        """
+        for entry in self._document.icds:
+            if entry.id == icd_id:
+                return entry
+        raise ICDNotFoundError(icd_id)
+
+    def get_all_icds(self) -> list[ICDEntry]:
+        """Return all registered ICD entries.
+
+        Returns
+        -------
+        list[ICDEntry]
+            All ICD boundary contract entries, in definition order.
+        """
+        return list(self._document.icds)
+
+    def get_icds_for_component(self, component_id: str) -> list[ICDEntry]:
+        """Return all ICDs where the given component is source or target.
+
+        Parameters
+        ----------
+        component_id:
+            SAD component ID (e.g. ``"CORE"``, ``"KERNEL"``).
+
+        Returns
+        -------
+        list[ICDEntry]
+            Matching ICD entries. May be empty.
+
+        Raises
+        ------
+        ComponentNotFoundError
+            If *component_id* is not in the architecture.
+        """
+        if component_id not in self._document.components:
+            raise ComponentNotFoundError(component_id)
+        return [
+            e for e in self._document.icds
+            if e.source_component == component_id or e.target_component == component_id
         ]
 
     # ── internal helpers ─────────────────────────────────
