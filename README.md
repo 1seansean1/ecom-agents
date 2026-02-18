@@ -14,6 +14,7 @@ Holly Grace is the reference implementation of the theoretical framework develop
 2. [Architecture](#architecture) — the system
 3. [Artifact Genealogy](#artifact-genealogy) — the derivation chain
 4. [Development Procedure](#development-procedure) — the process
+   - [Task Execution Checklist](#task-execution-checklist) — before / during / after every task
 5. [Current System State](#current-system-state) — where we are now
 6. [Designer's Diary](#designers-diary) — how we got here
 
@@ -65,6 +66,35 @@ P0 Context Sync → P1 Task Derivation (+Test Governance) → P2 Spec Pre-Check
 ```
 
 Full design methodology, meta procedure, and task derivation protocol: [`Design_Methodology_v1.0.docx`](docs/Design_Methodology_v1.0.docx)
+
+### Task Execution Checklist
+
+Every task — without exception — follows this checklist. The steps map to DPG nodes (P0–P7) and invariant I15. Skipping any step is a process violation.
+
+**Before (P0–P2):**
+
+1. **Sync state.** Confirm `status.yaml`, `PROGRESS.md`, README progress table, and Artifact Genealogy counts are mutually consistent. If any disagree, resolve before proceeding.
+2. **Verify alignment.** Run `python -m holly.arch gantt` and diff the three outputs (`GANTT.mermaid`, `GANTT_critical.mermaid`, `PROGRESS.md`) against the checked-in versions. Zero diff expected; any delta means a prior task left dirty state.
+3. **Determine next task.** Consult Task Manifest critical path. The next pending `(crit)` task whose dependencies are all `done` is the target.
+4. **Review DPG P0–P1.** Context sync: read the task spec (ID, MP step, input, output, verification, acceptance). Task derivation: confirm the task traces to at least one of ICD interface, Behavior Spec state machine, or Goal Hierarchy predicate. If it doesn't, the task is under-specified — halt and fix the manifest.
+5. **Spec pre-check (P2).** Verify the task's acceptance criteria are concrete and testable. Vague criteria ("works correctly") must be sharpened against the γ-phase specs before implementation begins.
+
+**During (P3–P5):**
+
+6. **Implement (P3A).** Write production code in the module specified by the RTD. Follow existing patterns (typing, docstrings, `__slots__`, ruff compliance).
+7. **Formal verification (P3B).** If the task is SIL-3 or involves a TLA+ spec, verify the formal model covers the new behavior. (SIL-1/2 tasks: skip.)
+8. **Test authoring (P3C).** Write tests that exercise the acceptance criteria. Property-based tests for invariant-heavy code; integration tests for cross-module behavior; at minimum one negative test (invalid input, failure path).
+9. **Verification (P4).** Run `ruff check holly tests` (zero errors) and `pytest tests/ -q` (all pass, zero regressions).
+10. **Regression gate (P5).** Confirm the pre-existing test count still passes. No test may be deleted or weakened to make a new task pass.
+
+**After (P6–P7):**
+
+11. **Update `status.yaml` (P6.1a).** Mark the task `done` with date and note (include test count contribution).
+12. **Regenerate tracking artifacts.** Run `python -m holly.arch gantt` to regenerate `GANTT.mermaid`, `GANTT_critical.mermaid`, `PROGRESS.md`.
+13. **Diff `PROGRESS.md`.** Confirm the done count and critical-path count incremented as expected. If `PROGRESS.md` is unchanged after a task completion, the pipeline is broken — halt and investigate.
+14. **Update README progress table.** Match the Slice 1 row (and Σ row) to the new `PROGRESS.md` totals.
+15. **Update Artifact Genealogy.** Increment test count and module count in: mermaid node, prose paragraph, inventory table, and chronology section.
+16. **Commit (P7).** Stage only the files touched by this task. Commit message format: `Task <ID>: <summary>`. Push to both remotes (`gitlab main`, `github main:master`).
 
 ---
 
@@ -198,7 +228,7 @@ The meta-lesson is about agent reliability as auditors. Of the 7 agents, two pro
 
 Net result: first audit run complete, 12/12 findings resolved, specification corpus internally consistent, baseline established. The repo is clean for slice 1.
 
-> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 2.8 — Implement hot-reload with validation. Remaining critical path: `2.8 → 3.6 → 3.7 → 3a.8 → 3a.10 → 3a.12`.
+> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 3.6 — Implement core decorators. Remaining critical path: `3.6 → 3.7 → 3a.8 → 3a.10 → 3a.12`.
 
 > **Standing Process Reminder — execute before every task:**
 > 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts
