@@ -1,8 +1,11 @@
-"""CLI for architecture extraction: SAD mermaid → architecture.yaml.
+"""CLI for architecture extraction and development tracking.
 
 Usage:
-    python -m holly.arch.cli extract docs/architecture/SAD_0.1.0.5.mermaid -o architecture.yaml
-    python -m holly.arch.cli stats docs/architecture/SAD_0.1.0.5.mermaid
+    python -m holly.arch extract docs/architecture/SAD_0.1.0.5.mermaid -o architecture.yaml
+    python -m holly.arch stats docs/architecture/SAD_0.1.0.5.mermaid
+    python -m holly.arch gantt                  # generate Gantt + progress report
+    python -m holly.arch gantt --critical       # critical-path only
+    python -m holly.arch progress               # print progress summary to stdout
 """
 
 from __future__ import annotations
@@ -64,10 +67,71 @@ def cmd_stats(args: argparse.Namespace) -> None:
             print(f"  {layer.value:12s}  ({len(comps):2d})  {names}")
 
 
+def _find_repo_root() -> Path:
+    """Walk up from cwd to find repo root (contains docs/ and holly/)."""
+    p = Path.cwd()
+    for _ in range(10):
+        if (p / "docs").is_dir() and (p / "holly").is_dir():
+            return p
+        if p.parent == p:
+            break
+        p = p.parent
+    return Path.cwd()
+
+
+def cmd_gantt(args: argparse.Namespace) -> None:
+    """Generate Gantt charts and progress report from manifest + status.yaml."""
+    from holly.arch.tracker import (
+        build_registry,
+        generate_gantt,
+        generate_gantt_critical_only,
+        generate_progress_report,
+    )
+
+    root = _find_repo_root()
+    manifest_path = Path(args.manifest) if args.manifest else root / "docs" / "Task_Manifest.md"
+    status_path = Path(args.status) if args.status else root / "docs" / "status.yaml"
+    output_dir = Path(args.output_dir) if args.output_dir else root / "docs" / "architecture"
+
+    if not manifest_path.exists():
+        print(f"ERROR: Manifest not found: {manifest_path}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.critical:
+        registry = build_registry(manifest_path, status_path)
+        print(generate_gantt_critical_only(registry))
+    elif args.stdout:
+        registry = build_registry(manifest_path, status_path)
+        print(generate_gantt(registry))
+    else:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        outputs = generate_progress_report(manifest_path, status_path, output_dir)
+        for name, path in outputs.items():
+            print(f"  {name}: {path}")
+        print(f"\nGenerated {len(outputs)} artifacts.")
+
+
+def cmd_progress(args: argparse.Namespace) -> None:
+    """Print progress summary to stdout."""
+    from holly.arch.tracker import build_registry
+
+    root = _find_repo_root()
+    manifest_path = Path(args.manifest) if args.manifest else root / "docs" / "Task_Manifest.md"
+    status_path = Path(args.status) if args.status else root / "docs" / "status.yaml"
+
+    if not manifest_path.exists():
+        print(f"ERROR: Manifest not found: {manifest_path}", file=sys.stderr)
+        sys.exit(1)
+
+    registry = build_registry(manifest_path, status_path)
+    for line in registry.summary_lines:
+        print(line)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="holly-arch",
-        description="Holly architecture extraction tooling",
+        description="Holly architecture extraction and tracking tooling",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -81,6 +145,21 @@ def main() -> None:
     p_stats = sub.add_parser("stats", help="Print SAD statistics")
     p_stats.add_argument("sad_file", help="Path to SAD mermaid file")
     p_stats.set_defaults(func=cmd_stats)
+
+    # gantt
+    p_gantt = sub.add_parser("gantt", help="Generate Gantt chart from manifest + status")
+    p_gantt.add_argument("-m", "--manifest", help="Path to Task_Manifest.md")
+    p_gantt.add_argument("-s", "--status", help="Path to status.yaml")
+    p_gantt.add_argument("-o", "--output-dir", help="Output directory for artifacts")
+    p_gantt.add_argument("--critical", action="store_true", help="Critical-path tasks only")
+    p_gantt.add_argument("--stdout", action="store_true", help="Print to stdout instead of files")
+    p_gantt.set_defaults(func=cmd_gantt)
+
+    # progress
+    p_progress = sub.add_parser("progress", help="Print progress summary")
+    p_progress.add_argument("-m", "--manifest", help="Path to Task_Manifest.md")
+    p_progress.add_argument("-s", "--status", help="Path to status.yaml")
+    p_progress.set_defaults(func=cmd_progress)
 
     args = parser.parse_args()
     args.func(args)
