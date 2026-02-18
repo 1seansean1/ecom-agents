@@ -671,6 +671,9 @@ P9.3  Update Task Manifest:
 P9.4  Regenerate Tracking Artifacts:
         - Run `python -m holly.arch gantt` to regenerate GANTT.mermaid,
           GANTT_critical.mermaid, and PROGRESS.md
+        - gantt_validator.py enforces rendering validation gate before write:
+          alias uniqueness, single after-reference (mermaid constraint),
+          undefined reference detection, cycle detection, unicode/truncation
         - Verify generated artifacts reflect current status.yaml
 
 P9.5  Tag release:
@@ -732,7 +735,7 @@ These invariants are checked continuously, not just at gates:
 | **I12** | Falsification-first: no SIL-2+ task completes without negative tests | P4.6.2 falsification ratio check |
 | **I13** | No applicable control left untested at gate passage | P8.2.6 maturity gate; P4.6.1 coverage |
 | **I14** | Artifact Genealogy Checklist passes PASS at every slice boundary | P9.2 mandatory re-run |
-| **I15** | status.yaml reflects actual completion state; Gantt artifacts regenerated after each commit | P6.1a tracking update |
+| **I15** | status.yaml reflects actual completion state; Gantt artifacts regenerated after each commit; gantt_validator.py rendering gate passes before write | P6.1a tracking update; P9.4 rendering validation |
 
 ---
 

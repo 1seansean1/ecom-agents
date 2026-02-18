@@ -95,7 +95,7 @@ graph TD
         GANTT["GANTT.mermaid\nGANTT_critical.mermaid"]
         PROG["PROGRESS.md"]
         STATYS["status.yaml"]
-        TESTS["Test Suite\n97 tests across\n7 test modules"]
+        TESTS["Test Suite\n98 tests across\n7 test modules"]
         CODE["holly/ source tree"]
     end
 
@@ -290,7 +290,7 @@ Phase ε execution has begun. The tooling foundation (Tasks 1.5-1.8) is complete
 
 The tracker pipeline now includes a mandatory rendering validation gate: generated Gantt charts are validated for undefined alias references, circular dependencies, unicode issues, and label truncation before being written to disk. This prevents silent rendering failures in mermaid.js viewers.
 
-97 unit tests across 7 test modules verify the complete extraction and tracking pipeline. The test harness covers SAD parsing, schema validation, architecture extraction, manifest parsing, dependency graph construction, Gantt generation, and Gantt rendering validation.
+98 unit tests across 7 test modules verify the complete extraction and tracking pipeline. The test harness covers SAD parsing, schema validation, architecture extraction, manifest parsing, dependency graph construction, Gantt generation, and Gantt rendering validation.
 
 Remaining Slice 1 critical path: `2.6 -> 2.7 -> 2.8 -> 3.6 -> 3.7 -> 3a.8 -> 3a.10 -> 3a.12` (registry, decorators, kernel gate).
 
@@ -328,7 +328,7 @@ Remaining Slice 1 critical path: `2.6 -> 2.7 -> 2.8 -> 3.6 -> 3.7 -> 3a.8 -> 3a.
 | 26 | GANTT.mermaid | `docs/architecture/GANTT.mermaid` | ε | 18 KB | Tracker + Dep Graph + status.yaml |
 | 27 | GANTT_critical.mermaid | `docs/architecture/GANTT_critical.mermaid` | ε | 7 KB | Tracker + Dep Graph + status.yaml |
 | 28 | PROGRESS.md | `docs/architecture/PROGRESS.md` | ε | 25 KB | Tracker + Dep Graph + status.yaml |
-| 29 | Test Suite (97 tests) | `tests/unit/test_*.py` (7 modules) | ε | 22 KB | All ε modules + TGS |
+| 29 | Test Suite (98 tests) | `tests/unit/test_*.py` (7 modules) | ε | 22 KB | All ε modules + TGS |
 | — | END_TO_END_AUDIT_CHECKLIST | `(external, user desktop)` | α | 12 KB | Audit process research (Allen) |
 | — | **Total in-repo documentation + code** | | | **~750 KB** | |
 
@@ -397,7 +397,7 @@ These rules govern how new artifacts enter the genealogy:
                      Unicode/truncation warnings
                      Integrated into tracker pipeline (raise on error)
                      16 validator tests
-                     97 total tests across 7 test modules
+                     98 total tests across 7 test modules
 2026-02-18  Artifact Genealogy updated with Phase ε execution artifacts
 ```
 

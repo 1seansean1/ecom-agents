@@ -334,6 +334,18 @@ holly-3/
 │   │       └── formatters.ts
 │   └── tests/
 │
+│   └── arch/                               # Development tooling (Phase ε infrastructure)
+│       ├── __init__.py
+│       ├── __main__.py                     # entry: `python -m holly.arch`
+│       ├── cli.py                          # CLI: gantt, extract, validate subcommands
+│       ├── sad_parser.py                   # mermaid SAD → structured AST (Task 1.5)
+│       ├── schema.py                       # Pydantic models for architecture.yaml (Task 1.6)
+│       ├── extract.py                      # SAD mermaid → architecture.yaml pipeline (Task 1.7)
+│       ├── manifest_parser.py              # Task_Manifest.md → Manifest model (Task 1.8)
+│       ├── dependencies.py                 # task dependency DAG, MP-based duration estimation
+│       ├── tracker.py                      # status.yaml + Manifest → Gantt + PROGRESS.md
+│       └── gantt_validator.py              # mermaid Gantt rendering validation gate
+│
 ├── tests/                                  # Python test suite
 │   ├── conftest.py                         # fixtures: test DB, Redis mock, agent stubs
 │   ├── unit/
@@ -362,9 +374,18 @@ holly-3/
 │   │   ├── config/
 │   │   │   ├── test_audit.py               # config change logging, HITL triggers
 │   │   │   └── test_rollback.py            # version revert
-│   │   └── safety/
-│   │       ├── test_guardrails.py
-│   │       └── test_governance.py
+│   │   ├── safety/
+│   │   │   ├── test_guardrails.py
+│   │   │   └── test_governance.py
+│   │   └── arch/                          # 98 tests for holly/arch tooling (7 modules)
+│   │       ├── __init__.py
+│   │       ├── test_sad_parser.py         # SAD mermaid parsing
+│   │       ├── test_schema.py             # architecture.yaml schema validation
+│   │       ├── test_extract.py            # extraction pipeline
+│   │       ├── test_manifest_parser.py    # Task Manifest parsing
+│   │       ├── test_dependencies.py       # DAG construction, cycle breaking
+│   │       ├── test_tracker.py            # Gantt + PROGRESS.md generation
+│   │       └── test_gantt_validator.py    # rendering validation checks
 │   ├── integration/
 │   │   ├── test_kernel_context.py          # KernelContext across all boundary types
 │   │   ├── test_goal_to_execution.py       # goal → decompose → APS → lane → complete
@@ -414,6 +435,7 @@ holly-3/
 | **Config** | `holly/config/` | `hot_reload.py`, `audit.py`, `rollback.py` |
 | **Infra** | `holly/infra/` | `egress.py` (LLM proxy, allowlist, redaction), `secrets.py` (KMS/Vault) |
 | **Auth** | `holly/api/middleware/` | `jwt.py` (JWKS verification), Authentik is out-of-band IdP |
+| **Dev Tooling** | `holly/arch/` | `sad_parser.py`, `extract.py`, `tracker.py`, `gantt_validator.py`, `cli.py` — Phase ε infrastructure |
 
 ## Lineage from Prior Work
 
