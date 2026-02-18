@@ -140,7 +140,7 @@ class ArchitectureRegistry:
             cls._instance = None
 
     @classmethod
-    def reload(cls) -> "ArchitectureRegistry":
+    def reload(cls) -> ArchitectureRegistry:
         """Hot-reload architecture.yaml with validation.
 
         Re-reads and re-validates the YAML file.  On success the

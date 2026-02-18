@@ -104,7 +104,7 @@ Audit instrument: [`Artifact_Genealogy_Checklist.md`](docs/audit/Artifact_Geneal
 
 ### Task Manifest and Current Progress
 
-583 tasks across 15 spiral slices, validated against ICD v0.1, Component Behavior Specs SIL-3, and Goal Hierarchy Formal Spec. Full manifest: [`Task_Manifest.md`](docs/Task_Manifest.md) | Progress: [`PROGRESS.md`](docs/architecture/PROGRESS.md) | Gantt: [`GANTT.mermaid`](docs/architecture/GANTT.mermaid) | Critical path: [`GANTT_critical.mermaid`](docs/architecture/GANTT_critical.mermaid)
+442 specified tasks across 15 spiral slices (583 planned; 141 deferred to later slices), validated against ICD v0.1, Component Behavior Specs SIL-3, and Goal Hierarchy Formal Spec. Full manifest: [`Task_Manifest.md`](docs/Task_Manifest.md) | Progress: [`PROGRESS.md`](docs/architecture/PROGRESS.md) | Gantt: [`GANTT.mermaid`](docs/architecture/GANTT.mermaid) | Critical path: [`GANTT_critical.mermaid`](docs/architecture/GANTT_critical.mermaid)
 
 | Slice | Phase | Done | Total | Progress | Critical Path |
 |------:|-------|-----:|------:|---------:|---------------|
@@ -227,6 +227,35 @@ All 12 findings (10 original + 2 discovered during remediation) were fixed in a 
 The meta-lesson is about agent reliability as auditors. Of the 7 agents, two produced incorrect counts (§6 counted 77 edges instead of 80; §7 counted ~34 SAD components instead of 45). Both were caused by incomplete reads — the agent's context window truncated the input, and it counted what it could see rather than flagging that it couldn't see everything. The §0 agent made the same error with N_sil (50 instead of 43). The fix is structural: any agent reporting a count must also report its read coverage (bytes read / file size) and flag when coverage is incomplete. The checklist doesn't currently require this, but it should — the count verification procedure needs a completeness attestation, not just a number.
 
 Net result: first audit run complete, 12/12 findings resolved, specification corpus internally consistent, baseline established. The repo is clean for slice 1.
+
+> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 3.7 — ICD contract enforcement. Remaining critical path: `3.7 → 3a.8 → 3a.10 → 3a.12`.
+
+> **Standing Process Reminder — execute before every task:**
+> 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts
+> 2. Verify alignment: run `python -m holly.arch gantt` and diff outputs
+> 3. Determine next task: consult Task Manifest critical path
+> 4. Review DPG P0–P1: context sync + task derivation
+> 5. After task completion: P6.1a is mandatory — regenerate PROGRESS.md, update README progress table, update Artifact Genealogy counts
+
+### Entry #5 — 18 February 2026
+
+Six findings from an external review landed today, all validated, all fixed in a single pass. The pattern across all six is the same one the prior entries keep documenting: state propagation failure across documents. The interesting part this time was that three of the six were *infrastructure* failures — tooling and audit machinery that had drifted — not just prose counts.
+
+Finding #1 was a genuine runtime defect. The Gantt generator emits task labels containing Unicode comparison operators (U+2265 `≥`, U+2264 `≤`, U+2260 `≠`) inherited from the Task Manifest. On Windows, `--stdout` and `--critical` paths write to `sys.stdout`, which defaults to `cp1252` — a codec that cannot encode these codepoints. The fix was two-layered: `_mermaid_safe()` now normalizes Unicode operators to ASCII equivalents (`>=`, `<=`, `!=`), and `cli.py` wraps stdout in a `UTF-8 TextIOWrapper` for the console output paths. The normalization is the real fix; the wrapper is defense-in-depth for any future Unicode that escapes sanitization.
+
+Finding #2 exposed a configuration management gap in the audit machinery itself. Findings F-001 through F-012 all cited `resolved_commit=9d10de8` — a SHA that doesn't exist in the git history. It was a real commit once, but the force-push consolidation (commit `aec0cd5`) that unified the GitHub/GitLab mirrors rewrote history and orphaned it. The finding register was never updated because the consolidation fix (F-018/F-022) focused on forward SHAs, not backward reconciliation. All 10 affected entries now reference `aec0cd5`. The lesson: when history rewriting occurs, *all* SHA references in audit artifacts must be cascaded, not just the ones in the current finding scope.
+
+Finding #3 was the 583-vs-442 task count discrepancy. Diary Entry #2 documents the sequence: 545 original tasks + 38 added by validation = 583 planned. But the manifest parser only extracts 442 tasks from the elaborated tables — the remaining 141 exist as planned items not yet promoted to the slice tables. The README now states "442 specified tasks (583 planned; 141 deferred)" to match the Σ row. The prior wording asserted 583 as if all were specified, which was incorrect.
+
+Finding #4: `architecture.yaml` contains 48 components; the Genealogy mermaid and narrative cited 45. The 45 figure was correct at the time it was written but was never updated when three components were added during SAD iteration. Three locations in `Artifact_Genealogy.md` updated.
+
+Finding #5 covered quality gate failures. Two ruff errors: a quoted return annotation in `registry.py:143` (UP037) and import block ordering in `test_hot_reload.py` (I001). Ten mypy errors in `decorators.py` — all the same root cause: `functools.wraps` returns a `_Wrapped` type that mypy doesn't unify with the `TypeVar F`, and the existing `type: ignore[arg-type]` comments targeted the wrong error code. Changed to `type: ignore[return-value]`. Both linters now pass clean.
+
+Finding #6: F-022, F-023, and F-024 all had `resolved_commit=pending` despite being marked `RESOLVED`. These were created during the fourth external audit round but the closure commit was never backfilled. All three now reference `aec0cd5`.
+
+The meta-pattern across entries #3, #4, and #5 is worth noting. Every external audit round uncovers the same category of defect: stale counts, phantom references, and assertion-without-enumeration. The specification corpus is structurally sound — the defects are never architectural or logical. They're always configuration management failures: a value was asserted rather than derived, and subsequent changes didn't propagate. The audit machinery (checklist, finding register) catches these reliably. The question is whether to automate the propagation — a CI check that extracts component counts from `architecture.yaml` and diffs them against every document that asserts a count — or to continue relying on manual audit sweeps. The former is the right answer; it belongs in the fitness function infrastructure (Task Manifest step 9).
+
+Six findings registered (F-025 through F-030), 195 tests passing, ruff and mypy clean.
 
 > **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 3.7 — ICD contract enforcement. Remaining critical path: `3.7 → 3a.8 → 3a.10 → 3a.12`.
 

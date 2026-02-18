@@ -11,6 +11,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import io
 import sys
 from pathlib import Path
 
@@ -99,10 +100,18 @@ def cmd_gantt(args: argparse.Namespace) -> None:
 
     if args.critical:
         registry = build_registry(manifest_path, status_path)
-        print(generate_gantt_critical_only(registry))
+        out = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        out.write(generate_gantt_critical_only(registry))
+        out.write("\n")
+        out.flush()
+        out.detach()  # prevent closing underlying stdout
     elif args.stdout:
         registry = build_registry(manifest_path, status_path)
-        print(generate_gantt(registry))
+        out = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+        out.write(generate_gantt(registry))
+        out.write("\n")
+        out.flush()
+        out.detach()  # prevent closing underlying stdout
     else:
         output_dir.mkdir(parents=True, exist_ok=True)
         outputs = generate_progress_report(manifest_path, status_path, output_dir)

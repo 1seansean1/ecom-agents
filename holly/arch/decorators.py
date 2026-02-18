@@ -165,7 +165,7 @@ def kernel_boundary(
             return fn(*args, **kwargs)
 
         return _attach_meta(
-            wrapper,  # type: ignore[arg-type]
+            wrapper,  # type: ignore[return-value]
             {
                 "kind": "kernel_boundary",
                 "gate_id": gate_id,
@@ -225,7 +225,7 @@ def tenant_scoped(
             return fn(*args, **kwargs)
 
         return _attach_meta(
-            wrapper,  # type: ignore[arg-type]
+            wrapper,  # type: ignore[return-value]
             {
                 "kind": "tenant_scoped",
                 "isolation": isolation,
@@ -282,7 +282,7 @@ def lane_dispatch(
             return fn(*args, **kwargs)
 
         return _attach_meta(
-            wrapper,  # type: ignore[arg-type]
+            wrapper,  # type: ignore[return-value]
             {
                 "kind": "lane_dispatch",
                 "semantics": semantics,
@@ -344,7 +344,7 @@ def mcp_tool(
             return fn(*args, **kwargs)
 
         return _attach_meta(
-            wrapper,  # type: ignore[arg-type]
+            wrapper,  # type: ignore[return-value]
             {
                 "kind": "mcp_tool",
                 "tool_name": resolved_name,
@@ -406,7 +406,7 @@ def eval_gated(
             return fn(*args, **kwargs)
 
         return _attach_meta(
-            wrapper,  # type: ignore[arg-type]
+            wrapper,  # type: ignore[return-value]
             {
                 "kind": "eval_gated",
                 "predicate": predicate,

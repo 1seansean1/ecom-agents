@@ -27,7 +27,6 @@ from holly.arch.registry import (
 )
 from holly.arch.schema import ArchitectureDocument
 
-
 # ── Helpers ────────────────────────────────────────────
 
 

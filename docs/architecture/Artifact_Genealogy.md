@@ -39,7 +39,7 @@ graph TD
     subgraph BETA["Phase β - Architecture"]
         direction TB
         SADTOOL["Custom SAD Iteration Tool\nrapid mermaid generation\n+ validation pipeline"]
-        SAD["SAD v0.1.0.5\nSystem Architecture Document\nMermaid flowchart:\nL0-L5, 45 components"]
+        SAD["SAD v0.1.0.5\nSystem Architecture Document\nMermaid flowchart:\nL0-L5, 48 components"]
         RTD["RTD v0.1.0.4\nRepository Tree Document\nMermaid tree:\ndeploy/, holly/, console/,\ntests/, docs/"]
         REPOTREE["repo-tree.md\nFlat file listing"]
     end
@@ -247,7 +247,7 @@ These six streams plus the monograph converged into the **Design Methodology v1.
 
 ### Phase β — Architecture (completed)
 
-A **custom SAD iteration tool** was built for rapid mermaid diagram generation with structural validation. This tool produced the **SAD v0.1.0.5** (System Architecture Document) — a mermaid flowchart defining 45 components across 6 layers (VPC/Cloud L0, Kernel L1, Core L2, Engine L3, Observability L4, Console L5) with data stores, sandbox, and egress.
+A **custom SAD iteration tool** was built for rapid mermaid diagram generation with structural validation. This tool produced the **SAD v0.1.0.5** (System Architecture Document) — a mermaid flowchart defining 48 components across 6 layers (VPC/Cloud L0, Kernel L1, Core L2, Engine L3, Observability L4, Console L5) with data stores, sandbox, and egress.
 
 The SAD was then projected into the **RTD v0.1.0.4** (Repository Tree Document) — a mermaid tree diagram mapping every SAD component to a file path. The RTD plus SAD together define the structural contract that all code must conform to.
 
@@ -260,7 +260,7 @@ Seven specification documents were derived from the SAD, monograph, and research
 | **ICD v0.1** | SAD (40+ arrows → 49 contracts) | Schema, error codes, latency budgets, backpressure, tenant isolation, redaction per interface |
 | **Component Behavior Specs** | SAD (SIL-3 nodes) + Monograph (state machines) + Anthropic (defense-in-depth) | Formal state machines for Kernel, Sandbox, Egress |
 | **Goal Hierarchy Formal Spec** | Monograph (Ch 6–9) | 7-level hierarchy, L0–L6 predicates, 3 theorems, 4 APIs |
-| **SIL Classification Matrix** | SAD (45 components) + SpaceX (stratification) + Failure Research (consequence analysis) | SIL-1/2/3 per component, verification requirements |
+| **SIL Classification Matrix** | SAD (48 components) + SpaceX (stratification) + Failure Research (consequence analysis) | SIL-1/2/3 per component, verification requirements |
 | **Dev Environment Spec** | SAD + RTD + ISO (process) + OpenAI (CI) | Toolchain, 10-stage CI, branch strategy, ADR template |
 | **Monograph Glossary Extract** | Monograph (289 pp) + SAD (implementation constructs) | 104 symbols, bidirectional theory↔impl mapping |
 | **Design Methodology** | All 6 research agents | 14-step meta procedure, worked examples |

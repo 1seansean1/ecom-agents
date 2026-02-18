@@ -166,6 +166,8 @@ def _mermaid_safe(text: str) -> str:
     # Normalize unicode arrows/dashes to ASCII equivalents
     text = text.replace("→", "->").replace("←", "<-").replace("↔", "<->")
     text = text.replace("\u21d2", "=>").replace("\u2014", "-").replace("\u2013", "-")
+    # Normalize comparison/math operators that break cp1252 consoles
+    text = text.replace("\u2265", ">=").replace("\u2264", "<=").replace("\u2260", "!=")
     # Truncate at word boundary
     if len(text) > 60:
         truncated = text[:57]
