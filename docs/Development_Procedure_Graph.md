@@ -516,10 +516,16 @@ P6.1  Task Manifest update:
         - Update task status counts in summary table
         - If new tasks discovered during implementation → append to manifest
 
-P6.1a Status tracking update:
+P6.1a Status tracking update (MANDATORY — invariant I15):
         - Update docs/status.yaml with task completion state
         - Fields: status (done), commit SHA, date, optional note
-        - Run `python -m holly.arch gantt` to regenerate tracking artifacts
+        - Run `python -m holly.arch gantt` to regenerate:
+            GANTT.mermaid, GANTT_critical.mermaid, PROGRESS.md
+        - VERIFY: diff PROGRESS.md → confirm task count and critical path
+          changed as expected.  If PROGRESS.md is unchanged after a task
+          completion, the pipeline is broken — halt and investigate.
+        - Update README.md progress table to match PROGRESS.md totals
+        - Update Artifact_Genealogy.md test count and module count
 
 P6.2  Architecture sync (if architecture changed):
   P6.2.1  Update SAD mermaid if new components added or edges changed
@@ -539,6 +545,22 @@ P6.4  ADR creation (if architectural decision was made):
 P6.5  Designer's Diary Entry (per README convention):
   P6.5.1  If slice boundary crossed or significant design insight → new diary entry
   P6.5.2  Append to README.md Designer's Diary section
+  P6.5.3  MANDATORY: Every diary entry ends with a Checkpoint block AND a
+          Standing Process Reminder block.  Format:
+
+            > **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) |
+            > **Next:** <next task ID and name>
+
+            > **Standing Process Reminder — execute before every task:**
+            > 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts
+            > 2. Verify alignment: run `python -m holly.arch gantt` and diff outputs
+            > 3. Determine next task: consult Task Manifest critical path
+            > 4. Review DPG P0–P1: context sync + task derivation
+            > 5. After task completion: P6.1a is mandatory — regenerate PROGRESS.md,
+            >    update README progress table, update Artifact Genealogy counts
+
+          The standing reminder ensures process continuity across session
+          boundaries, context window resets, and agent handoffs.
 
 P6.6  Emit: {docs_updated[], adr_created?, diary_entry?}
 ```

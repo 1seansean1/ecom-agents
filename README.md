@@ -119,6 +119,13 @@ Net result: 73 steps → 86. 13 phases → 14. Waterfall → spiral. Uniform rig
 
 > **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 1.5 — Write SAD parser (mermaid → AST), first implementation task on the Slice 1 critical path.
 
+> **Standing Process Reminder — execute before every task:**
+> 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts
+> 2. Verify alignment: run `python -m holly.arch gantt` and diff outputs
+> 3. Determine next task: consult Task Manifest critical path
+> 4. Review DPG P0–P1: context sync + task derivation
+> 5. After task completion: P6.1a is mandatory — regenerate PROGRESS.md, update README progress table, update Artifact Genealogy counts
+
 ### Entry #2 — 17 February 2026
 
 The task manifest existed — 545 tasks across 15 spiral slices — but a simple question exposed the problem: could a developer actually build from it? The manifest says *what* to build and *when*. The SAD says *what exists* and *how it connects*. Neither says *what crosses each boundary*, *how each component behaves*, or *what "correct" means computationally*. Three documents were missing.
@@ -138,6 +145,13 @@ The 47 acceptance criteria refinements replaced vague statements with specific d
 Net result: 545 → 583 tasks. 113 → 127 critical-path tasks. Three formal engineering documents now underpin every acceptance criterion. The task manifest is no longer a project management artifact disconnected from engineering specifications — it's a validated, cross-referenced development contract where every task traces to an ICD interface, a behavior spec state machine, or a goal hierarchy predicate.
 
 > **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 1.5 — Write SAD parser (mermaid → AST), begin Phase ε Execution Slice 1.
+
+> **Standing Process Reminder — execute before every task:**
+> 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts
+> 2. Verify alignment: run `python -m holly.arch gantt` and diff outputs
+> 3. Determine next task: consult Task Manifest critical path
+> 4. Review DPG P0–P1: context sync + task derivation
+> 5. After task completion: P6.1a is mandatory — regenerate PROGRESS.md, update README progress table, update Artifact Genealogy counts
 
 ### Entry #3 — 18 February 2026
 
@@ -159,6 +173,13 @@ Net result: six document-control defects fixed (X-001 through X-006), README cut
 
 > **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Run the Artifact Genealogy Checklist v2.0 to establish clean baseline before Slice 1 execution.
 
+> **Standing Process Reminder — execute before every task:**
+> 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts
+> 2. Verify alignment: run `python -m holly.arch gantt` and diff outputs
+> 3. Determine next task: consult Task Manifest critical path
+> 4. Review DPG P0–P1: context sync + task derivation
+> 5. After task completion: P6.1a is mandatory — regenerate PROGRESS.md, update README progress table, update Artifact Genealogy counts
+
 ### Entry #4 — 18 February 2026
 
 We used it. The Artifact Genealogy Checklist v2.0 ran its first audit today — run ID `AGC-2026-02-17-001` — against the full specification corpus. Seven parallel agents executed §0 through §9 in two waves: §0 first to extract state variables, then §1-2, §3-4, §5, §6, §7, and §9 simultaneously. The run took roughly 20 minutes and covered 183 base checkboxes.
@@ -177,7 +198,14 @@ The meta-lesson is about agent reliability as auditors. Of the 7 agents, two pro
 
 Net result: first audit run complete, 12/12 findings resolved, specification corpus internally consistent, baseline established. The repo is clean for slice 1.
 
-> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 1.5 — Write SAD parser (mermaid → AST). Slice 1 critical path: `1.5 → 1.6 → 1.7 → 1.8 → 2.6 → 2.7 → 2.8 → 3.6 → 3.7 → 3a.8 → 3a.10 → 3a.12`.
+> **Checkpoint:** [Task Manifest](docs/Task_Manifest.md) | **Next:** Task 2.8 — Implement hot-reload with validation. Remaining critical path: `2.8 → 3.6 → 3.7 → 3a.8 → 3a.10 → 3a.12`.
+
+> **Standing Process Reminder — execute before every task:**
+> 1. Sync state: `status.yaml` ↔ `PROGRESS.md` ↔ README table ↔ Genealogy counts
+> 2. Verify alignment: run `python -m holly.arch gantt` and diff outputs
+> 3. Determine next task: consult Task Manifest critical path
+> 4. Review DPG P0–P1: context sync + task derivation
+> 5. After task completion: P6.1a is mandatory — regenerate PROGRESS.md, update README progress table, update Artifact Genealogy counts
 
 ---
 
