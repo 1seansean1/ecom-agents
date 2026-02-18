@@ -1,6 +1,6 @@
 """Kernel-layer exception hierarchy.
 
-Task 3.7 — ICD contract enforcement exceptions.
+Tasks 3.7 & 3a.10 — ICD contract enforcement + K8 eval gate exceptions.
 
 All kernel exceptions inherit from ``KernelError`` to enable
 blanket ``except KernelError`` handling at boundary gateways.
@@ -103,3 +103,72 @@ class PayloadTooLargeError(KernelError):
         self.schema_id = schema_id
         self.size = size
         self.limit = limit
+
+
+# ── K8 Eval Gate exceptions (Task 3a.10) ─────────────────────────
+
+
+class PredicateNotFoundError(KernelError):
+    """Raised when a predicate_id cannot be resolved from the registry."""
+
+    __slots__ = ("predicate_id",)
+
+    def __init__(self, predicate_id: str) -> None:
+        super().__init__(f"Predicate {predicate_id!r} not found in registry")
+        self.predicate_id = predicate_id
+
+
+class EvalGateFailure(KernelError):
+    """Raised when an output violates a K8 eval gate predicate.
+
+    Attributes
+    ----------
+    predicate_id : str
+        The predicate that was violated.
+    output_hash : str
+        SHA-256 of the serialised output (for audit; original output
+        is *not* stored to avoid PII leakage).
+    reason : str
+        Human-readable explanation of the violation.
+    """
+
+    __slots__ = ("output_hash", "predicate_id", "reason")
+
+    def __init__(
+        self,
+        predicate_id: str,
+        *,
+        output_hash: str = "",
+        reason: str = "Output violated eval gate",
+    ) -> None:
+        super().__init__(
+            f"K8 eval gate {predicate_id!r} failed: {reason}"
+        )
+        self.predicate_id = predicate_id
+        self.output_hash = output_hash
+        self.reason = reason
+
+
+class EvalError(KernelError):
+    """Raised when a predicate evaluation raises an unhandled exception."""
+
+    __slots__ = ("detail", "predicate_id")
+
+    def __init__(self, predicate_id: str, detail: str) -> None:
+        super().__init__(
+            f"Predicate {predicate_id!r} evaluation error: {detail}"
+        )
+        self.predicate_id = predicate_id
+        self.detail = detail
+
+
+class PredicateAlreadyRegisteredError(KernelError):
+    """Raised when attempting to re-register an existing predicate_id."""
+
+    __slots__ = ("predicate_id",)
+
+    def __init__(self, predicate_id: str) -> None:
+        super().__init__(
+            f"Predicate {predicate_id!r} is already registered"
+        )
+        self.predicate_id = predicate_id

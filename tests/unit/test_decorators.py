@@ -42,11 +42,17 @@ def _sample_fn() -> str:
 @pytest.fixture(autouse=True)
 def _reset_registry() -> None:
     """Ensure clean registry state per test."""
+    from holly.kernel.predicate_registry import PredicateRegistry
+
     ArchitectureRegistry.reset()
     ArchitectureRegistry._yaml_path = None
+    PredicateRegistry.clear()
+    # Register the test predicate used by cross-decorator tests.
+    PredicateRegistry.register("test_pred", lambda o: True)
     yield  # type: ignore[misc]
     ArchitectureRegistry.reset()
     ArchitectureRegistry._yaml_path = None
+    PredicateRegistry.clear()
 
 
 @pytest.fixture()

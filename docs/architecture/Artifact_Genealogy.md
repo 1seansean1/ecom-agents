@@ -97,7 +97,7 @@ graph TD
         GANTT["GANTT.mermaid\nGANTT_critical.mermaid"]
         PROG["PROGRESS.md"]
         STATYS["status.yaml"]
-        TESTS["Test Suite\n276 tests across\n14 test modules"]
+        TESTS["Test Suite\n302 tests across\n15 test modules"]
         CODE["holly/ source tree"]
     end
 
@@ -336,7 +336,7 @@ Remaining Slice 1 critical path: `3.7 -> 3a.8 -> 3a.10 -> 3a.12` (ICD enforcemen
 | 28 | PROGRESS.md | `docs/architecture/PROGRESS.md` | ε | 25 KB | Tracker + Dep Graph + status.yaml |
 | 29 | Architecture Registry | `holly/arch/registry.py` | ε | 9 KB | Schema + Extract (Tasks 2.6, 2.7, 2.8) |
 | 30 | Core Decorators | `holly/arch/decorators.py` | ε | 12 KB | Registry API (Task 3.6) |
-| 31 | Test Suite (276 tests) | `tests/unit/test_*.py` (13 modules) | ε | 55 KB | All ε modules + TGS |
+| 31 | Test Suite (302 tests) | `tests/unit/test_*.py` (15 modules) | ε | 55 KB | All ε modules + TGS |
 | — | END_TO_END_AUDIT_CHECKLIST | `(external, user desktop)` | α | 12 KB | Audit process research (Allen) |
 | — | **Total in-repo documentation + code** | | | **~750 KB** | |
 
@@ -433,7 +433,7 @@ These rules govern how new artifacts enter the genealogy:
                      holly/kernel/schema_registry.py — jsonschema>=4.20 validation registry
                      holly/kernel/k1.py — K1 orchestration layer
                      tests/unit/test_k1.py — 37 new tests covering exceptions, schema validation, K1 pipeline
-                     276 total tests across 14 test modules
+                     302 total tests across 15 test modules
                      External dependency added: jsonschema>=4.20
 2026-02-18  Artifact Genealogy updated with Phase ε Task 3.7 completion
 ```

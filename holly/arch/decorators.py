@@ -105,9 +105,13 @@ def _decorate(fn: F, meta: dict[str, Any]) -> F:
 
     Classes receive metadata directly — no wrapper — to preserve
     ``isinstance``, ``issubclass``, and class attribute access.
-    Functions get a thin ``functools.wraps`` wrapper that includes
-    K1 runtime enforcement when ``gate_id="K1"`` and ``icd_schema``
-    is set (Task 3.7).
+    Functions get a thin ``functools.wraps`` wrapper that includes:
+
+    - K1 runtime enforcement when ``gate_id="K1"`` and ``icd_schema``
+      is set (Task 3.7).
+    - K8 eval gate enforcement when ``gate_id="K8"`` and ``predicate``
+      is set (Task 3a.10).  K8 evaluates the *return value* against
+      a registered predicate.
     """
     if isinstance(fn, type):
         # Class: attach metadata directly, return unchanged class.
@@ -115,8 +119,9 @@ def _decorate(fn: F, meta: dict[str, Any]) -> F:
 
     icd_schema = meta.get("icd_schema")
     icd_field = meta.get("icd_field", 0)  # positional index or kwarg name
+    k8_predicate = meta.get("predicate")
 
-    # Function: wrap with optional K1 enforcement.
+    # Function: wrap with optional K1/K8 enforcement.
     @functools.wraps(fn)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         # K1 gate: validate first positional arg (or named field)
@@ -132,7 +137,16 @@ def _decorate(fn: F, meta: dict[str, Any]) -> F:
                 payload = None
             if payload is not None:
                 k1_validate(payload, icd_schema)
-        return fn(*args, **kwargs)
+
+        result = fn(*args, **kwargs)
+
+        # K8 gate: evaluate return value against a behavioral predicate.
+        if k8_predicate and meta.get("gate_id") == "K8":
+            from holly.kernel.k8 import k8_evaluate
+
+            k8_evaluate(result, k8_predicate)
+
+        return result
 
     return _attach_meta(wrapper, meta)  # type: ignore[return-value]
 
