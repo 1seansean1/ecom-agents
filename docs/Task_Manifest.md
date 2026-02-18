@@ -6,6 +6,30 @@ Generated: 17 February 2026 | Protocol: Task Derivation Protocol v1.0 | Source: 
 
 ---
 
+## Table of Contents
+
+- [Delta Summary](#delta-summary)
+- [Summary](#summary)
+- [Slice 1 — Phase A Spiral (Steps 1, 2, 3, 3a)](#slice-1--phase-a-spiral-steps-1-2-3-3a)
+- [Slice 2 — Phase A Backfill (Steps 4–11)](#slice-2--phase-a-backfill-steps-411)
+- [Slice 3 — Phase B: Failure Analysis & Kernel (Steps 12–21)](#slice-3--phase-b-failure-analysis--kernel-steps-1221)
+- [Slice 4 — Phase C: Storage Layer (Steps 22–26)](#slice-4--phase-c-storage-layer-steps-2226)
+- [Slice 5 — Phase D: Safety & Infra (Steps 27–33)](#slice-5--phase-d-safety--infra-steps-2733)
+- [Slice 6 — Phase E: Core L2 (Steps 34–40)](#slice-6--phase-e-core-l2-steps-3440)
+- [Slice 7 — Phase F: Engine L3 (Steps 41–45)](#slice-7--phase-f-engine-l3-steps-4145)
+- [Slice 8 — Phase G: Sandbox (Steps 46–50)](#slice-8--phase-g-sandbox-steps-4650)
+- [Slice 9 — Phase H: API & Auth (Steps 51–56)](#slice-9--phase-h-api--auth-steps-5156)
+- [Slice 10 — Phase I: Observability (Steps 57–61)](#slice-10--phase-i-observability-steps-5761)
+- [Slice 11 — Phase J: Agents (Steps 62–65)](#slice-11--phase-j-agents-steps-6265)
+- [Slice 12 — Phase K: Eval Infrastructure / EDDOps (Steps 66–69)](#slice-12--phase-k-eval-infrastructure--eddops-steps-6669)
+- [Slice 13 — Phase L: Config (Steps 70–72)](#slice-13--phase-l-config-steps-7072)
+- [Slice 14 — Phase M: Console L5 (Steps 73–78)](#slice-14--phase-m-console-l5-steps-7378)
+- [Slice 15 — Phase N: Deploy & Ops (Steps 79–86)](#slice-15--phase-n-deploy--ops-steps-7986)
+- [Grand Summary](#grand-summary)
+- [End of Task Manifest](#end-of-task-manifest)
+
+---
+
 ## Delta Summary
 
 This section documents all changes made during validation against the three engineering documents (ICD v0.1, Component Behavior Specs SIL-3, Goal Hierarchy Formal Spec).
