@@ -117,7 +117,10 @@ tasks:
   5.2: pending
   5.3: pending
   5.4: pending
-  5.5: pending
+  5.5:
+    status: done
+    date: "2026-02-18"
+    note: "49 ICD Pydantic models, ICD_MODEL_MAP, register_all_icd_models(), enum constraints (120 tests)"
   5.6: pending
   5.7: pending
   5.8:
