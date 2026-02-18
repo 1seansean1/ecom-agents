@@ -144,7 +144,10 @@ tasks:
   6.3: pending
 
   # Step 7 — Scan
-  7.1: pending
+  7.1:
+    status: done
+    date: "2026-02-18"
+    note: "AST scanner with per-module rules, layer→decorator mapping, component overrides, source/module/directory scanning (31 tests)"
   7.2: pending
   7.3: pending
 
