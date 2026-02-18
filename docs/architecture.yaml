@@ -1,0 +1,1479 @@
+metadata:
+  sad_version: 0.1.0.5
+  sad_file: docs\architecture\SAD_0.1.0.5.mermaid
+  chart_type: flowchart
+  chart_direction: TB
+  generated_by: holly.arch.extract
+  schema_version: 1.0.0
+layers:
+  VPC:
+    id: VPC
+    title: AWS VPC - us-east-1
+    layer: L0
+    direction: TB
+    children:
+    - PUB
+    - PRIV
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 17
+      raw: AWS VPC - us-east-1
+  PUB:
+    id: PUB
+    title: Public Subnet
+    layer: L0
+    direction: ''
+    parent_id: VPC
+    children:
+    - ALB
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 20
+      raw: Public Subnet
+  PRIV:
+    id: PRIV
+    title: Private Subnet
+    layer: L0
+    direction: ''
+    parent_id: VPC
+    children:
+    - AUTH
+    - JWTMW
+    - KERNEL
+    - CORE
+    - ENGINE
+    - OBS
+    - EGRESS
+    - KMS
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 24
+      raw: Private Subnet
+  KERNEL:
+    id: KERNEL
+    title: "Layer 1: Kernel - In-Process Library\\nUniversal Invariants Only \u2014 Keep Thin"
+    layer: L1
+    direction: LR
+    parent_id: PRIV
+    children:
+    - KCTX
+    - K1
+    - K2
+    - K3
+    - K4
+    - K5
+    - K6
+    - K7
+    - K8
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 34
+      raw: "Layer 1: Kernel - In-Process Library\\nUniversal Invariants Only \u2014 Keep Thin"
+  CORE:
+    id: CORE
+    title: 'Layer 2: Holly Core - The Orchestrator'
+    layer: L2
+    direction: TB
+    parent_id: PRIV
+    children:
+    - CONV
+    - INTENT
+    - GOALS
+    - APS
+    - TOPO
+    - MEM
+    - CFG
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 47
+      raw: 'Layer 2: Holly Core - The Orchestrator'
+  ENGINE:
+    id: ENGINE
+    title: 'Layer 3: Execution Engine'
+    layer: L3
+    direction: LR
+    parent_id: PRIV
+    children:
+    - MAIN
+    - CRON
+    - SUB
+    - MCP
+    - WF
+    - LANEPOL
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 58
+      raw: 'Layer 3: Execution Engine'
+  OBS:
+    id: OBS
+    title: 'Layer 4: Observability - Full Visibility'
+    layer: L4
+    direction: LR
+    parent_id: PRIV
+    children:
+    - EVBUS
+    - WS
+    - LOGS
+    - DASH
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 68
+      raw: 'Layer 4: Observability - Full Visibility'
+  SANDBOX:
+    id: SANDBOX
+    title: Sandbox - Isolated Container
+    layer: SANDBOX
+    direction: LR
+    children:
+    - SEXEC
+    - SSEC
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 87
+      raw: Sandbox - Isolated Container
+  UI:
+    id: UI
+    title: 'Layer 5: Console - React'
+    layer: L5
+    direction: LR
+    children:
+    - CHAT
+    - TOPOVIZ
+    - GOALVIZ
+    - AUDIT
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 94
+      raw: 'Layer 5: Console - React'
+  DATA:
+    id: DATA
+    title: Data Stores
+    layer: DATA
+    direction: TB
+    children:
+    - PG
+    - RD
+    - CHROMA
+    - OLLAMA
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 103
+      raw: Data Stores
+components:
+  ALB:
+    id: ALB
+    name: Application Load Balancer
+    description: 'TLS Termination
+
+      WAF Rules
+
+      WebSocket Upgrade
+
+      Health Checks'
+    layer: L0
+    subgraph_id: PUB
+    style_class: ''
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 21
+      raw: Application Load Balancer\nTLS Termination\nWAF Rules\nWebSocket Upgrade\nHealth Checks
+  AUTH:
+    id: AUTH
+    name: Authentik
+    description: 'SSO / OIDC Provider
+
+      Token Issuance via Redirect
+
+      RBAC Policy Engine
+
+      Public via ALB /auth/*'
+    layer: INFRA
+    subgraph_id: PRIV
+    style_class: infra
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 29
+      raw: Authentik - Out of Band\nSSO / OIDC Provider\nToken Issuance via Redirect\nRBAC Policy Engine\nPublic via ALB /auth/*
+  JWTMW:
+    id: JWTMW
+    name: JWT Middleware
+    description: 'JWKS Public Key Verification
+
+      Claims Extraction
+
+      No IdP Call per Request
+
+      Short-Lived Tokens 5-15min
+
+      Revocation Cache in Redis'
+    layer: INFRA
+    subgraph_id: PRIV
+    style_class: infra
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 32
+      raw: JWT Middleware\nJWKS Public Key Verification\nClaims Extraction\nNo IdP Call per Request\nShort-Lived Tokens 5-15min\nRevocation
+        Cache in Redis
+  KCTX:
+    id: KCTX
+    name: KernelContext
+    description: 'async context manager
+
+      wraps every boundary crossing'
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 36
+      raw: KernelContext\nasync context manager\nwraps every boundary crossing
+  K1:
+    id: K1
+    name: Schema
+    description: Validation
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 37
+      raw: Schema\nValidation
+  K2:
+    id: K2
+    name: Permission
+    description: Gates
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 38
+      raw: Permission\nGates
+  K3:
+    id: K3
+    name: Bounds
+    description: Checking
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 39
+      raw: Bounds\nChecking
+  K4:
+    id: K4
+    name: Trace
+    description: Injection
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 40
+      raw: Trace\nInjection
+  K5:
+    id: K5
+    name: Idempotency Key
+    description: 'Generation
+
+      RFC 8785'
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 41
+      raw: Idempotency Key\nGeneration\nRFC 8785
+  K6:
+    id: K6
+    name: Durability
+    description: WAL
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 42
+      raw: Durability\nWAL
+  K7:
+    id: K7
+    name: HITL
+    description: Gates
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 43
+      raw: HITL\nGates
+  K8:
+    id: K8
+    name: Eval
+    description: Gates
+    layer: L1
+    subgraph_id: KERNEL
+    style_class: kernelNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 44
+      raw: Eval\nGates
+  CONV:
+    id: CONV
+    name: Conversation
+    description: Interface
+    layer: L2
+    subgraph_id: CORE
+    style_class: coreNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 49
+      raw: Conversation\nInterface
+  INTENT:
+    id: INTENT
+    name: Intent Classifier
+    description: Direct Solve | Team Spawn | Clarify
+    layer: L2
+    subgraph_id: CORE
+    style_class: coreNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 50
+      raw: Intent Classifier\nDirect Solve | Team Spawn | Clarify
+  GOALS:
+    id: GOALS
+    name: Goal Decomposer
+    description: 'Celestial L0-L4 | Terrestrial L5-L6
+
+      Lexicographic Gating'
+    layer: L2
+    subgraph_id: CORE
+    style_class: coreNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 51
+      raw: Goal Decomposer\nCelestial L0-L4 | Terrestrial L5-L6\nLexicographic Gating
+  APS:
+    id: APS
+    name: APS Controller
+    description: 'T0 Reflexive | T1 Deliberative
+
+      T2 Collaborative | T3 Morphogenetic'
+    layer: L2
+    subgraph_id: CORE
+    style_class: coreNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 52
+      raw: APS Controller\nT0 Reflexive | T1 Deliberative\nT2 Collaborative | T3 Morphogenetic
+  TOPO:
+    id: TOPO
+    name: Team Topology Manager
+    description: 'Contracts | Tool Permissions
+
+      Resource Budgets | Eigenspectrum'
+    layer: L2
+    subgraph_id: CORE
+    style_class: coreNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 53
+      raw: Team Topology Manager\nContracts | Tool Permissions\nResource Budgets | Eigenspectrum
+  MEM:
+    id: MEM
+    name: Memory System
+    description: ''
+    layer: L2
+    subgraph_id: CORE
+    style_class: coreNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 54
+      raw: Memory System
+  CFG:
+    id: CFG
+    name: Config Control Plane
+    description: 'Hot Reload | Audit Log
+
+      HITL for Dangerous Keys
+
+      Version History + Rollback'
+    layer: L2
+    subgraph_id: CORE
+    style_class: coreNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 55
+      raw: Config Control Plane\nHot Reload | Audit Log\nHITL for Dangerous Keys\nVersion History + Rollback
+  MAIN:
+    id: MAIN
+    name: Main Lane
+    description: User Tasks
+    layer: L3
+    subgraph_id: ENGINE
+    style_class: engineNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 60
+      raw: Main Lane\nUser Tasks
+  CRON:
+    id: CRON
+    name: Cron Lane
+    description: Scheduled Ops
+    layer: L3
+    subgraph_id: ENGINE
+    style_class: engineNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 61
+      raw: Cron Lane\nScheduled Ops
+  SUB:
+    id: SUB
+    name: Subagent Lane
+    description: Team Tasks
+    layer: L3
+    subgraph_id: ENGINE
+    style_class: engineNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 62
+      raw: Subagent Lane\nTeam Tasks
+  MCP:
+    id: MCP
+    name: MCP Tool Registry
+    description: 'Introspectable Catalog
+
+      Per-Agent Permissions'
+    layer: L3
+    subgraph_id: ENGINE
+    style_class: engineNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 63
+      raw: MCP Tool Registry\nIntrospectable Catalog\nPer-Agent Permissions
+  WF:
+    id: WF
+    name: Workflow Engine
+    description: 'Durable Task Graphs
+
+      Checkpoint / Resume
+
+      Effectively-Once Semantics
+
+      Idempotency Keys + Dedupe
+
+      Compensating Actions'
+    layer: L3
+    subgraph_id: ENGINE
+    style_class: engineNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 64
+      raw: Workflow Engine\nDurable Task Graphs\nCheckpoint / Resume\nEffectively-Once Semantics\nIdempotency Keys + Dedupe\nCompensating
+        Actions
+  LANEPOL:
+    id: LANEPOL
+    name: Lane Policy
+    description: 'Dynamic Concurrency Limits
+
+      Per-Tenant Quotas
+
+      Per-Workflow Budgets'
+    layer: L3
+    subgraph_id: ENGINE
+    style_class: engineNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 65
+      raw: Lane Policy\nDynamic Concurrency Limits\nPer-Tenant Quotas\nPer-Workflow Budgets
+  EVBUS:
+    id: EVBUS
+    name: Event Bus
+    description: 'Unified Ingest
+
+      Sampling + Filters
+
+      Backpressure Control
+
+      Event-Level PII Redaction
+
+      Tenant-Scoped Fanout'
+    layer: L4
+    subgraph_id: OBS
+    style_class: obsNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 70
+      raw: Event Bus\nUnified Ingest\nSampling + Filters\nBackpressure Control\nEvent-Level PII Redaction\nTenant-Scoped Fanout
+  WS:
+    id: WS
+    name: WebSocket Channels
+    description: 'agent_trace | goal_progress
+
+      team_topology | lane_status
+
+      memory_ops | tool_invocations
+
+      error_stream | metrics | notify
+
+      Per-Tenant AuthZ on Streams'
+    layer: L4
+    subgraph_id: OBS
+    style_class: obsNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 71
+      raw: WebSocket Channels\nagent_trace | goal_progress\nteam_topology | lane_status\nmemory_ops | tool_invocations\nerror_stream
+        | metrics | notify\nPer-Tenant AuthZ on Streams
+  LOGS:
+    id: LOGS
+    name: Structured Logging
+    description: 'JSON + Correlation IDs
+
+      Agent Decision Trees
+
+      Redact Before Persist'
+    layer: L4
+    subgraph_id: OBS
+    style_class: obsNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 72
+      raw: Structured Logging\nJSON + Correlation IDs\nAgent Decision Trees\nRedact Before Persist
+  DASH:
+    id: DASH
+    name: Goal Dashboard
+    description: 'Live Goal Tree
+
+      Failure Rates
+
+      Mutation History'
+    layer: L4
+    subgraph_id: OBS
+    style_class: obsNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 73
+      raw: Goal Dashboard\nLive Goal Tree\nFailure Rates\nMutation History
+  EGRESS:
+    id: EGRESS
+    name: Egress Control
+    description: 'L7: Domain Allowlist + Redact Before Egress
+
+      L7: Prompt/Response Redaction
+
+      L7: Rate Limits + Budget Enforcement
+
+      L7: Request Logging
+
+      L3: NAT Gateway (outbound routing)'
+    layer: INFRA
+    subgraph_id: PRIV
+    style_class: infra
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 79
+      raw: 'Egress Control\nL7: Domain Allowlist + Redact Before Egress\nL7: Prompt/Response Redaction\nL7: Rate Limits +
+        Budget Enforcement\nL7: Request Logging\nL3: NAT Gateway (outbound routing)'
+  KMS:
+    id: KMS
+    name: Secrets Manager
+    description: 'AWS KMS / Vault
+
+      API Key Rotation
+
+      Tool Credential Store
+
+      Audit Trail
+
+      Least-Privilege Access'
+    layer: INFRA
+    subgraph_id: PRIV
+    style_class: secrets
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 82
+      raw: Secrets Manager\nAWS KMS / Vault\nAPI Key Rotation\nTool Credential Store\nAudit Trail\nLeast-Privilege Access
+  SEXEC:
+    id: SEXEC
+    name: Code Executor
+    description: 'gRPC Server
+
+      Language Runtimes'
+    layer: SANDBOX
+    subgraph_id: SANDBOX
+    style_class: sandboxNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 89
+      raw: Code Executor\ngRPC Server\nLanguage Runtimes
+  SSEC:
+    id: SSEC
+    name: Security Boundary
+    description: 'Namespace Isolation
+
+      Seccomp Profiles
+
+      No Network Egress
+
+      gVisor / Firecracker'
+    layer: SANDBOX
+    subgraph_id: SANDBOX
+    style_class: sandboxNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 90
+      raw: Security Boundary\nNamespace Isolation\nSeccomp Profiles\nNo Network Egress\ngVisor / Firecracker
+  CHAT:
+    id: CHAT
+    name: Chat Interface
+    description: Bidirectional WS
+    layer: L5
+    subgraph_id: UI
+    style_class: uiNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 96
+      raw: Chat Interface\nBidirectional WS
+  TOPOVIZ:
+    id: TOPOVIZ
+    name: Topology Visualizer
+    description: Live Agent Compositions
+    layer: L5
+    subgraph_id: UI
+    style_class: uiNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 97
+      raw: Topology Visualizer\nLive Agent Compositions
+  GOALVIZ:
+    id: GOALVIZ
+    name: Goal Tree Explorer
+    description: Celestial / Terrestrial
+    layer: L5
+    subgraph_id: UI
+    style_class: uiNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 98
+      raw: Goal Tree Explorer\nCelestial / Terrestrial
+  AUDIT:
+    id: AUDIT
+    name: Audit Log Viewer
+    description: Full Trace Replay
+    layer: L5
+    subgraph_id: UI
+    style_class: uiNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 99
+      raw: Audit Log Viewer\nFull Trace Replay
+  PG:
+    id: PG
+    name: PostgreSQL 16
+    description: 'Partitioned Tables
+
+      Row-Level Security per Tenant
+
+      Transactional: agents, goals, topologies
+
+      Execution: task state, workflow checkpoints
+
+      Audit: traces, logs, config history
+
+      Retention Policies + S3 Archival'
+    layer: DATA
+    subgraph_id: DATA
+    style_class: dataNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 105
+      raw: 'PostgreSQL 16\nPartitioned Tables\nRow-Level Security per Tenant\nTransactional: agents, goals, topologies\nExecution:
+        task state, workflow checkpoints\nAudit: traces, logs, config history\nRetention Policies + S3 Archival'
+  RD:
+    id: RD
+    name: Redis 7 Sentinel/Cluster
+    description: 'Tenant-Namespaced Keys
+
+      Pub/Sub Channels
+
+      Execution Queues
+
+      Session Cache
+
+      Metric Streams
+
+      Persistence: AOF + RDB'
+    layer: DATA
+    subgraph_id: DATA
+    style_class: dataNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 106
+      raw: 'Redis 7 Sentinel/Cluster\nTenant-Namespaced Keys\nPub/Sub Channels\nExecution Queues\nSession Cache\nMetric Streams\nPersistence:
+        AOF + RDB'
+  CHROMA:
+    id: CHROMA
+    name: ChromaDB
+    description: 'Vector Store
+
+      Tenant-Isolated Collections
+
+      Long-Term Memory
+
+      Document Embeddings'
+    layer: DATA
+    subgraph_id: DATA
+    style_class: dataNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 107
+      raw: ChromaDB\nVector Store\nTenant-Isolated Collections\nLong-Term Memory\nDocument Embeddings
+  OLLAMA:
+    id: OLLAMA
+    name: Ollama
+    description: 'Local Inference
+
+      Cost-Sensitive Tasks'
+    layer: DATA
+    subgraph_id: DATA
+    style_class: dataNode
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 108
+      raw: Ollama\nLocal Inference\nCost-Sensitive Tasks
+  LLM:
+    id: LLM
+    name: Claude API
+    description: 'Opus 4.6 / Sonnet 4.5
+
+      Primary Inference'
+    layer: EXTERNAL
+    subgraph_id: ''
+    style_class: llm
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 112
+      raw: Claude API\nOpus 4.6 / Sonnet 4.5\nPrimary Inference
+  UI:
+    id: UI
+    name: UI
+    description: ''
+    layer: L5
+    subgraph_id: ''
+    style_class: ui
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 120
+      raw: UI
+  CORE:
+    id: CORE
+    name: CORE
+    description: ''
+    layer: L2
+    subgraph_id: ''
+    style_class: core
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 122
+      raw: CORE
+  KERNEL:
+    id: KERNEL
+    name: KERNEL
+    description: ''
+    layer: L1
+    subgraph_id: ''
+    style_class: kernel
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 128
+      raw: KERNEL
+  ENGINE:
+    id: ENGINE
+    name: ENGINE
+    description: ''
+    layer: L3
+    subgraph_id: ''
+    style_class: engine
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 129
+      raw: ENGINE
+  SANDBOX:
+    id: SANDBOX
+    name: SANDBOX
+    description: ''
+    layer: SANDBOX
+    subgraph_id: ''
+    style_class: sandboxDef
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 150
+      raw: SANDBOX
+  OBS:
+    id: OBS
+    name: OBS
+    description: ''
+    layer: L4
+    subgraph_id: ''
+    style_class: obs
+    source:
+      file: docs\architecture\SAD_0.1.0.5.mermaid
+      line: 157
+      raw: OBS
+connections:
+- source_id: UI
+  target_id: ALB
+  label: HTTPS / WSS
+  kind: request_flow
+  style: solid
+  crosses_boundary: true
+  source_layer: L5
+  target_layer: L0
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 120
+    raw: HTTPS / WSS
+- source_id: ALB
+  target_id: JWTMW
+  label: Forward
+  kind: request_flow
+  style: solid
+  crosses_boundary: true
+  source_layer: L0
+  target_layer: INFRA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 121
+    raw: Forward
+- source_id: JWTMW
+  target_id: CORE
+  label: Validated Claims
+  kind: request_flow
+  style: solid
+  crosses_boundary: true
+  source_layer: INFRA
+  target_layer: L2
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 122
+    raw: Validated Claims
+- source_id: AUTH
+  target_id: UI
+  label: OIDC Login/Redirect\nToken Issuance
+  kind: request_flow
+  style: dotted
+  crosses_boundary: true
+  source_layer: INFRA
+  target_layer: L5
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 123
+    raw: OIDC Login/Redirect\nToken Issuance
+- source_id: ALB
+  target_id: AUTH
+  label: /auth/* path
+  kind: request_flow
+  style: solid
+  crosses_boundary: true
+  source_layer: L0
+  target_layer: INFRA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 124
+    raw: /auth/* path
+- source_id: CORE
+  target_id: KERNEL
+  label: KernelContext\nin-process
+  kind: in_process
+  style: dotted
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: L1
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 128
+    raw: KernelContext\nin-process
+- source_id: ENGINE
+  target_id: KERNEL
+  label: KernelContext\nin-process
+  kind: in_process
+  style: dotted
+  crosses_boundary: true
+  source_layer: L3
+  target_layer: L1
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 129
+    raw: KernelContext\nin-process
+- source_id: CONV
+  target_id: INTENT
+  label: ''
+  kind: internal_flow
+  style: solid
+  crosses_boundary: false
+  source_layer: L2
+  target_layer: L2
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 132
+    raw: ''
+- source_id: INTENT
+  target_id: GOALS
+  label: ''
+  kind: internal_flow
+  style: solid
+  crosses_boundary: false
+  source_layer: L2
+  target_layer: L2
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 133
+    raw: ''
+- source_id: GOALS
+  target_id: APS
+  label: ''
+  kind: internal_flow
+  style: solid
+  crosses_boundary: false
+  source_layer: L2
+  target_layer: L2
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 134
+    raw: ''
+- source_id: APS
+  target_id: TOPO
+  label: ''
+  kind: internal_flow
+  style: solid
+  crosses_boundary: false
+  source_layer: L2
+  target_layer: L2
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 135
+    raw: ''
+- source_id: TOPO
+  target_id: ENGINE
+  label: ''
+  kind: dispatch
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 136
+    raw: ''
+- source_id: CORE
+  target_id: MAIN
+  label: Dispatch
+  kind: dispatch
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 139
+    raw: Dispatch
+- source_id: CORE
+  target_id: CRON
+  label: Schedule
+  kind: dispatch
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 140
+    raw: Schedule
+- source_id: TOPO
+  target_id: SUB
+  label: Spawn Agents
+  kind: dispatch
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 141
+    raw: Spawn Agents
+- source_id: LANEPOL
+  target_id: MAIN
+  label: Governs
+  kind: governs
+  style: dotted
+  crosses_boundary: false
+  source_layer: L3
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 142
+    raw: Governs
+- source_id: LANEPOL
+  target_id: CRON
+  label: Governs
+  kind: governs
+  style: dotted
+  crosses_boundary: false
+  source_layer: L3
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 143
+    raw: Governs
+- source_id: LANEPOL
+  target_id: SUB
+  label: Governs
+  kind: governs
+  style: dotted
+  crosses_boundary: false
+  source_layer: L3
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 144
+    raw: Governs
+- source_id: MAIN
+  target_id: MCP
+  label: ''
+  kind: internal_flow
+  style: solid
+  crosses_boundary: false
+  source_layer: L3
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 145
+    raw: ''
+- source_id: SUB
+  target_id: MCP
+  label: ''
+  kind: internal_flow
+  style: solid
+  crosses_boundary: false
+  source_layer: L3
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 146
+    raw: ''
+- source_id: MCP
+  target_id: WF
+  label: ''
+  kind: internal_flow
+  style: solid
+  crosses_boundary: false
+  source_layer: L3
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 147
+    raw: ''
+- source_id: MCP
+  target_id: SANDBOX
+  label: gRPC
+  kind: grpc
+  style: solid
+  crosses_boundary: true
+  source_layer: L3
+  target_layer: SANDBOX
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 150
+    raw: gRPC
+- source_id: ENGINE
+  target_id: EVBUS
+  label: Emit Events
+  kind: emit_events
+  style: solid
+  crosses_boundary: true
+  source_layer: L3
+  target_layer: L4
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 153
+    raw: Emit Events
+- source_id: CORE
+  target_id: EVBUS
+  label: Emit Events
+  kind: emit_events
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: L4
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 154
+    raw: Emit Events
+- source_id: EVBUS
+  target_id: WS
+  label: Filtered Stream
+  kind: stream
+  style: solid
+  crosses_boundary: false
+  source_layer: L4
+  target_layer: L4
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 155
+    raw: Filtered Stream
+- source_id: EVBUS
+  target_id: LOGS
+  label: ''
+  kind: internal_flow
+  style: solid
+  crosses_boundary: false
+  source_layer: L4
+  target_layer: L4
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 156
+    raw: ''
+- source_id: OBS
+  target_id: UI
+  label: Stream
+  kind: stream
+  style: solid
+  crosses_boundary: true
+  source_layer: L4
+  target_layer: L5
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 157
+    raw: Stream
+- source_id: CORE
+  target_id: EGRESS
+  label: LLM Calls
+  kind: external_call
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: INFRA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 160
+    raw: LLM Calls
+- source_id: SUB
+  target_id: EGRESS
+  label: Agent LLM Calls
+  kind: external_call
+  style: solid
+  crosses_boundary: true
+  source_layer: L3
+  target_layer: INFRA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 161
+    raw: Agent LLM Calls
+- source_id: EGRESS
+  target_id: LLM
+  label: Allowlisted
+  kind: external_call
+  style: solid
+  crosses_boundary: true
+  source_layer: INFRA
+  target_layer: EXTERNAL
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 162
+    raw: Allowlisted
+- source_id: CORE
+  target_id: OLLAMA
+  label: Local Inference
+  kind: external_call
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 163
+    raw: Local Inference
+- source_id: CORE
+  target_id: PG
+  label: State / History
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 166
+    raw: State / History
+- source_id: CORE
+  target_id: RD
+  label: Short-Term Memory
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 167
+    raw: Short-Term Memory
+- source_id: CORE
+  target_id: CHROMA
+  label: Long-Term Memory
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 168
+    raw: Long-Term Memory
+- source_id: ENGINE
+  target_id: RD
+  label: Queue / Pub-Sub
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L3
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 169
+    raw: Queue / Pub-Sub
+- source_id: OBS
+  target_id: PG
+  label: Partitioned Logs
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L4
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 170
+    raw: Partitioned Logs
+- source_id: OBS
+  target_id: RD
+  label: Real-Time Metrics
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L4
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 171
+    raw: Real-Time Metrics
+- source_id: KERNEL
+  target_id: PG
+  label: Audit WAL
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L1
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 178
+    raw: Audit WAL
+- source_id: WF
+  target_id: PG
+  label: Checkpoints\nSource of Truth\nfor Recovery
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L3
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 179
+    raw: Checkpoints\nSource of Truth\nfor Recovery
+- source_id: ENGINE
+  target_id: PG
+  label: Task State\nQueryable Projection
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L3
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 180
+    raw: Task State\nQueryable Projection
+- source_id: MEM
+  target_id: RD
+  label: Short-Term
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 183
+    raw: Short-Term
+- source_id: MEM
+  target_id: PG
+  label: Medium-Term
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 184
+    raw: Medium-Term
+- source_id: MEM
+  target_id: CHROMA
+  label: Long-Term
+  kind: data_access
+  style: solid
+  crosses_boundary: true
+  source_layer: L2
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 185
+    raw: Long-Term
+- source_id: KMS
+  target_id: EGRESS
+  label: API Keys
+  kind: credential
+  style: dotted
+  crosses_boundary: false
+  source_layer: INFRA
+  target_layer: INFRA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 188
+    raw: API Keys
+- source_id: KMS
+  target_id: PG
+  label: DB Creds
+  kind: credential
+  style: dotted
+  crosses_boundary: true
+  source_layer: INFRA
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 189
+    raw: DB Creds
+- source_id: KMS
+  target_id: MCP
+  label: Tool Creds
+  kind: credential
+  style: dotted
+  crosses_boundary: true
+  source_layer: INFRA
+  target_layer: L3
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 190
+    raw: Tool Creds
+- source_id: AUTH
+  target_id: JWTMW
+  label: JWKS Public Keys\n(cached)
+  kind: credential
+  style: dotted
+  crosses_boundary: false
+  source_layer: INFRA
+  target_layer: INFRA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 193
+    raw: JWKS Public Keys\n(cached)
+- source_id: KMS
+  target_id: AUTH
+  label: Authentik\nClient Secret
+  kind: credential
+  style: dotted
+  crosses_boundary: false
+  source_layer: INFRA
+  target_layer: INFRA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 194
+    raw: Authentik\nClient Secret
+- source_id: JWTMW
+  target_id: RD
+  label: Revocation\nCache Lookup
+  kind: credential
+  style: dotted
+  crosses_boundary: true
+  source_layer: INFRA
+  target_layer: DATA
+  source_ref:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 197
+    raw: Revocation\nCache Lookup
+kernel_invariants:
+- id: K1
+  name: Schema Validation
+  description: Validation
+  component_id: K1
+  source:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 37
+    raw: Schema\nValidation
+- id: K2
+  name: Permission Gates
+  description: Gates
+  component_id: K2
+  source:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 38
+    raw: Permission\nGates
+- id: K3
+  name: Bounds Checking
+  description: Checking
+  component_id: K3
+  source:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 39
+    raw: Bounds\nChecking
+- id: K4
+  name: Trace Injection
+  description: Injection
+  component_id: K4
+  source:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 40
+    raw: Trace\nInjection
+- id: K5
+  name: Idempotency Key Generation
+  description: 'Generation
+
+    RFC 8785'
+  component_id: K5
+  source:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 41
+    raw: Idempotency Key\nGeneration\nRFC 8785
+- id: K6
+  name: Durability WAL
+  description: WAL
+  component_id: K6
+  source:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 42
+    raw: Durability\nWAL
+- id: K7
+  name: HITL Gates
+  description: Gates
+  component_id: K7
+  source:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 43
+    raw: HITL\nGates
+- id: K8
+  name: Eval Gates
+  description: Gates
+  component_id: K8
+  source:
+    file: docs\architecture\SAD_0.1.0.5.mermaid
+    line: 44
+    raw: Eval\nGates
+Annotated_version: 1.0.0

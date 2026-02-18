@@ -48,7 +48,10 @@ tasks:
   2.3: pending
   2.4: pending
   2.5: pending
-  2.6: pending
+  2.6:
+    status: done
+    date: "2026-02-18"
+    note: "ArchitectureRegistry singleton, thread-safe lazy init (18 tests)"
   2.7: pending
   2.8: pending
   2.9: pending
