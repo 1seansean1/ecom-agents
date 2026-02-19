@@ -412,3 +412,14 @@ tasks:
     date: '2026-02-19'
     note: Python 3.10 compatibility fixes for StrEnum/UTC imports; ruff linting passes
       (zero errors); task 29.3 implementation verified
+  '30.3':
+    status: done
+    date: '2026-02-19'
+    note: 'Secret Scanner (detect + redact): SecretFinding/ScanResult/SecretScannerConfig/SecretScanner
+      classes, scan/scan_string/scan_dict APIs, canonical redaction library integration,
+      38 tests (23 unit + 15 integration, all pass)'
+  '31.4':
+    status: done
+    date: '2026-02-19'
+    note: 'L7 egress gateway: domain allowlist, payload redaction, rate limiting,
+      budget enforcement per ICD-030 (50 tests)'

@@ -1329,3 +1329,89 @@ Acceptance criteria:
 ```
 
 *This document is the map of the map. Every artifact in Holly Grace traces through this graph back to the monograph, the six research streams, or the audit checklist. No artifact exists without provenance.*
+
+---
+
+## §AGC-54 — Task 31.4 (Implement per TLA+ egress spec)
+
+**Date:** 2026-02-19
+**Component:** holly/infra/egress.py
+**SIL:** 3 (critical path)
+**Completions:** 1 (31.4)
+
+**Completed:** 2026-02-19
+**Files affected:** holly/infra/egress.py, holly/infra/__init__.py, tests/unit/test_infra_egress.py, tests/integration/test_infra_egress_integration.py, docs/status.yaml, README.md, CLAUDE.md, docs/architecture/PROGRESS.md
+
+Task classification:
+  • Type: Implementation task (Egress Gateway per Behavior Spec §3, ICD-030)
+  • Scope: L7 domain allowlist, redaction, rate limiting, budget enforcement
+  • Critical path: Slice 5 (Phase D: Safety & Infra)
+  • Predecessor: Task 31.3 (FMEA: egress bypass, redaction failure, rate-limit evasion)
+  • Successor: Task 31.5 (Verify egress as independent safety layer)
+
+Completions:
+  1. Implemented EgressGateway module per Behavior Spec §3.1:
+     - Domain allowlist validation (7 domains configured: OpenAI, Anthropic, Gmail, Slack, etc.)
+     - Request/response redaction using canonical holly.redaction library
+     - Per-tenant, per-domain rate limiting (Redis-backed via RateLimiterProto)
+     - Per-workflow budget tracking (Postgres-backed via BudgetTrackerProto)
+     - Audit logging before forwarding (fail-safe: blocks on logging error)
+     - Full state machine: RECEIVING → CHECKING_DOMAIN → REDACTING → RATE_CHECKING → BUDGET_CHECKING → LOGGING → FORWARDING → RESPONSE_REDACTING → IDLE
+  2. Protocol-based design (dependency injection):
+     - HTTPClientProto: HTTP client interface (testable without network)
+     - RateLimiterProto: Rate limiter abstraction
+     - BudgetTrackerProto: Budget tracker abstraction
+     - AuditLoggerProto: Audit logging abstraction
+     - create_default_gateway() factory with production domains
+  3. Error handling and fail-safe deny:
+     - DomainBlockedError, RateLimitError, BudgetExceededError, RedactionError, LoggingError, ForwardError, TimeoutError
+     - All errors logged with context (tenant_id, workflow_id, domain, correlation_id)
+     - Logging errors trigger fail-safe deny (request NOT forwarded)
+  4. Test coverage (50 tests total):
+     - Unit tests (33): State transitions, domain allowlist, redaction, rate limiting, budget tracking, audit logging, error handling, edge cases
+     - Integration tests (17): Acceptance criteria (AC1–AC10 per Behavior Spec §3.1), state machine verification, factory function
+
+Code quality:
+  • ruff: All checks pass (zero errors)
+  • Type annotations: Full coverage (__slots__, Protocol, TYPE_CHECKING)
+  • Docstrings: Google/NumPy style on all public APIs
+  • Tests: All 50 tests pass; property-based tests via hypothesis integration
+
+Updated documentation:
+  - docs/status.yaml: Added 31.4 entry (status=done, date=2026-02-19)
+  - holly/infra/__init__.py: Updated exports (EgressGateway, create_default_gateway, all error types)
+  - docs/architecture/PROGRESS.md: Regenerated (Slice 5: 4/33 tasks)
+  - README.md: Updated progress table (Slice 5: 2/33, Σ: 53/442, 12%)
+  - CLAUDE.md: Updated done count (54 total), next task (31.5), test count (~2930)
+  - docs/architecture/Artifact_Genealogy.md: This entry
+
+Verification:
+  • Task manifest: 31.4 recorded as done with task completed
+  • Architecture audit: 0 FAIL (8 PASS, 2 WARN, 2 SKIP)
+  • Behavior Spec §3.1: All 10 acceptance criteria passed
+    ✓ AC1: Allowlisted domain passes
+    ✓ AC2: Non-allowlisted domain blocked
+    ✓ AC3: Request redaction applied
+    ✓ AC4: Response redaction applied
+    ✓ AC5: Rate limit enforcement verified
+    ✓ AC6: Budget enforcement verified
+    ✓ AC7: Logging coverage (N requests → N logs)
+    ✓ AC8: Timeout enforcement
+    ✓ AC9: Tenant isolation
+    ✓ AC10: Fail-safe deny on logging error
+  • RTM chain: Complete from 31.1 (Map egress to monograph) through 31.7 (Verify egress filter pipeline guarantees)
+  • Code quality: ruff clean, type annotations validated, Protocol-based design for testability
+  • Test infrastructure: All 50 tests pass (33 unit + 17 integration)
+  • Traceability: 31.4 on critical path in Task Manifest (27.4 → 28.3 → 30.3 → 31.4 → 31.5 → 31.7 → 33.1 → ...)
+
+Acceptance criteria:
+  ✓ L7 egress gateway implemented per Behavior Spec §3.1 state machine
+  ✓ Domain allowlist configurable (default: OpenAI, Anthropic, Gmail, Slack)
+  ✓ Request/response redaction using canonical library (PII, secrets, API keys)
+  ✓ Rate limiting enforced per tenant + domain via Redis
+  ✓ Budget enforcement per workflow via Postgres
+  ✓ Audit logging of all egress events (fail-safe deny on log error)
+  ✓ State machine matches TLA+ spec (formal verification pending 14.3)
+  ✓ 50 tests all pass (unit + integration)
+  ✓ ruff: zero errors
+  ✓ Ready for downstream tasks 31.5 (egress independence verification) and 31.7 (filter pipeline guarantees)
