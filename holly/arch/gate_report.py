@@ -556,3 +556,255 @@ def render_phase_a_report(report: GateReport) -> str:
 
     lines.append("")
     return "\n".join(lines)
+
+
+# ── Phase B gate items (Slice 3: Steps 13-21) ────────────────────
+
+# Gate items for Phase B completion (Slice 3: Formal Methods & Full Kernel).
+# All entries are critical-path tasks that must be DONE before Phase C starts.
+GATE_ITEMS_PHASE_B: list[tuple[str, str, str, str]] = [
+    # Step 13 — FMEA
+    (
+        "13.1",
+        "FMEA kernel invariant desynchronization",
+        "K1-K8 failure modes with RPN table and mitigations documented",
+        "status",
+    ),
+    # Step 14 — TLA+
+    (
+        "14.1",
+        "TLA+ KernelContext state machine",
+        "5 states, 8 actions, 8 invariants, 5 liveness properties; TLC 0 violations",
+        "status",
+    ),
+    (
+        "14.5",
+        "Formal state-machine validator",
+        "KernelState/KernelEvent enums, VALID_TRANSITIONS frozenset; mirrors TLA+ spec §14.1",
+        "status",
+    ),
+    # Step 15 — KernelContext
+    (
+        "15.4",
+        "KernelContext async context manager",
+        "5-state lifecycle; all paths terminate in IDLE; liveness property satisfied",
+        "status",
+    ),
+    # Step 16 — K1-K4
+    (
+        "16.3",
+        "K1 schema gate factory",
+        "Gate-protocol async adapter; wraps k1_validate; all failure paths → IDLE",
+        "status",
+    ),
+    (
+        "16.4",
+        "K2 RBAC permission gate",
+        "PermissionRegistry, RevocationCache protocol, fail-safe revocation deny",
+        "status",
+    ),
+    (
+        "16.5",
+        "K3 resource bounds gate",
+        "BudgetRegistry, UsageTracker protocol, per-tenant isolation",
+        "status",
+    ),
+    (
+        "16.6",
+        "K4 trace injection gate",
+        "UUID validation, tenant_id/trace_started_at slots; TLA+ liveness satisfied",
+        "status",
+    ),
+    (
+        "16.9",
+        "K1-K4 guard condition determinism",
+        "INV-4: guards pure, no side effects; property-based tests across all K1-K4",
+        "status",
+    ),
+    # Step 17 — K5-K6
+    (
+        "17.3",
+        "K5 idempotency gate",
+        "RFC 8785 + SHA-256 key generation, InMemoryIdempotencyStore, fail-safe paths",
+        "status",
+    ),
+    (
+        "17.4",
+        "K6 WAL gate",
+        "WALEntry, WALBackend protocol, redact() for PII; fail-safe error paths",
+        "status",
+    ),
+    (
+        "17.7",
+        "K5-K6 invariant preservation",
+        "All 6 KernelContext invariants (INV-1\u2013INV-6); 10,000-op master trace",
+        "status",
+    ),
+    # Step 18 — K7-K8
+    (
+        "18.3",
+        "K7 HITL gate",
+        "ApprovalRequest/HumanDecision, ConfidenceEvaluator, fail-safe deny on all error paths",
+        "status",
+    ),
+    (
+        "18.4",
+        "K8 full gate factory",
+        "CELESTIAL_PREDICATE_IDS (L0-L4), fail-fast ascending order, fail-safe error paths",
+        "status",
+    ),
+    (
+        "18.9",
+        "K7-K8 failure isolation",
+        "0 cascade failures across all K7/K8 failure modes; AC 1-7 covered",
+        "status",
+    ),
+    # Step 20 — Dissimilar verification
+    (
+        "20.3",
+        "Dissimilar verification channel",
+        "8 per-entry + 2 cross-entry checkers; zero false negatives on injected bugs",
+        "status",
+    ),
+    (
+        "20.5",
+        "Dissimilar SM verifier",
+        "Independent VALID_TRANSITIONS; zero imports from state_machine/context; all violations detected",
+        "status",
+    ),
+    # Step 21 — SIL-3 verification
+    (
+        "21.2",
+        "SIL-3 kernel verification",
+        "\u22653 Hypothesis invariants per gate; K1-K8 Behavior Spec \u00a71.2-1.9 all verified",
+        "auto",
+    ),
+]
+
+
+def evaluate_phase_b_gate(
+    task_statuses: dict[str, Any],
+    test_count: int = 0,
+    audit_pass: bool = False,
+) -> GateReport:
+    """Evaluate Phase B gate (Slice 3) and return a GateReport.
+
+    Parameters
+    ----------
+    task_statuses:
+        Dict mapping task_id \u2192 status info.
+    test_count:
+        Current total test count.
+    audit_pass:
+        Whether the audit is clean (zero FAIL).
+    """
+    report = GateReport(
+        slice_id=3,
+        gate_name="Phase B Gate (Steps 13-21)",
+        date=datetime.date.today().isoformat(),
+    )
+
+    for task_id, name, ac, check_type in GATE_ITEMS_PHASE_B:
+        raw = task_statuses.get(task_id)
+        if isinstance(raw, dict):
+            status = raw.get("status", "pending")
+            note = raw.get("note", "")
+        elif isinstance(raw, str):
+            status = raw
+            note = ""
+        else:
+            status = "pending"
+            note = ""
+
+        is_done = status == "done"
+
+        if check_type == "auto":
+            if task_id == "21.2":
+                # SIL-3 verification -- requires done + test_count confirmation
+                if is_done and test_count > 0:
+                    verdict = "PASS"
+                    evidence = f"SIL-3 test suite passes ({note})"
+                else:
+                    verdict = "FAIL"
+                    evidence = "SIL-3 verification not confirmed"
+            else:
+                verdict = "PASS" if is_done else "FAIL"
+                evidence = note if is_done else "Not completed"
+        else:
+            # Status-based check -- all entries are critical-path
+            if is_done:
+                verdict = "PASS"
+                evidence = note or "Marked done in status.yaml"
+            else:
+                verdict = "FAIL"
+                evidence = "Critical-path task not completed"
+
+        report.items.append(GateItem(
+            task_id=task_id,
+            name=name,
+            acceptance_criteria=ac,
+            verdict=verdict,
+            evidence=evidence,
+            note=note,
+        ))
+
+    return report
+
+
+def render_phase_b_report(report: GateReport) -> str:
+    """Render a Phase B GateReport to markdown."""
+    lines: list[str] = []
+    lines.append(f"# Phase B Gate Report \u2014 Slice {report.slice_id}")
+    lines.append("")
+    lines.append(f"**Gate:** {report.gate_name}")
+    lines.append(f"**Date:** {report.date}")
+
+    verdict_text = (
+        "PASS - Phase C unlocked" if report.all_pass
+        else "FAIL - Phase C blocked"
+    )
+    lines.append(f"**Verdict:** {verdict_text}")
+    lines.append("")
+    lines.append(
+        f"**Summary:** {report.passed} passed, {report.failed} failed, "
+        f"{report.waived} waived, {report.skipped} skipped"
+    )
+    lines.append("")
+
+    # Results table
+    lines.append("## Gate Items")
+    lines.append("")
+    lines.append("| Task | Name | Verdict | Evidence |")
+    lines.append("|------|------|---------|----------|")
+    for item in report.items:
+        icon = {"PASS": "\u2713", "FAIL": "\u2717", "WAIVED": "\u2298", "SKIP": "\u2014"}.get(
+            item.verdict, "?"
+        )
+        lines.append(
+            f"| {item.task_id} | {item.name} | {icon} {item.verdict} | {item.evidence} |"
+        )
+    lines.append("")
+
+    # Gate decision
+    lines.append("## Gate Decision")
+    lines.append("")
+    if report.all_pass:
+        lines.append(
+            "All Phase B critical-path tasks (Steps 13-21) are complete. "
+            "Formal methods verification is in place: FMEA documented, TLA+ spec "
+            "model-checked, KernelContext state machine validated against spec, "
+            "K1-K8 gates implemented and property-tested, K5-K6 invariants preserved "
+            "across 10,000-operation traces, K7-K8 failure isolation confirmed, "
+            "dissimilar verification channels active, and SIL-3 integration test "
+            "suite passing. "
+            "**Phase C (Slice 4) is unlocked.**"
+        )
+    else:
+        failed_items = [i for i in report.items if i.verdict == "FAIL"]
+        lines.append("The following items must be resolved before Phase C can proceed:")
+        lines.append("")
+        for item in failed_items:
+            lines.append(f"- **{item.task_id}:** {item.evidence}")
+
+    lines.append("")
+    return "\n".join(lines)

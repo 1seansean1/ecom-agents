@@ -325,3 +325,7 @@ tasks:
     date: "2026-02-19"
     commit: 21ee890
     note: "SIL-3 kernel verification: 58-test integration suite covering K1-K8 Behavior Spec §1.2-1.9; ≥3 Hypothesis property-based invariants per gate; AC-numbered docstrings for full traceability; Python 3.10 compat fixes for datetime.UTC (k6,k7) and StrEnum (state_machine); 58/58 pass"
+  21.6:
+    status: done
+    date: "2026-02-19"
+    note: "Phase B gate checklist: GATE_ITEMS_PHASE_B (18 items), evaluate_phase_b_gate(), render_phase_b_report(), gate-b CLI subcommand; 18 PASS, 0 FAIL - Phase C unlocked (68 tests)"

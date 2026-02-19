@@ -219,6 +219,71 @@ def cmd_gate(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def cmd_gate_b(args: argparse.Namespace) -> None:
+    """Run Phase B gate evaluation and produce pass/fail report."""
+    from holly.arch.audit import run_audit
+    from holly.arch.gate_report import evaluate_phase_b_gate, render_phase_b_report
+    from holly.arch.tracker import load_status
+
+    root = _find_repo_root()
+    status_path = root / "docs" / "status.yaml"
+
+    # Load task statuses
+    status = load_status(status_path)
+    task_statuses: dict[str, Any] = {}
+    for tid, state in status.items():
+        task_statuses[tid] = {
+            "status": state.status,
+            "note": state.note or "",
+        }
+
+    # Run audit to check if clean
+    audit_results = run_audit(root)
+    audit_pass = all(r.status != "FAIL" for r in audit_results)
+
+    # Count tests
+    import subprocess
+
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/", "--collect-only", "-q"],
+        capture_output=True,
+        text=True,
+        cwd=str(root),
+    )
+    test_count = sum(
+        1 for line in result.stdout.splitlines() if "::" in line
+    )
+
+    # Evaluate gate
+    report = evaluate_phase_b_gate(
+        task_statuses,
+        test_count=test_count,
+        audit_pass=audit_pass,
+    )
+
+    # Write report
+    output = (
+        Path(args.output)
+        if args.output
+        else root / "docs" / "audit" / "phase_b_gate_report.md"
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(render_phase_b_report(report), encoding="utf-8")
+
+    # Print report to stdout
+    rendered = render_phase_b_report(report)
+    out = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    try:
+        out.write(rendered + "\n")
+        out.flush()
+    finally:
+        out.detach()
+
+    print(f"\nReport written to: {output}")
+    if not report.all_pass:
+        sys.exit(1)
+
+
 def cmd_audit(args: argparse.Namespace) -> None:
     """Run cross-document consistency audit."""
     from holly.arch.audit import format_audit_report, run_audit
@@ -272,6 +337,11 @@ def main() -> None:
     p_progress.add_argument("-m", "--manifest", help="Path to Task_Manifest.md")
     p_progress.add_argument("-s", "--status", help="Path to status.yaml")
     p_progress.set_defaults(func=cmd_progress)
+
+    # gate-b
+    p_gate_b = sub.add_parser("gate-b", help="Run Phase B gate evaluation and produce report")
+    p_gate_b.add_argument("-o", "--output", help="Output path for gate report (default: docs/audit/phase_b_gate_report.md)")
+    p_gate_b.set_defaults(func=cmd_gate_b)
 
     # audit
     p_audit = sub.add_parser("audit", help="Run cross-document consistency audit")
