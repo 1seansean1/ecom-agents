@@ -1153,4 +1153,134 @@ Phase D (Steps 27-33: Redaction, Guardrails, Governance, Secrets, Egress) UNLOCK
 
 ---
 
+---
+
+**Task 27.4** (2026-02-19) — Canonical Redaction Library
+
+```
+New: holly/redaction/__init__.py, holly/redaction/core.py
+New: tests/unit/test_redaction_core.py, tests/integration/test_redaction_integration.py
+
+Canonical redaction library for PII and secrets:
+  7 PII pattern matchers:
+    • Email addresses (RFC 5322 subset, alpha-numeric + standard punctuation)
+    • API keys (bearer, AWS, Stripe, SendGrid, GitHub, generic) 
+    • Credit card numbers (visa/mastercard/amex/discover, Luhn validation)
+    • Database connection strings (postgresql, mysql, mongodb, redis)
+    • Auth tokens (JWT, OAuth2, session, bearer)
+    • Phone numbers (E.164 format + US variations)
+    • AWS secrets (explicit AWS_ prefixed names)
+
+  Core API:
+    RedactionRule: Pattern descriptor (pattern, category, replacement_hint, enable_caching)
+    PII_RULES: Canonical rule set per ICD-024/025 redaction requirements
+    detect_pii: Find all matches in text
+    redact: Replace patterns, idempotent, property-based test verified
+    redact_streaming: Chunked processing for large texts
+
+  Tests (108 total: 77 unit + 31 integration):
+    Unit (77 tests):
+      • Pattern matching: email, apikey, creditcard, dbstring, authtoken, phone, awssecret (7×5 variants each)
+      • Pattern compilation and caching
+      • Rule configuration (enable/disable, custom order)
+      • String replacement safety (partial match, full match, overlapping)
+      • Error handling (None input, type validation)
+    Integration (31 tests):
+      • Query string redaction (API keys, tokens in URL params)
+      • Log line redaction (typical entries, error messages with context)
+      • HTML content redaction (forms, email in markup)
+      • Redaction idempotency (multiple passes produce identical output)
+      • Real-world examples (auth headers, connection strings, receipts, error stacks)
+      • Rule ordering (email before generic API key to avoid false positives)
+      • Performance: large texts (10KB+), many matches (100+)
+      • Consistency: detect_pii→redact pipeline matches
+
+  ICD coverage: ICD-024 (redaction API), ICD-025 (PII patterns), ICD-028 (streaming), ICD-049 (secrets)
+  SIL: SIL-1 (no formal verification required per Phase D)
+  Verdict: 108/108 tests PASS
+
+108 new tests (77 unit + 31 integration)
+2643 total tests
+49 total tasks done (Slice 5: 1 of 10 critical-path complete)
+```
+
+*This document is the map of the map. Every artifact in Holly Grace traces through this graph back to the monograph, the six research streams, or the audit checklist. No artifact exists without provenance.*
+
+---
+
+**Task 28.3** (2026-02-19) — Guardrails Module (Input Sanitization, Injection Detection, Output Redaction)
+
+```
+New: holly/guardrails/__init__.py, holly/guardrails/core.py
+New: tests/unit/test_guardrails_core.py, tests/integration/test_guardrails_integration.py
+
+Unified guardrails pipeline for all boundary crossings (K1 schema validation, K8 eval gate):
+  
+  Input Sanitization:
+    • Null byte removal (per Behavior Spec §1)
+    • UTF-8 normalization (NFC)
+    • Whitespace normalization (leading/trailing strip, collapse runs)
+    • InputSanitizationResult(sanitized_input, transformations_applied)
+  
+  Injection Detection (8 pattern types):
+    • Prompt injection: "ignore previous instructions", jailbreak/roleplay/system override
+    • SQL injection: UNION-based, boolean blind, comment-based, time-based
+    • Command injection: pipe/redirection metacharacters, backtick/dollar substitution
+    • XML injection: XXE via DOCTYPE declarations
+    • LDAP injection: filter wildcards, DN composition
+    • OS command: shell metacharacters in user input
+    • CRLF injection: header injection via newlines
+    • Unicode homoglyph: mixed Latin/Cyrillic, Latin/Greek (attacks homophone spoofing)
+    • InjectionDetectionResult(is_injection_detected, injection_types, injection_patterns_matched)
+  
+  Output Redaction:
+    • Integrates canonical redaction library (holly/redaction/core.py)
+    • Per-field redaction rules (email→[email hidden], credit_card→****-****-****-XXXX, etc.)
+    • OutputRedactionResult(redacted_output, rules_applied)
+  
+  Main API:
+    GuardrailsEngine(redaction_rules=None)
+      • sanitize_input(raw_input) → InputSanitizationResult
+      • detect_injections(text) → InjectionDetectionResult
+      • redact_output(text) → OutputRedactionResult
+      • guard_input(raw_input) → GuardrailsResult (sanitize + detect)
+      • guard_output(raw_output) → GuardrailsResult (redact only)
+      • guard_roundtrip(raw_input, raw_output) → GuardrailsResult (input + output)
+    
+    GuardrailsResult(passed, input_sanitization, injection_detection, output_redaction, error)
+    GuardrailsEngineProtocol: async-compatible interface for future K1 gate integration
+    create_default_engine() → GuardrailsEngine (factory with canonical rules)
+
+  Tests (86 total: 62 unit + 24 integration):
+    Unit (62 tests):
+      • Sanitization: null bytes, UTF-8, whitespace (8 tests per case + property-based)
+      • Prompt injection detection: 8 attack patterns + variants (56 tests)
+      • SQL injection: UNION, boolean, comment, time-based (20 tests)
+      • Command injection: pipe, backticks, semicolon prefixes (15 tests)
+      • Injection disable/enable feature flag (6 tests)
+      • Error handling: malformed UTF-8, binary-like strings (4 tests)
+      • GuardrailsResult structure, passed/error semantics (8 tests)
+    
+    Integration (24 tests):
+      • End-to-end pipeline: typical user flow (6 tests)
+      • Real-world scenarios: support chat, data processing (5 tests)
+      • Error recovery: malformed input, concurrent engines (4 tests)
+      • Performance characteristics: sanitization, injection detection, redaction bounded time (3 tests)
+      • Custom redaction rules integration (2 tests)
+      • Determinism: same input→same output (4 tests)
+  
+  Codequality:
+    • ruff: All checks pass (no F401, E501, RUF violations)
+    • Type annotations: Full coverage (Protocols, Generic, Optional, Union)
+    • Docstrings: Google-style with parameter+return contracts
+    
+  ICD coverage: ICD-027 (guardrails), K1 (schema validation pre-flight), K8 (eval gate post-flight)
+  SIL: SIL-2 (per Task 28.1 assignment)
+  Verdict: 86/86 tests PASS, ruff clean
+
+86 new tests (62 unit + 24 integration)
+2837 total tests
+50 total tasks done (Slice 5: 2 of 10 critical-path complete)
+```
+
 *This document is the map of the map. Every artifact in Holly Grace traces through this graph back to the monograph, the six research streams, or the audit checklist. No artifact exists without provenance.*
