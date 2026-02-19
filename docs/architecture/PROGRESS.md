@@ -163,7 +163,7 @@ _Generated: 2026-02-19_
 | 20.4 | Link to requirement and test | pending | 0.5d | 20.3 |  |
 | 20.5 | Verify Dissimilar Verifier State Machine | done (crit) | 1.5d | 20.3, 20.4 | 5a0b56c |
 | 21.1 | Assign verification methods per SIL-3 | pending | 0.5d |  |  |
-| 21.2 | Execute SIL-3 verification | done (crit) | 0.5d | 20.5, 21.1 | TBD |
+| 21.2 | Execute SIL-3 verification | done (crit) | 0.5d | 20.5, 21.1 | 21ee890 |
 | 21.3 | Run TLA+ model checker against all kernel specs | pending | 1.5d | 21.2 |  |
 | 21.4 | Validate RTM completeness for kernel | pending | 0.5d | 21.3 |  |
 | 21.5 | Independent review of kernel safety | pending | 1d | 21.4 |  |
