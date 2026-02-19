@@ -555,6 +555,27 @@ These rules govern how new artifacts enter the genealogy:
                      not-found, ordering, PermissionRegistry unit, Hypothesis property-
                      based (authorized/unauthorized/expired all IDLE) — 42 new tests
                      1662 total tests (+42 new)
+2026-02-19  Task 16.5: K3 resource bounds gate — KernelContext integration
+                     holly/kernel/exceptions.py — BoundsExceeded, BudgetNotFoundError,
+                     InvalidBudgetError, UsageTrackingError added to exception hierarchy
+                     holly/kernel/budget_registry.py — NEW: thread-safe class-level
+                     BudgetRegistry singleton; keyed by (tenant_id, resource_type) →
+                     int; register / get / has_budget / registered_keys / clear;
+                     InvalidBudgetError on negative limit, BudgetNotFoundError on miss
+                     holly/kernel/k3.py — NEW: UsageTracker Protocol +
+                     InMemoryUsageTracker (thread-safe, reset for test isolation) +
+                     FailUsageTracker; k3_check_bounds (7-step: validate requested,
+                     resolve budget, validate limit, fetch usage, validate usage, bounds
+                     check, increment); k3_gate factory: Gate-protocol async adapter;
+                     per-tenant isolation; fail-safe deny on tracker failure (Slice 3: 7/19)
+                     holly/kernel/__init__.py — exports k3_check_bounds, k3_gate,
+                     BudgetRegistry + K3 exception classes
+                     tests/unit/test_k3.py — NEW: structure, happy-path, bounds-exceeded,
+                     budget-not-found, invalid-budget, negative-requested, tracker-fail,
+                     per-tenant isolation, ordering, InMemoryTracker unit, Hypothesis
+                     property-based (within-budget IDLE / over-budget BoundsExceeded) —
+                     40 new tests
+                     1702 total tests (+40 new)
 ```
 
 ---

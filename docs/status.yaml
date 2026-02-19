@@ -241,7 +241,10 @@ tasks:
     status: done
     date: "2026-02-19"
     note: "K2 RBAC permission gate: k2_check_permissions + k2_gate factory; PermissionRegistry singleton; RevocationCache protocol + NullRevocationCache + FailRevocationCache; JWTError/ExpiredTokenError/RevokedTokenError/PermissionDeniedError/RoleNotFoundError/RevocationCacheError; pre-decoded claims dict; fail-safe revocation deny; TLA+ liveness all paths IDLE; composes with k1_gate; property-based zero FP/FN (42 tests)"
-  16.5: pending
+  16.5:
+    status: done
+    date: "2026-02-19"
+    note: "K3 resource bounds gate: k3_check_bounds + k3_gate factory; BudgetRegistry singleton; UsageTracker Protocol + InMemoryUsageTracker + FailUsageTracker; BoundsExceeded/BudgetNotFoundError/InvalidBudgetError/UsageTrackingError exceptions; per-tenant isolation (40 tests)"
   16.6: pending
   16.7: pending
   16.8: pending

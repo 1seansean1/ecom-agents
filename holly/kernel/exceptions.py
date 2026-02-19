@@ -1,7 +1,7 @@
 """Kernel-layer exception hierarchy.
 
-Tasks 3.7, 3a.10 & 16.4 — ICD contract enforcement, K8 eval gate, K2 permission
-gate exceptions.
+Tasks 3.7, 3a.10, 16.4 & 16.5 — ICD contract enforcement, K8 eval gate, K2
+permission gate, K3 bounds checking exceptions.
 
 All kernel exceptions inherit from ``KernelError`` to enable
 blanket ``except KernelError`` handling at boundary gateways.
@@ -315,4 +315,115 @@ class RevocationCacheError(KernelError):
 
     def __init__(self, detail: str) -> None:
         super().__init__(f"Revocation cache unavailable: {detail}")
+        self.detail = detail
+
+
+# ── K3 Bounds Checking exceptions (Task 16.5) ────────────────────────────
+
+
+class BoundsExceeded(KernelError):
+    """Raised when a resource request would exceed the allocated budget.
+
+    Attributes
+    ----------
+    budget : int
+        The configured budget limit for (tenant, resource_type).
+    current : int
+        The current cumulative usage before this request.
+    remaining : int
+        Budget remaining before this request (``budget - current``).
+    requested : int
+        The amount requested in this crossing.
+    resource_type : str
+        The resource type being checked (e.g. ``"tokens"``, ``"cpu_ms"``).
+    tenant_id : str
+        The tenant for which the budget was evaluated.
+    """
+
+    __slots__ = ("budget", "current", "remaining", "requested", "resource_type", "tenant_id")
+
+    def __init__(
+        self,
+        *,
+        tenant_id: str,
+        resource_type: str,
+        budget: int,
+        current: int,
+        requested: int,
+        remaining: int,
+    ) -> None:
+        super().__init__(
+            f"K3 bounds exceeded for tenant={tenant_id!r} resource={resource_type!r}: "
+            f"current={current} + requested={requested} > budget={budget}"
+        )
+        self.tenant_id = tenant_id
+        self.resource_type = resource_type
+        self.budget = budget
+        self.current = current
+        self.requested = requested
+        self.remaining = remaining
+
+
+class BudgetNotFoundError(KernelError):
+    """Raised when no budget is configured for a (tenant, resource_type) pair.
+
+    Attributes
+    ----------
+    resource_type : str
+        The resource type that had no budget entry.
+    tenant_id : str
+        The tenant for which the budget was sought.
+    """
+
+    __slots__ = ("resource_type", "tenant_id")
+
+    def __init__(self, tenant_id: str, resource_type: str) -> None:
+        super().__init__(
+            f"No budget configured for tenant={tenant_id!r} resource={resource_type!r}"
+        )
+        self.tenant_id = tenant_id
+        self.resource_type = resource_type
+
+
+class InvalidBudgetError(KernelError):
+    """Raised when a configured budget limit is invalid (e.g. negative).
+
+    Attributes
+    ----------
+    limit : int
+        The invalid limit value.
+    resource_type : str
+        The resource type with the invalid budget.
+    tenant_id : str
+        The tenant with the invalid budget.
+    """
+
+    __slots__ = ("limit", "resource_type", "tenant_id")
+
+    def __init__(self, tenant_id: str, resource_type: str, *, limit: int) -> None:
+        super().__init__(
+            f"Invalid budget limit {limit} for tenant={tenant_id!r} "
+            f"resource={resource_type!r}: must be >= 0"
+        )
+        self.tenant_id = tenant_id
+        self.resource_type = resource_type
+        self.limit = limit
+
+
+class UsageTrackingError(KernelError):
+    """Raised when the usage tracking store is unavailable.
+
+    K3 applies fail-safe semantics: if current usage cannot be determined,
+    access is denied.
+
+    Attributes
+    ----------
+    detail : str
+        Description of the tracking failure.
+    """
+
+    __slots__ = ("detail",)
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(f"Usage tracker unavailable: {detail}")
         self.detail = detail

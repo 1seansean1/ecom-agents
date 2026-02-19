@@ -5,11 +5,14 @@ Public API:
     - k1_gate               — Gate-compatible K1 factory for KernelContext
     - k2_check_permissions  — standalone K2 RBAC permission check
     - k2_gate               — Gate-compatible K2 factory for KernelContext
+    - k3_check_bounds       — standalone K3 resource bounds check
+    - k3_gate               — Gate-compatible K3 factory for KernelContext
     - k8_evaluate           — standalone K8 eval gate
     - SchemaRegistry        — ICD JSON Schema resolution singleton
     - ICDSchemaRegistry     — ICD Pydantic model resolution with TTL cache
     - PredicateRegistry     — K8 predicate resolution singleton
     - PermissionRegistry    — K2 role-to-permission mapping singleton
+    - BudgetRegistry        — K3 per-tenant resource budget singleton
     - ValidationError       — raised on schema violation
     - SchemaNotFoundError   — raised when schema_id is unknown
     - PayloadTooLargeError  — raised on oversized payload
@@ -25,14 +28,22 @@ Public API:
     - PermissionDeniedError — raised when required permissions are not granted
     - RoleNotFoundError     — raised when role is not in PermissionRegistry
     - RevocationCacheError  — raised when revocation cache is unavailable
+    - BoundsExceeded        — raised when resource request exceeds budget
+    - BudgetNotFoundError   — raised when no budget for (tenant, resource_type)
+    - InvalidBudgetError    — raised when budget limit is negative
+    - UsageTrackingError    — raised when usage tracker is unavailable
 """
 
 from __future__ import annotations
 
+from holly.kernel.budget_registry import BudgetRegistry
 from holly.kernel.exceptions import (
+    BoundsExceeded,
+    BudgetNotFoundError,
     EvalError,
     EvalGateFailure,
     ExpiredTokenError,
+    InvalidBudgetError,
     JWTError,
     KernelError,
     PayloadTooLargeError,
@@ -44,6 +55,7 @@ from holly.kernel.exceptions import (
     RoleNotFoundError,
     SchemaNotFoundError,
     SchemaParseError,
+    UsageTrackingError,
     ValidationError,
 )
 from holly.kernel.icd_schema_registry import (
@@ -53,18 +65,23 @@ from holly.kernel.icd_schema_registry import (
 )
 from holly.kernel.k1 import k1_gate, k1_validate
 from holly.kernel.k2 import k2_check_permissions, k2_gate
+from holly.kernel.k3 import k3_check_bounds, k3_gate
 from holly.kernel.k8 import k8_evaluate
 from holly.kernel.permission_registry import PermissionRegistry
 from holly.kernel.predicate_registry import PredicateRegistry
 from holly.kernel.schema_registry import SchemaRegistry
 
 __all__ = [
+    "BoundsExceeded",
+    "BudgetNotFoundError",
+    "BudgetRegistry",
     "EvalError",
     "EvalGateFailure",
     "ExpiredTokenError",
     "ICDModelAlreadyRegisteredError",
     "ICDSchemaRegistry",
     "ICDValidationError",
+    "InvalidBudgetError",
     "JWTError",
     "KernelError",
     "PayloadTooLargeError",
@@ -79,10 +96,13 @@ __all__ = [
     "SchemaNotFoundError",
     "SchemaParseError",
     "SchemaRegistry",
+    "UsageTrackingError",
     "ValidationError",
     "k1_gate",
     "k1_validate",
     "k2_check_permissions",
     "k2_gate",
+    "k3_check_bounds",
+    "k3_gate",
     "k8_evaluate",
 ]
