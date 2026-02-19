@@ -310,6 +310,7 @@ tasks:
   20.3:
     status: done
     date: "2026-02-19"
+    commit: 73d40d0
     note: "Dissimilar verification channel: VerificationViolation/VerificationReport dataclasses, 8 per-entry checkers (K1-K8), 2 cross-entry checkers (tenant isolation, duplicate IDs), verify_wal_entries() API; DissimilarVerificationError added to exceptions.py; zero false negatives on injected bugs; AC 1-5 all covered (57 tests)"
   20.4: pending
   20.5: pending
