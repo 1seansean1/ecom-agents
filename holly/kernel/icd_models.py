@@ -24,7 +24,15 @@ Models are grouped by protocol / domain cluster:
 
 from __future__ import annotations
 
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    # Python 3.10 compatibility: StrEnum added in 3.11
+    from enum import Enum
+    class StrEnum(str, Enum):  # noqa: UP042
+        """String enum for Python 3.10."""
+        pass
+
 from typing import Any
 
 from pydantic import BaseModel, Field

@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
-
 from holly.guardrails import GuardrailsEngine, create_default_engine
 from holly.redaction.core import canonicalize_redaction_rules
-
 
 # ---------------------------------------------------------------------------
 # End-to-End Integration Tests
@@ -110,7 +107,7 @@ class TestRealWorldScenarios:
 
         # User sends API request
         api_request = "SELECT * FROM users WHERE id=123"
-        request_result = engine.guard_input(api_request)
+        _request_result = engine.guard_input(api_request)
         # Clean SELECT should pass (not an injection)
 
         # API returns user data with PII
@@ -243,8 +240,9 @@ class TestCustomRedactionRules:
 
     def test_engine_accepts_custom_rules(self) -> None:
         """Engine can be initialized with custom redaction rules."""
-        from holly.redaction.core import RedactionRule
         import re
+
+        from holly.redaction.core import RedactionRule
 
         custom_rules = (
             RedactionRule("test", re.compile(r"secret"), "[REDACTED]"),

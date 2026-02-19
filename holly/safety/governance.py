@@ -58,7 +58,7 @@ class AccessViolation(GovernanceError):
 # ---------------------------------------------------------------------------
 
 
-class ResourceType(str, Enum):
+class ResourceType(str, Enum):  # noqa: UP042
     """Resource types that governance rules can apply to."""
 
     GOAL = "goal"
@@ -71,7 +71,7 @@ class ResourceType(str, Enum):
     CODE = "code"
 
 
-class OperationType(str, Enum):
+class OperationType(str, Enum):  # noqa: UP042
     """Operation types that governance rules can apply to."""
 
     READ = "read"
@@ -84,7 +84,7 @@ class OperationType(str, Enum):
     MODIFY = "modify"
 
 
-class ForbiddenReason(str, Enum):
+class ForbiddenReason(str, Enum):  # noqa: UP042
     """Reasons why a path might be forbidden."""
 
     INSUFFICIENT_ROLE = "insufficient_role"

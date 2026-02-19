@@ -24,7 +24,7 @@ from __future__ import annotations
 import itertools
 import re
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import pytest
 from hypothesis import given, settings
@@ -75,7 +75,7 @@ def _make_entry(
         id=str(uuid.uuid4()),
         tenant_id=tenant_id,
         correlation_id=correlation_id,
-        timestamp=datetime.now(UTC),
+        timestamp=datetime.now(timezone.utc),
         boundary_crossing=boundary_crossing,
         caller_user_id=caller_user_id,
         caller_roles=["viewer"],
@@ -97,7 +97,7 @@ class TestWALEntryStructure:
 
     def test_required_fields_populated(self) -> None:
         """WALEntry with all required fields stores them correctly."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         entry = WALEntry(
             id="test-id",
             tenant_id="t1",
@@ -160,7 +160,7 @@ class TestWALEntryStructure:
             id="x",
             tenant_id="t",
             correlation_id="c",
-            timestamp=datetime.now(UTC),
+            timestamp=datetime.now(timezone.utc),
             boundary_crossing="b",
             caller_user_id="u",
             caller_roles=[],

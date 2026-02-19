@@ -15,7 +15,15 @@ valid/invalid fixture set and a composable Hypothesis strategy.
 from __future__ import annotations
 
 import string
-from enum import StrEnum
+
+try:
+    from enum import StrEnum
+except ImportError:
+    # Python 3.10 compatibility: StrEnum added in 3.11
+    from enum import Enum
+    class StrEnum(str, Enum):  # noqa: UP042
+        """String enum for Python 3.10."""
+        pass
 from typing import Any, get_args, get_origin
 
 from hypothesis import strategies as st

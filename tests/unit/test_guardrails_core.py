@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
 from holly.guardrails.core import (
     GuardrailsEngine,
-    GuardrailsError,
     GuardrailsResult,
-    InjectionDetectionResult,
-    InputSanitizationResult,
     OutputRedactionResult,
     create_default_engine,
 )
-
 
 # ---------------------------------------------------------------------------
 # Input Sanitization Tests
@@ -277,7 +272,7 @@ class TestUnicodeAttackDetection:
     def test_cyrillic_latin_mix_detected(self) -> None:
         """Mixed Cyrillic and Latin is detected."""
         engine = create_default_engine()
-        text = "hеllо"  # 'е' is Cyrillic, looks like 'e'
+        text = "hеllo"  # noqa: RUF001
         result = engine.detect_injections(text)
         assert result.is_injection_detected
         assert "unicode_attack" in result.injection_types
@@ -285,7 +280,7 @@ class TestUnicodeAttackDetection:
     def test_greek_latin_mix_detected(self) -> None:
         """Mixed Greek and Latin is detected."""
         engine = create_default_engine()
-        text = "αβγdef"  # Greek + Latin mix
+        text = "αβγdef"  # noqa: RUF001 Greek + Latin mix
         result = engine.detect_injections(text)
         assert result.is_injection_detected
         assert "unicode_attack" in result.injection_types
@@ -300,7 +295,7 @@ class TestUnicodeAttackDetection:
     def test_unicode_attack_check_can_be_disabled(self) -> None:
         """Unicode attack check can be disabled."""
         engine = create_default_engine()
-        text = "hеllо"  # Cyrillic 'е'
+        text = "hеllo"  # noqa: RUF001
         result = engine.detect_injections(text, check_unicode_attacks=False)
         assert "unicode_attack" not in result.injection_types
 

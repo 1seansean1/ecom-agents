@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -42,7 +42,7 @@ from holly.kernel.k6 import WALEntry
 # Helpers
 # ---------------------------------------------------------------------------
 
-_NOW_UTC = datetime.now(UTC)
+_NOW_UTC = datetime.now(timezone.utc)
 
 
 def _make_entry(

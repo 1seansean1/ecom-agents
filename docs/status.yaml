@@ -407,3 +407,8 @@ tasks:
       ForbiddenPath/GovernanceRule dataclasses, check_forbidden_paths/review_code_governance/register_*
       APIs; canonical K2 permission gate rules (viewer/user/editor role restrictions);
       43 tests (30 unit + 13 integration, all pass)'
+  '29.4':
+    status: done
+    date: '2026-02-19'
+    note: Python 3.10 compatibility fixes for StrEnum/UTC imports; ruff linting passes
+      (zero errors); task 29.3 implementation verified
