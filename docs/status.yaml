@@ -181,7 +181,10 @@ tasks:
   10.3: pending
 
   # Step 11 — CI Gate
-  11.1: pending
+  11.1:
+    status: done
+    date: "2026-02-18"
+    note: "Unified CI gate: ordered 4-stage pipeline, fail-fast, blocking/warning/info severity, GateVerdict summary (28 tests)"
   11.2: pending
   11.3: pending
   11.4: pending
