@@ -619,6 +619,29 @@ These rules govern how new artifacts enter the genealogy:
                      any registry, all four guards interleaved deterministic —
                      31 new tests (Slice 3: 9/19)
                      1772 total tests (+31 new)
+2026-02-19  Task 17.3: K5 idempotency gate — RFC 8785 key generation
+                     pyproject.toml — jcs>=0.2 added to production dependencies
+                     holly/kernel/exceptions.py — CanonicalizeError added
+                     (RFC 8785 canonicalization failure); DuplicateRequestError
+                     added (already-seen idempotency key)
+                     holly/kernel/k5.py — NEW: IdempotencyStore runtime-
+                     checkable Protocol (check_and_mark atomic semantics);
+                     InMemoryIdempotencyStore (in-memory, single-process, for
+                     testing); k5_generate_key standalone pure function (jcs
+                     RFC 8785 canonicalize + SHA-256 + hexdigest, 64 chars);
+                     k5_gate factory: Gate-protocol async adapter, checks store
+                     then raises DuplicateRequestError on repeat; None payload
+                     raises ValueError; non-serializable raises CanonicalizeError;
+                     TLA+ liveness: all paths reach IDLE (Slice 3: 10/19)
+                     holly/kernel/__init__.py — exports k5_generate_key, k5_gate,
+                     IdempotencyStore, InMemoryIdempotencyStore,
+                     CanonicalizeError, DuplicateRequestError
+                     tests/unit/test_k5.py — NEW: TestStructure (6), TestDeterminism
+                     (5), TestFieldOrderIndependence (4), TestUnicodeNormalization (4),
+                     TestDistinctPayloads (7), TestNonJsonRejection (5),
+                     TestIdempotencyStore (5), TestK5Gate (6), TestCompose (2),
+                     TestPropertyBased (4) — 48 new tests
+                     1820 total tests (+48 new)
 ```
 
 ---

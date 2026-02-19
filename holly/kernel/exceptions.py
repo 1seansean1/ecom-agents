@@ -449,3 +449,45 @@ class TenantContextError(KernelError):
     def __init__(self, detail: str) -> None:
         super().__init__(f"Tenant context missing: {detail}")
         self.detail = detail
+
+
+# ── K5 Idempotency exceptions (Task 17.3) ────────────────────────────────────
+
+
+class CanonicalizeError(KernelError):
+    """Raised when RFC 8785 canonicalization of a payload fails.
+
+    Triggered by non-JSON-serializable types (e.g., ``datetime``, custom
+    objects) or unexpected jcs library errors.
+
+    Attributes
+    ----------
+    detail : str
+        Human-readable description of the canonicalization failure.
+    """
+
+    __slots__ = ("detail",)
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(f"Canonicalization failed: {detail}")
+        self.detail = detail
+
+
+class DuplicateRequestError(KernelError):
+    """Raised when a request with an already-seen idempotency key is detected.
+
+    K5 applies exactly-once semantics: if a key derived from the payload has
+    already been recorded in the idempotency store, the request is a duplicate
+    and must be rejected.
+
+    Attributes
+    ----------
+    key : str
+        The 64-char SHA-256 hex idempotency key that collided.
+    """
+
+    __slots__ = ("key",)
+
+    def __init__(self, key: str) -> None:
+        super().__init__(f"Duplicate request: idempotency key {key!r} already seen")
+        self.key = key

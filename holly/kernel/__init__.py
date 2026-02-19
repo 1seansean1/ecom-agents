@@ -9,7 +9,11 @@ Public API:
     - k3_gate               — Gate-compatible K3 factory for KernelContext
     - k4_inject_trace       — standalone K4 trace injection
     - k4_gate               — Gate-compatible K4 factory for KernelContext
+    - k5_generate_key       — standalone K5 RFC 8785 idempotency key generation
+    - k5_gate               — Gate-compatible K5 factory for KernelContext
     - k8_evaluate           — standalone K8 eval gate
+    - IdempotencyStore      — K5 deduplication store protocol
+    - InMemoryIdempotencyStore — K5 in-memory store for testing/single-process
     - SchemaRegistry        — ICD JSON Schema resolution singleton
     - ICDSchemaRegistry     — ICD Pydantic model resolution with TTL cache
     - PredicateRegistry     — K8 predicate resolution singleton
@@ -20,6 +24,8 @@ Public API:
     - PayloadTooLargeError  — raised on oversized payload
     - PredicateNotFoundError — raised when predicate_id is unknown
     - TenantContextError    — raised when JWT claims lack tenant_id
+    - CanonicalizeError     — raised when RFC 8785 canonicalization fails
+    - DuplicateRequestError — raised when an idempotency key has been seen before
     - EvalGateFailure       — raised when output violates K8 predicate
     - EvalError             — raised when predicate evaluation fails
     - ICDValidationError    — raised on Pydantic model validation failure
@@ -43,6 +49,8 @@ from holly.kernel.budget_registry import BudgetRegistry
 from holly.kernel.exceptions import (
     BoundsExceeded,
     BudgetNotFoundError,
+    CanonicalizeError,
+    DuplicateRequestError,
     EvalError,
     EvalGateFailure,
     ExpiredTokenError,
@@ -71,6 +79,7 @@ from holly.kernel.k1 import k1_gate, k1_validate
 from holly.kernel.k2 import k2_check_permissions, k2_gate
 from holly.kernel.k3 import k3_check_bounds, k3_gate
 from holly.kernel.k4 import k4_gate, k4_inject_trace
+from holly.kernel.k5 import IdempotencyStore, InMemoryIdempotencyStore, k5_gate, k5_generate_key
 from holly.kernel.k8 import k8_evaluate
 from holly.kernel.permission_registry import PermissionRegistry
 from holly.kernel.predicate_registry import PredicateRegistry
@@ -80,12 +89,16 @@ __all__ = [
     "BoundsExceeded",
     "BudgetNotFoundError",
     "BudgetRegistry",
+    "CanonicalizeError",
+    "DuplicateRequestError",
     "EvalError",
     "EvalGateFailure",
     "ExpiredTokenError",
     "ICDModelAlreadyRegisteredError",
     "ICDSchemaRegistry",
     "ICDValidationError",
+    "IdempotencyStore",
+    "InMemoryIdempotencyStore",
     "InvalidBudgetError",
     "JWTError",
     "KernelError",
@@ -112,5 +125,7 @@ __all__ = [
     "k3_gate",
     "k4_gate",
     "k4_inject_trace",
+    "k5_gate",
+    "k5_generate_key",
     "k8_evaluate",
 ]
