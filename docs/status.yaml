@@ -355,3 +355,8 @@ tasks:
     status: done
     date: "2026-02-19"
     note: "ChromaDB module: collection_name (memory_{tenant_id}), DocumentRecord (frozen/slots), QueryResult (+top_ids/top_documents/top_metadatas helpers), AsyncChromaCollectionProto/AsyncChromaClientProto Protocols, CollectionClient (upsert idempotent by id, query fail-safe ICD-034, delete_by_ids, delete_older_than metadata filter), ChromaBackend facade (from_client factory, collection_for tenant factory); ICD-034/043 tenant isolation enforced by collection name; EMBEDDING_DIM=1536 (42 tests)"
+  # Step 26 — Storage Tests
+  26.2:
+    status: done
+    date: "2026-02-19"
+    note: "SIL-2 storage test suite executed: 272 tests across 5 integration test files (postgres_rls: 41, rls_boundary: 70, partition_manager: 58, redis_client: 61, chroma_client: 42); all pass; test results report generated at docs/architecture/SIL2_TEST_RESULTS_STORAGE.md (0 new tests — execution task)"

@@ -1097,6 +1097,32 @@ New: tests/integration/test_chroma_client.py (42 tests, 8 classes + Hypothesis)
 2535 total tests (+42 new)
 ```
 
+**Task 26.2** (2026-02-19) — Execute SIL-2 Test Suite for Phase C Storage Layer
+
+```
+New: docs/architecture/SIL2_TEST_RESULTS_STORAGE.md — test results report
+
+Execution-only task — no new production code, no new tests.
+272 existing storage integration tests executed; all pass.
+
+Verified test files (272 tests across 5 files):
+  test_postgres_rls.py    — 41 tests (ICD-021/022/039/040/042)
+  test_rls_boundary.py    — 70 tests (ICD-021/022)
+  test_partition_manager.py — 58 tests (ICD-036/038)
+  test_redis_client.py    — 61 tests (ICD-033/035/037/041/049)
+  test_chroma_client.py   — 42 tests (ICD-034/043)
+
+Verification methods (per 26.1 SIL-2 assignment):
+  Integration: async mock-based Protocol fixtures, no live services
+  Property-based (Hypothesis): epoch/name invariants, tenant key isolation,
+    collection name uniqueness, RLS format correctness
+
+Verdict: ALL PASS — 272/272; 0 failures; 0 errors
+
+0 new tests (execution task)
+2535 total tests (unchanged)
+```
+
 ---
 
 *This document is the map of the map. Every artifact in Holly Grace traces through this graph back to the monograph, the six research streams, or the audit checklist. No artifact exists without provenance.*
