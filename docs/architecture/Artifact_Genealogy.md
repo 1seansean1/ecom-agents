@@ -692,6 +692,32 @@ These rules govern how new artifacts enter the genealogy:
                        sequence property (200 examples), mixed failure seq
                      36 tests total, zero invariant violations
                      1913 total tests (+36 new)
+
+2026-02-19  Task 18.3: K7 HITL gate
+                     holly/kernel/k7.py — NEW: ApprovalRequest @dataclass(frozen,
+                       slots); HumanDecision @dataclass(frozen, slots);
+                       ConfidenceEvaluator/ThresholdConfig/ApprovalChannel
+                       @runtime_checkable Protocols; InMemoryApprovalChannel
+                       (inject_approve/inject_reject/inject_decision/
+                       set_fail_emit/set_timeout_all test helpers);
+                       FixedConfidenceEvaluator, FailConfidenceEvaluator,
+                       FixedThresholdConfig, MappedThresholdConfig;
+                       k7_check_confidence() pure guard (INV-4);
+                       k7_gate() factory — EVALUATING→CONFIDENT→PASS |
+                       EVALUATING→UNCERTAIN→BLOCKED→{HUMAN_APPROVED→PASS |
+                       HUMAN_REJECTED→FAULTED | APPROVAL_TIMEOUT→FAULTED};
+                       fail-safe deny on all exception paths
+                     holly/kernel/exceptions.py — MODIFIED: +ConfidenceError,
+                       +ApprovalTimeout, +OperationRejected, +ApprovalChannelError
+                     tests/unit/test_k7.py — NEW: TestK7CheckConfidence (11),
+                       TestK7HighConfidencePath (5), TestK7LowConfidenceBlocks (3),
+                       TestK7HumanApproval (3), TestK7HumanRejection (3),
+                       TestK7ApprovalTimeout (3), TestK7ReviewerRecorded (3),
+                       TestK7FailSafeDeny (4), TestK7ThresholdConfiguration (4),
+                       TestK7ChannelFailSafe (3), TestK7GateInterfaceAndComposition (3),
+                       TestK7FixedConfidenceEvaluator (4), TestK7MappedThresholdConfig (3)
+                     52 tests total, all 10 AC covered
+                     1965 total tests (+52 new)
 ```
 
 ---

@@ -1,7 +1,8 @@
 """Kernel-layer exception hierarchy.
 
-Tasks 3.7, 3a.10, 16.4, 16.5 & 16.6 — ICD contract enforcement, K8 eval gate,
-K2 permission gate, K3 bounds checking, K4 trace injection exceptions.
+Tasks 3.7, 3a.10, 16.4, 16.5, 16.6, 17.3, 17.4, 18.3 — ICD contract
+enforcement, K8 eval gate, K2 permission gate, K3 bounds checking, K4 trace
+injection, K5 idempotency, K6 WAL, K7 HITL gate exceptions.
 
 All kernel exceptions inherit from ``KernelError`` to enable
 blanket ``except KernelError`` handling at boundary gateways.
@@ -551,4 +552,98 @@ class RedactionError(KernelError):
 
     def __init__(self, detail: str) -> None:
         super().__init__(f"Redaction error: {detail}")
+        self.detail = detail
+
+
+# ── K7 HITL Gate exceptions (Task 18.3) ──────────────────────────────────────
+
+
+class ConfidenceError(KernelError):
+    """Raised when the confidence evaluator fails unexpectedly.
+
+    K7 applies fail-safe semantics: if confidence cannot be computed,
+    access is denied (operation blocked).
+
+    Attributes
+    ----------
+    detail : str
+        Human-readable description of the evaluator failure.
+    """
+
+    __slots__ = ("detail",)
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(f"Confidence evaluator error: {detail}")
+        self.detail = detail
+
+
+class ApprovalTimeout(KernelError):
+    """Raised when no human decision arrives within the configured TTL.
+
+    K7 fail-safe: timeout → deny.
+
+    Attributes
+    ----------
+    request_id : str
+        UUID of the approval request that timed out.
+    timeout_seconds : float
+        The timeout value (seconds) that elapsed with no decision.
+    """
+
+    __slots__ = ("request_id", "timeout_seconds")
+
+    def __init__(self, request_id: str, *, timeout_seconds: float) -> None:
+        super().__init__(
+            f"Approval request {request_id!r} timed out after {timeout_seconds}s"
+        )
+        self.request_id = request_id
+        self.timeout_seconds = timeout_seconds
+
+
+class OperationRejected(KernelError):
+    """Raised when a human reviewer explicitly rejects an operation.
+
+    Attributes
+    ----------
+    reason : str
+        Human-supplied rejection reason (may be empty string).
+    request_id : str
+        UUID of the approval request that was rejected.
+    reviewer_id : str
+        Identity of the reviewer who rejected the operation.
+    """
+
+    __slots__ = ("reason", "request_id", "reviewer_id")
+
+    def __init__(
+        self,
+        request_id: str,
+        *,
+        reviewer_id: str,
+        reason: str = "",
+    ) -> None:
+        msg = f"Operation {request_id!r} rejected by reviewer {reviewer_id!r}"
+        if reason:
+            msg += f": {reason}"
+        super().__init__(msg)
+        self.request_id = request_id
+        self.reviewer_id = reviewer_id
+        self.reason = reason
+
+
+class ApprovalChannelError(KernelError):
+    """Raised when the approval channel (WebSocket/email/dashboard) is unreachable.
+
+    K7 applies fail-safe semantics: channel unavailable → deny.
+
+    Attributes
+    ----------
+    detail : str
+        Human-readable description of the channel failure.
+    """
+
+    __slots__ = ("detail",)
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(f"Approval channel unavailable: {detail}")
         self.detail = detail
