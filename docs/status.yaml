@@ -217,3 +217,15 @@ tasks:
     status: done
     date: "2026-02-19"
     note: "Formal state-machine validator: KernelState/KernelEvent enums, VALID_TRANSITIONS frozenset, pure guards, validate_trace, KernelStateMachineValidator; mirrors TLA+ spec §14.1; Hypothesis property tests for determinism/purity/state-space (96 tests)"
+
+  # Step 15 — KernelContext
+  15.1: pending
+  15.2: pending
+  15.3: pending
+  15.4:
+    status: done
+    date: "2026-02-19"
+    note: "KernelContext async context manager: 5-state lifecycle (IDLE/ENTERING/ACTIVE/EXITING/FAULTED), pluggable gates, corr_id, exit cleanup stub; all state-machine paths end in IDLE; liveness property satisfied (41 tests)"
+  15.5: pending
+  15.6: pending
+  15.7: pending

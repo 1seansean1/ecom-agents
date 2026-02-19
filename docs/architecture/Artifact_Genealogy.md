@@ -514,6 +514,16 @@ These rules govern how new artifacts enter the genealogy:
                      (determinism, purity, state-space, trace/transition consistency, invariant
                      preservation) — 96 new tests
                      1550 total tests (+96 new)
+2026-02-19  Task 15.4: KernelContext async context manager
+                     holly/kernel/context.py — KernelContext: async context manager,
+                     5-state lifecycle (IDLE/ENTERING/ACTIVE/EXITING/FAULTED) driven by
+                     KernelStateMachineValidator; pluggable gate sequence (K1-K8 wired
+                     in Tasks 16-18); corr_id auto-gen (UUID4); exit cleanup stub;
+                     all paths (happy/gate-fail/cancel/exit-fail) return to IDLE
+                     satisfying TLA+ liveness EventuallyIdle (Slice 3: 4/19)
+                     tests/unit/test_kernel_context.py — lifecycle, gates, re-entrancy,
+                     exception identity, Hypothesis property-based — 41 new tests
+                     1591 total tests (+41 new)
 ```
 
 ---
