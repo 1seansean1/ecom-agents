@@ -842,7 +842,7 @@ def _check_c011_gantt_freshness(repo_root: Path) -> AuditResult:
     """
     try:
         result = subprocess.run(
-            ["python", "-m", "holly.arch", "gantt", "--stdout"],
+            [sys.executable, "-m", "holly.arch", "gantt", "--stdout"],
             cwd=repo_root,
             capture_output=True,
             timeout=30,
@@ -870,9 +870,13 @@ def _check_c011_gantt_freshness(repo_root: Path) -> AuditResult:
                 "GANTT.mermaid not found",
             )
 
-        # Compare (normalize whitespace)
-        gen_normalized = "\n".join(line.rstrip() for line in generated_gantt.split("\n"))
-        file_normalized = "\n".join(line.rstrip() for line in gantt_text.split("\n"))
+        # Compare (normalize whitespace and trailing newlines)
+        gen_normalized = "\n".join(
+            line.rstrip() for line in generated_gantt.rstrip("\n").split("\n")
+        )
+        file_normalized = "\n".join(
+            line.rstrip() for line in gantt_text.rstrip("\n").split("\n")
+        )
 
         if gen_normalized == file_normalized:
             return AuditResult(

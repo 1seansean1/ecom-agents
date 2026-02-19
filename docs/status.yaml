@@ -191,3 +191,16 @@ tasks:
     date: "2026-02-18"
     note: "Phase A gate checklist: 10 items, all PASS, Phase B unlocked (25 tests)"
   11.4: pending
+
+  # ── Slice 3: Phase B — Formal Methods & Full Kernel ─────────────
+  # Step 13 — FMEA
+  13.1:
+    status: done
+    date: "2026-02-19"
+    note: "FMEA kernel invariant desynchronization: KernelContext + K1–K8, 3 failure modes each, RPN table, mitigations (0 tests — document artifact)"
+  13.2: pending
+  13.3: pending
+  13.4: pending
+  13.5: pending
+  13.6: pending
+  13.7: pending

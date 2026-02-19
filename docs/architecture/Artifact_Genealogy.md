@@ -481,6 +481,23 @@ These rules govern how new artifacts enter the genealogy:
                      holly/arch/rtm.py — decorator discovery, test discovery, RTM correlation, CSV export
                      tests/integration/test_rtm.py — 30 new tests (synthetic + live codebase)
                      1446 total tests across 26 test modules
+2026-02-18  Tasks 11.1, 11.3: CI gate + Phase A gate report
+                     holly/arch/ci_gate.py — 4-stage pipeline, fail-fast, blocking/warning/info
+                     holly/arch/gate_report.py — 10-item Phase A gate checklist, all PASS
+                     Code review fixes: F-031–F-035 (gate_pass enforcement, drift isolation, C010
+                     timeout 180s, gantt --stdout dep_graph, jsonschema>=4.0 in pyproject.toml)
+                     1454 total tests across 27 test modules (Slice 2: 10/10 complete)
+2026-02-18  Code review F-036–F-039
+                     holly/kernel/exceptions.py — KernelInvariantError (F-036)
+                     holly/kernel/k1.py — assert→KernelInvariantError post-validation guard (F-036)
+                     holly/kernel/schema_registry.py — _STRUCTURAL_KEYS frozenset, anyOf/$ref/etc accepted (F-037)
+                     holly/arch/cli.py — cmd_gate :: line-count stable test-count (F-038)
+                     holly/arch/audit.py — C011 uses sys.executable not hardcoded "python" (F-039)
+                     1454 total tests (no new tests; all existing 1454 pass)
+2026-02-19  Task 13.1: FMEA kernel invariant desynchronization
+                     docs/FMEA_Kernel_Invariants.md — KernelContext + K1–K8, 3 failure modes
+                     each, S/O/D/RPN/mitigation, 5 open high-RPN items (Slice 3 begins: 1/19)
+                     1454 total tests (document-only task; no new tests)
 ```
 
 ---
