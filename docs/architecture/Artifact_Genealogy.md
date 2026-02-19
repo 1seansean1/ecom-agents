@@ -642,6 +642,35 @@ These rules govern how new artifacts enter the genealogy:
                      TestIdempotencyStore (5), TestK5Gate (6), TestCompose (2),
                      TestPropertyBased (4) — 48 new tests
                      1820 total tests (+48 new)
+2026-02-19  Task 17.4: K6 WAL gate — append-only audit log with redaction
+                     holly/kernel/exceptions.py — WALWriteError added (backend
+                     write failure, context→FAULTED); WALFormatError added
+                     (malformed WALEntry, missing required fields); RedactionError
+                     added (redaction engine unexpected failure)
+                     holly/kernel/k6.py — NEW: WALEntry @dataclass(slots=True)
+                     with 24 fields (required: id, tenant_id, correlation_id,
+                     timestamp, boundary_crossing, caller_user_id, caller_roles,
+                     exit_code, k1_valid, k2_authorized, k3_within_budget;
+                     optional K1-K8 gate results; redaction metadata);
+                     WALBackend @runtime_checkable Protocol (append(entry) method);
+                     InMemoryWALBackend (ordered list, fail-mode for tests);
+                     redact() function (5 rules: email→[email hidden],
+                     api_key→[secret redacted], credit_card→****-****-****-XXXX,
+                     ssn→[pii redacted], phone→[pii redacted]); _detect_pii()
+                     (pre-redaction PII detection for contains_pii_before_redaction
+                     flag); k6_write_entry() (validate→detect_pii→redact→append);
+                     k6_gate() factory (stamps corr_id + tenant_id from context
+                     at gate-fire time; Slice 3: 11/19)
+                     holly/kernel/__init__.py — exports WALEntry, WALBackend,
+                     InMemoryWALBackend, k6_write_entry, k6_gate, redact,
+                     WALWriteError, WALFormatError, RedactionError
+                     tests/unit/test_k6.py — NEW: TestWALEntryStructure (6),
+                     TestWALBackend (5), TestRedactionEmail (4),
+                     TestRedactionAPIKey (5), TestRedactionCreditCard (4),
+                     TestRedactionPII (4), TestRedactionMultiple (3),
+                     TestDetectPII (5), TestK6WriteEntry (8), TestK6Gate (6),
+                     TestTimestampOrdering (3), TestPropertyBased (4) — 57 new
+                     1877 total tests (+57 new)
 ```
 
 ---

@@ -491,3 +491,64 @@ class DuplicateRequestError(KernelError):
     def __init__(self, key: str) -> None:
         super().__init__(f"Duplicate request: idempotency key {key!r} already seen")
         self.key = key
+
+
+# ── K6 WAL exceptions (Task 17.4) ────────────────────────────────────────────
+
+
+class WALWriteError(KernelError):
+    """Raised when the WAL backend fails to persist an entry.
+
+    Typically wraps a database or I/O error.  K6 applies fail-safe
+    semantics: a write failure blocks the boundary crossing (EXITING →
+    FAULTED).
+
+    Attributes
+    ----------
+    detail : str
+        Human-readable description of the write failure.
+    """
+
+    __slots__ = ("detail",)
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(f"WAL write error: {detail}")
+        self.detail = detail
+
+
+class WALFormatError(KernelError):
+    """Raised when a WALEntry is malformed or missing required fields.
+
+    Examples: empty ``tenant_id``, missing ``correlation_id``, entry that
+    cannot be serialised for the backend.
+
+    Attributes
+    ----------
+    detail : str
+        Human-readable description of the format violation.
+    """
+
+    __slots__ = ("detail",)
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(f"WAL format error: {detail}")
+        self.detail = detail
+
+
+class RedactionError(KernelError):
+    """Raised when the redaction engine fails unexpectedly.
+
+    Triggered when regex application raises an exception or when PII
+    detection throws.  Context → FAULTED on ``RedactionError``.
+
+    Attributes
+    ----------
+    detail : str
+        Human-readable description of the redaction failure.
+    """
+
+    __slots__ = ("detail",)
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(f"Redaction error: {detail}")
+        self.detail = detail

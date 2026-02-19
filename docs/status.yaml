@@ -263,3 +263,7 @@ tasks:
     status: done
     date: "2026-02-19"
     note: "K5 idempotency gate: k5_generate_key (RFC 8785 + SHA-256), InMemoryIdempotencyStore, k5_gate factory; CanonicalizeError + DuplicateRequestError exceptions; jcs dependency added; 48 tests"
+  17.4:
+    status: done
+    date: "2026-02-19"
+    note: "K6 WAL gate: WALEntry dataclass, WALBackend protocol, InMemoryWALBackend, redact() (email/api_key/credit_card/ssn/phone), k6_write_entry(), k6_gate() factory; WALWriteError + WALFormatError + RedactionError exceptions; 57 tests"
