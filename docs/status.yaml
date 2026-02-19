@@ -280,6 +280,7 @@ tasks:
   18.2: pending
   18.3:
     status: done
+    commit: aab1673
     date: "2026-02-19"
     note: "K7 HITL gate: ApprovalRequest/HumanDecision dataclasses, ConfidenceEvaluator/ThresholdConfig/ApprovalChannel protocols, InMemoryApprovalChannel, k7_check_confidence pure guard, k7_gate factory; ConfidenceError/ApprovalTimeout/OperationRejected/ApprovalChannelError exceptions; fail-safe deny on all error paths (52 tests)"
   18.4: pending
