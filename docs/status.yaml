@@ -245,7 +245,10 @@ tasks:
     status: done
     date: "2026-02-19"
     note: "K3 resource bounds gate: k3_check_bounds + k3_gate factory; BudgetRegistry singleton; UsageTracker Protocol + InMemoryUsageTracker + FailUsageTracker; BoundsExceeded/BudgetNotFoundError/InvalidBudgetError/UsageTrackingError exceptions; per-tenant isolation (40 tests)"
-  16.6: pending
+  16.6:
+    status: done
+    date: "2026-02-19"
+    note: "K4 trace injection gate: k4_inject_trace + k4_gate factory; TenantContextError; KernelContext._set_trace + tenant_id/trace_started_at slots; UUID validation; 39 tests"
   16.7: pending
   16.8: pending
   16.9: pending

@@ -576,6 +576,28 @@ These rules govern how new artifacts enter the genealogy:
                      property-based (within-budget IDLE / over-budget BoundsExceeded) —
                      40 new tests
                      1702 total tests (+40 new)
+2026-02-19  Task 16.6: K4 trace injection gate — KernelContext integration
+                     holly/kernel/exceptions.py — TenantContextError added to
+                     exception hierarchy; raised when JWT claims lack tenant_id
+                     holly/kernel/context.py — UPDATED: _tenant_id + _trace_started_at
+                     slots added; tenant_id + trace_started_at read-only properties;
+                     _set_trace(tenant_id, corr_id, started_at) internal injection
+                     method; __repr__ updated to include tenant_id
+                     holly/kernel/k4.py — NEW: k4_inject_trace standalone function
+                     (validates claims, resolves/validates UUID correlation ID,
+                     returns (corr_id, tenant_id) without side effects); k4_gate
+                     factory: Gate-protocol async adapter; injects tenant_id +
+                     corr_id + trace_started_at into context; UUID format validation
+                     via uuid.UUID(); fail-safe: TenantContextError or ValueError →
+                     ENTERING→FAULTED→IDLE (Slice 3: 8/19)
+                     holly/kernel/__init__.py — exports k4_inject_trace, k4_gate,
+                     TenantContextError
+                     tests/unit/test_k4.py — NEW: structure (8), happy-path (10),
+                     tenant-missing (7), invalid-corr-id (5), immutability (3),
+                     ordering K1+K2+K3+K4 compose (2), Hypothesis property-based
+                     (valid tenant IDLE / valid UUID IDLE / non-UUID raises) (3) —
+                     39 new tests
+                     1741 total tests (+39 new)
 ```
 
 ---

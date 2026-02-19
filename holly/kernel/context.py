@@ -1,6 +1,6 @@
 """KernelContext — async context manager for boundary crossings.
 
-Task 15.4 — Implement per TLA+ state machine spec.
+Tasks 15.4 & 16.6 — Implement per TLA+ state machine spec; K4 trace slots.
 
 Traces to:
     TLA+ spec  docs/tla/KernelInvariants.tla  (Task 14.1)
@@ -103,7 +103,7 @@ class KernelContext:
       re-raising to satisfy the liveness property.
     """
 
-    __slots__ = ("_corr_id", "_gates", "_validator")
+    __slots__ = ("_corr_id", "_gates", "_tenant_id", "_trace_started_at", "_validator")
 
     def __init__(
         self,
@@ -113,6 +113,8 @@ class KernelContext:
     ) -> None:
         self._gates: tuple[Gate, ...] = tuple(gates)
         self._corr_id: str = corr_id if corr_id is not None else str(uuid.uuid4())
+        self._tenant_id: str | None = None
+        self._trace_started_at: float | None = None
         self._validator: KernelStateMachineValidator = KernelStateMachineValidator()
 
     # ------------------------------------------------------------------
@@ -128,6 +130,43 @@ class KernelContext:
     def corr_id(self) -> str:
         """Correlation ID for this boundary crossing (read-only)."""
         return self._corr_id
+
+    @property
+    def tenant_id(self) -> str | None:
+        """Tenant ID injected by K4 gate (``None`` before injection).
+
+        Read-only after K4 sets it; no subsequent operation may change it
+        (Behavior Spec §1.5 K4 invariant 3).
+        """
+        return self._tenant_id
+
+    @property
+    def trace_started_at(self) -> float | None:
+        """Monotonic timestamp (``time.monotonic()``) when K4 injected trace.
+
+        ``None`` before K4 gate runs.
+        """
+        return self._trace_started_at
+
+    # ------------------------------------------------------------------
+    # Internal trace-injection interface (K4 only)
+    # ------------------------------------------------------------------
+
+    def _set_trace(self, tenant_id: str, corr_id: str, started_at: float) -> None:
+        """Inject K4 trace metadata.  Called exclusively by ``k4_inject_trace``.
+
+        Parameters
+        ----------
+        tenant_id:
+            Tenant identifier extracted from JWT claims.
+        corr_id:
+            Resolved correlation UUID string (validated by K4).
+        started_at:
+            ``time.monotonic()`` timestamp captured at injection time.
+        """
+        self._tenant_id = tenant_id
+        self._corr_id = corr_id
+        self._trace_started_at = started_at
 
     # ------------------------------------------------------------------
     # Async context manager protocol
@@ -250,5 +289,6 @@ class KernelContext:
             f"KernelContext("
             f"state={self._validator.state.value!r}, "
             f"corr_id={self._corr_id!r}, "
+            f"tenant_id={self._tenant_id!r}, "
             f"gates={len(self._gates)})"
         )

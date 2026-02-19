@@ -7,6 +7,8 @@ Public API:
     - k2_gate               — Gate-compatible K2 factory for KernelContext
     - k3_check_bounds       — standalone K3 resource bounds check
     - k3_gate               — Gate-compatible K3 factory for KernelContext
+    - k4_inject_trace       — standalone K4 trace injection
+    - k4_gate               — Gate-compatible K4 factory for KernelContext
     - k8_evaluate           — standalone K8 eval gate
     - SchemaRegistry        — ICD JSON Schema resolution singleton
     - ICDSchemaRegistry     — ICD Pydantic model resolution with TTL cache
@@ -17,6 +19,7 @@ Public API:
     - SchemaNotFoundError   — raised when schema_id is unknown
     - PayloadTooLargeError  — raised on oversized payload
     - PredicateNotFoundError — raised when predicate_id is unknown
+    - TenantContextError    — raised when JWT claims lack tenant_id
     - EvalGateFailure       — raised when output violates K8 predicate
     - EvalError             — raised when predicate evaluation fails
     - ICDValidationError    — raised on Pydantic model validation failure
@@ -55,6 +58,7 @@ from holly.kernel.exceptions import (
     RoleNotFoundError,
     SchemaNotFoundError,
     SchemaParseError,
+    TenantContextError,
     UsageTrackingError,
     ValidationError,
 )
@@ -66,6 +70,7 @@ from holly.kernel.icd_schema_registry import (
 from holly.kernel.k1 import k1_gate, k1_validate
 from holly.kernel.k2 import k2_check_permissions, k2_gate
 from holly.kernel.k3 import k3_check_bounds, k3_gate
+from holly.kernel.k4 import k4_gate, k4_inject_trace
 from holly.kernel.k8 import k8_evaluate
 from holly.kernel.permission_registry import PermissionRegistry
 from holly.kernel.predicate_registry import PredicateRegistry
@@ -96,6 +101,7 @@ __all__ = [
     "SchemaNotFoundError",
     "SchemaParseError",
     "SchemaRegistry",
+    "TenantContextError",
     "UsageTrackingError",
     "ValidationError",
     "k1_gate",
@@ -104,5 +110,7 @@ __all__ = [
     "k2_gate",
     "k3_check_bounds",
     "k3_gate",
+    "k4_gate",
+    "k4_inject_trace",
     "k8_evaluate",
 ]

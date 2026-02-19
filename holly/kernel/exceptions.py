@@ -1,7 +1,7 @@
 """Kernel-layer exception hierarchy.
 
-Tasks 3.7, 3a.10, 16.4 & 16.5 — ICD contract enforcement, K8 eval gate, K2
-permission gate, K3 bounds checking exceptions.
+Tasks 3.7, 3a.10, 16.4, 16.5 & 16.6 — ICD contract enforcement, K8 eval gate,
+K2 permission gate, K3 bounds checking, K4 trace injection exceptions.
 
 All kernel exceptions inherit from ``KernelError`` to enable
 blanket ``except KernelError`` handling at boundary gateways.
@@ -426,4 +426,26 @@ class UsageTrackingError(KernelError):
 
     def __init__(self, detail: str) -> None:
         super().__init__(f"Usage tracker unavailable: {detail}")
+        self.detail = detail
+
+
+# ── K4 Trace Injection exceptions (Task 16.6) ────────────────────────────────
+
+
+class TenantContextError(KernelError):
+    """Raised when JWT claims lack the required ``tenant_id`` field.
+
+    K4 applies fail-safe semantics: every boundary crossing must carry
+    tenant context; access is denied if it cannot be established.
+
+    Attributes
+    ----------
+    detail : str
+        Description of the missing context.
+    """
+
+    __slots__ = ("detail",)
+
+    def __init__(self, detail: str) -> None:
+        super().__init__(f"Tenant context missing: {detail}")
         self.detail = detail
