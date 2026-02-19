@@ -157,7 +157,10 @@ tasks:
   # Step 8 — Test
   8.1: pending
   8.2: pending
-  8.3: pending
+  8.3:
+    status: done
+    date: "2026-02-18"
+    note: "Contract fixture generator: valid/invalid/Hypothesis strategies for all 49 ICDs (597 tests)"
   8.4: pending
 
   # Step 9 — Fitness Functions
