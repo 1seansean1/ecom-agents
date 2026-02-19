@@ -165,7 +165,10 @@ tasks:
 
   # Step 9 — Fitness Functions
   9.1: pending
-  9.2: pending
+  9.2:
+    status: done
+    date: "2026-02-18"
+    note: "Architecture fitness functions: layer violations, coupling metrics, dependency depth, import graph, run_all (67 tests)"
   9.3: pending
   9.4: pending
 
