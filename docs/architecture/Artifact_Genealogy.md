@@ -718,6 +718,26 @@ These rules govern how new artifacts enter the genealogy:
                        TestK7FixedConfidenceEvaluator (4), TestK7MappedThresholdConfig (3)
                      52 tests total, all 10 AC covered
                      1965 total tests (+52 new)
+
+2026-02-19  Task 18.4: K8 full gate factory
+                     holly/kernel/k8.py — MODIFIED: +CELESTIAL_PREDICATE_IDS
+                       tuple[str, ...] (5 entries L0-L4);
+                       +k8_gate(*, output, predicate_ids) -> Gate factory;
+                       CELESTIAL_PREDICATE_IDS = ("celestial:L0:authorization_boundary",
+                       "celestial:L1:system_integrity", "celestial:L2:privacy_boundary",
+                       "celestial:L3:failure_recovery", "celestial:L4:agent_autonomy_limit");
+                       k8_gate() validates non-empty predicate_ids at factory time;
+                       _k8_gate() iterates predicate_ids in strict order, calls k8_evaluate()
+                       per predicate — fail-fast on first EvalGateFailure; Gate protocol
+                       async adapter; EvalGateFailure/PredicateNotFoundError/EvalError
+                       all propagate without suppression (fail-safe paths)
+                     tests/unit/test_k8_gate.py — NEW: TestK8GateFactory (5),
+                       TestK8AllPredicatesPass (5), TestK8FailFast (7),
+                       TestK8OrderEnforcement (2), TestK8FailSafe (4),
+                       TestK8ContextIntegration (4), TestK8CelestialPredicateIds (9),
+                       TestK8PropertyBased (2)
+                     38 tests total, all 9 AC covered
+                     2003 total tests (+38 new)
 ```
 
 ---
