@@ -97,7 +97,7 @@ graph TD
         GANTT["GANTT.mermaid\nGANTT_critical.mermaid"]
         PROG["PROGRESS.md"]
         STATYS["status.yaml"]
-        TESTS["Test Suite\n1363 tests across\n23 test modules"]
+        TESTS["Test Suite\n1393 tests across\n24 test modules"]
         CODE["holly/ source tree"]
     end
 
@@ -337,7 +337,7 @@ Remaining Slice 1 critical path: `3.7 -> 3a.8 -> 3a.10 -> 3a.12` (ICD enforcemen
 | 29 | Architecture Registry | `holly/arch/registry.py` | ε | 9 KB | Schema + Extract (Tasks 2.6, 2.7, 2.8) |
 | 30 | Core Decorators | `holly/arch/decorators.py` | ε | 12 KB | Registry API (Task 3.6) |
 | 31 | AST Scanner | `holly/arch/scanner.py` | ε | 12 KB | Decorators + Registry + Schema (Task 7.1) |
-| 32 | Test Suite (1363 tests) | `tests/unit/test_*.py`, `tests/integration/test_*.py` (23 modules) | ε | 92 KB | All ε modules + TGS |
+| 32 | Test Suite (1393 tests) | `tests/unit/test_*.py`, `tests/integration/test_*.py` (24 modules) | ε | 92 KB | All ε modules + TGS |
 | — | END_TO_END_AUDIT_CHECKLIST | `(external, user desktop)` | α | 12 KB | Audit process research (Allen) |
 | — | **Total in-repo documentation + code** | | | **~750 KB** | |
 
@@ -477,6 +477,10 @@ These rules govern how new artifacts enter the genealogy:
                      holly/arch/fitness.py — layer violations, coupling metrics, dependency depth
                      tests/integration/test_fitness.py — 67 new tests (synthetic + live codebase)
                      1363 total tests across 23 test modules
+2026-02-18  Task 10.2: RTM generator
+                     holly/arch/rtm.py — decorator discovery, test discovery, RTM correlation, CSV export
+                     tests/integration/test_rtm.py — 30 new tests (synthetic + live codebase)
+                     1393 total tests across 24 test modules
 ```
 
 ---

@@ -174,7 +174,10 @@ tasks:
 
   # Step 10 — RTM Generation
   10.1: pending
-  10.2: pending
+  10.2:
+    status: done
+    date: "2026-02-18"
+    note: "RTM generator: decorator discovery, test discovery, traceability matrix, CSV export, report generation (30 tests)"
   10.3: pending
 
   # Step 11 — CI Gate
