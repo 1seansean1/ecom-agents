@@ -350,3 +350,8 @@ tasks:
     status: done
     date: "2026-02-19"
     note: "Redis module: CacheClient (ICD-033/041, tenant-namespaced keys, fail-open), QueueClient (ICD-035, LPUSH/RPOP, ZADD/ZRANGEBYSCORE cron, depth limit 10k), PubSubClient (ICD-035, publish/subscribe/get_message), StreamClient (ICD-037, XADD maxlen 1M, XRANGE), RevocationCache (ICD-049, fail-open), CircuitBreaker (threshold 3, recovery 30s, CLOSED/OPEN/HALF_OPEN), RedisBackend facade (from_client factory), tenant_key/queue_key/stream_key/revocation_key helpers (61 tests)"
+  # Step 25 — ChromaDB
+  25.3:
+    status: done
+    date: "2026-02-19"
+    note: "ChromaDB module: collection_name (memory_{tenant_id}), DocumentRecord (frozen/slots), QueryResult (+top_ids/top_documents/top_metadatas helpers), AsyncChromaCollectionProto/AsyncChromaClientProto Protocols, CollectionClient (upsert idempotent by id, query fail-safe ICD-034, delete_by_ids, delete_older_than metadata filter), ChromaBackend facade (from_client factory, collection_for tenant factory); ICD-034/043 tenant isolation enforced by collection name; EMBEDDING_DIM=1536 (42 tests)"

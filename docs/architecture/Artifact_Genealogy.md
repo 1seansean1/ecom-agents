@@ -1053,6 +1053,50 @@ New: tests/integration/test_redis_client.py (61 tests, 14 classes + Hypothesis)
 2493 total tests (+61 new)
 ```
 
+**Task 25.3** (2026-02-19) — ChromaDB Client, Tenant-Isolated Collections, Embedding Pipeline (ICD-034/043)
+
+```
+New: holly/storage/chroma/__init__.py — package re-export shim
+New: holly/storage/chroma/client.py — ChromaDB module
+
+Constants: COLLECTION_PREFIX="memory", EMBEDDING_DIM=1536 (text-embedding-3-small,
+  ICD-034), MAX_PENDING_REQUESTS=1000 (backpressure), QUERY_N_RESULTS_DEFAULT=10,
+  UPSERT_TIMEOUT_S=0.5, QUERY_TIMEOUT_S=1.0
+
+collection_name(tenant_id) → "memory_{tenant_id}" (ICD-034/043 tenant isolation)
+
+DocumentRecord (frozen, slots): id, embedding, metadata, document
+  Upsert idempotent by id (ICD-034: DuplicateDocument → replace)
+  Caller pre-redacts document text per ICD-034 redaction clause
+
+QueryResult (slots): ids/distances/metadatas/documents (2D lists — outer=query batch)
+  Helpers: top_ids, top_documents, top_metadatas (extract from first query batch)
+  Empty QueryResult on QueryError (fail-safe, ICD-034)
+
+AsyncChromaCollectionProto — Protocol: upsert/query/delete/get (async)
+AsyncChromaClientProto — Protocol: get_or_create_collection (async)
+
+CollectionClient (dataclass): _client + _tenant_id (single-tenant bound)
+  upsert(docs) — batch upsert, no-op for empty, idempotent by id
+  query(embedding, n_results, where?) — fail-safe: exception → empty QueryResult
+  delete_by_ids(ids) — no-op for empty list
+  delete_older_than(cutoff_timestamp) — get+delete by metadata filter; returns count
+  Tenant isolation guaranteed: only reaches memory_{tenant_id} collection
+
+ChromaBackend facade: from_client(client) factory
+  collection_for(tenant_id) → per-tenant CollectionClient
+
+New: tests/integration/test_chroma_client.py (42 tests, 8 classes + Hypothesis)
+  AC1-AC16 covered; collection naming, upsert idempotency, query fail-safe,
+  where filter forwarding, delete_older_than TTL flow, backend factory wiring,
+  tenant isolation (different clients → different collection names)
+  Hypothesis: collection_name always contains tenant_id, prefix invariant,
+    different UUIDs produce different names
+
+42 tests total, all 16 AC covered
+2535 total tests (+42 new)
+```
+
 ---
 
 *This document is the map of the map. Every artifact in Holly Grace traces through this graph back to the monograph, the six research streams, or the audit checklist. No artifact exists without provenance.*
