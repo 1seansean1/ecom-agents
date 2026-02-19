@@ -337,7 +337,7 @@ Remaining Slice 1 critical path: `3.7 -> 3a.8 -> 3a.10 -> 3a.12` (ICD enforcemen
 | 29 | Architecture Registry | `holly/arch/registry.py` | ε | 9 KB | Schema + Extract (Tasks 2.6, 2.7, 2.8) |
 | 30 | Core Decorators | `holly/arch/decorators.py` | ε | 12 KB | Registry API (Task 3.6) |
 | 31 | AST Scanner | `holly/arch/scanner.py` | ε | 12 KB | Decorators + Registry + Schema (Task 7.1) |
-| 32 | Test Suite (1446 tests) | `tests/unit/test_*.py`, `tests/integration/test_*.py` (26 modules) | ε | 92 KB | All ε modules + TGS |
+| 32 | Test Suite (2033 tests) | `tests/unit/test_*.py`, `tests/integration/test_*.py` (27 modules) | ε | 92 KB | All ε modules + TGS |
 | — | END_TO_END_AUDIT_CHECKLIST | `(external, user desktop)` | α | 12 KB | Audit process research (Allen) |
 | — | **Total in-repo documentation + code** | | | **~750 KB** | |
 
@@ -738,6 +738,28 @@ These rules govern how new artifacts enter the genealogy:
                        TestK8PropertyBased (2)
                      38 tests total, all 9 AC covered
                      2003 total tests (+38 new)
+
+2026-02-19  Task 18.9: K7-K8 Failure Isolation
+                     tests/integration/test_k7_k8_isolation.py — NEW:
+                       TestK7FailsIndependently (6): K7 failures raise K7-specific
+                       exceptions only (ConfidenceError/ApprovalTimeout/
+                       OperationRejected/ApprovalChannelError); _AlwaysRejectChannel
+                       subclass enables OperationRejected injection without UUID foreknowledge;
+                       TestK8FailsIndependently (5): K8 failures raise K8-specific
+                       exceptions only (EvalGateFailure/PredicateNotFoundError/EvalError);
+                       UUID-suffixed predicate IDs prevent PredicateAlreadyRegisteredError;
+                       TestK7FailK8NotCalled (4): _SpyGate.call_count==0 confirms K8 gate
+                       never invoked when K7 fails (fail-fast gate chain, no cascade);
+                       TestK7PassK8Fail (4): K7-pass+K8-fail raises only K8 exceptions,
+                       never K7 exceptions; TestBothGatesPass (3): K7→K8 chain succeeds,
+                       context reaches ACTIVE then IDLE; TestExceptionClassIsolation (6):
+                       issubclass checks confirm K7/K8 exception classes are mutually
+                       exclusive subtrees; all 7 classes derive from KernelError;
+                       TestPropertyBased (2): Hypothesis @given sync tests using
+                       asyncio.run() (avoids asyncio_mode="auto" async-Hypothesis
+                       incompatibility)
+                     30 tests total, all 7 AC covered
+                     2033 total tests (+30 new)
 ```
 
 ---
