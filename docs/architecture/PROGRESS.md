@@ -7,7 +7,7 @@ _Generated: 2026-02-19_
 | 1 | Phase A Spiral (Steps 1, 2, 3, 3a) | 12 | 39 | 30% [###.......] | 12/12 |
 | 2 | Phase A Backfill (Steps 4–11) | 10 | 39 | 25% [##........] | 10/10 |
 | 3 | Phase B: Failure Analysis & Kernel (Step | 19 | 62 | 30% [###.......] | 19/19 |
-| 4 | Phase C: Storage Layer (Steps 22–26) | 6 | 23 | 26% [##........] | 6/7 |
+| 4 | Phase C: Storage Layer (Steps 22–26) | 7 | 23 | 30% [###.......] | 7/7 |
 | 5 | Phase D: Safety & Infra (Steps 27–33) | 0 | 33 | 0% [..........] | 0/10 |
 | 6 | Phase E: Core L2 (Steps 34–40) | 0 | 45 | 0% [..........] | 0/12 |
 | 7 | Phase F: Engine L3 (Steps 41–45) | 0 | 24 | 0% [..........] | 0/6 |
@@ -19,7 +19,7 @@ _Generated: 2026-02-19_
 | 13 | Phase L: Config (Steps 70–72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73–78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79–86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **47** | **442** | **10%** | |
+| **Σ** | **All** | **48** | **442** | **10%** | |
 
 ## Task Detail
 
@@ -191,7 +191,7 @@ _Generated: 2026-02-19_
 | 26.1 | Assign SIL-2 verification methods | pending | 0.5d |  |  |
 | 26.2 | Execute SIL-2 test suite | done (crit) | 0.5d | 25.3, 26.1 |  |
 | 26.3 | Validate RTM completeness for storage | pending | 0.5d | 26.2 |  |
-| 26.4 | Phase C gate checklist | pending (crit) | 0.5d | 26.2, 26.3 |  |
+| 26.4 | Phase C gate checklist | done (crit) | 0.5d | 26.2, 26.3 |  |
 | | **Slice 5** | | | | |
 | 27.1 | Map redaction to monograph channel filtering | pending | 0.5d |  |  |
 | 27.2 | Assign SIL-2 | pending | 0.5d | 27.1 |  |
