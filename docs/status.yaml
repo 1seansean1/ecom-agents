@@ -548,4 +548,9 @@ tasks:
     date: '2026-02-20'
     commit: 79334eb
     note: 'APS Assembly Index Validator: APSValidator/APSValidationReport; monotonicity T0≤T1≤T2≤T3, ICD-011 bounds, consistency; 63 tests (39 unit + 24 integration)'
+  '38.4':
+    status: done
+    date: '2026-02-20'
+    note: 'Topology Manager: spawn/steer/dissolve operations, agent contracts, eigenspectrum divergence monitoring per Goal Hierarchy §5-§6, ICD-012/015 integration; 40 tests (31 unit + 9 integration)'
+    commit: pending
 version: '1.0'
