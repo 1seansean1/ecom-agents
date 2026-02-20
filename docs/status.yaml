@@ -631,11 +631,12 @@ tasks:
       lanes, MCP registry, goal dispatch, and workflow engine modules; 5 pre-existing
       failures from timing edge cases in lane scheduling'
     status: done
-  '45.4':
-    commit: a28578eb8a4f342b0971e4caca656628abce1e2f
+  '46.5':
+    commit: a9fa294196379bc242fca1ed854798d8b54940d3
     date: '2026-02-20'
-    note: 'Phase F Gate Checklist: evaluate_phase_f_gate() function checks all Phase
-      F artifacts (41.4-45.2) exist and pass; GateItem/GateResult classes; 46 unit
-      tests; Phase F→G preconditions verified'
+    note: 'Minimal container with SIL-3 isolation: ContainerImage/ContainerConfig/MinimalContainerImage;
+      no network utilities, no Holly packages per Behavior Spec §2; Alpine base with Python3/tini;
+      Dockerfile.sandbox; 47 tests (network/Holly invariants, config constraints, builder,
+      validation, integration)'
     status: done
 version: '1.0'
