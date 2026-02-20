@@ -1,6 +1,6 @@
 # Holly Grace - Development Progress
 
-_Generated: 2026-02-19_
+_Generated: 2026-02-20_
 
 | Slice | Phase | Done | Total | Progress | Critical Path |
 |------:|-------|-----:|------:|---------:|---------------|
@@ -39,16 +39,16 @@ _Generated: 2026-02-19_
 | 2.3 | Document singleton/caching/thread-safety trade-off | pending | 0.5d | 2.2 |  |
 | 2.4 | Assign SIL-2 | pending | 0.5d | 2.3 |  |
 | 2.5 | Enumerate failure modes | pending | 0.5d | 2.4 |  |
-| 2.6 | Implement singleton loader | done (crit) | 1d | 1.8, 2.5 |  |
-| 2.7 | Implement component/boundary/ICD lookups | done (crit) | 1d | 2.6 |  |
-| 2.8 | Implement hot-reload with validation | done (crit) | 1d | 2.7 |  |
+| 2.6 | Implement singleton loader | done (crit) | 1d | 1.8, 2.5 | 78f0587 |
+| 2.7 | Implement component/boundary/ICD lookups | done (crit) | 1d | 2.6 | 78f0587 |
+| 2.8 | Implement hot-reload with validation | done (crit) | 1d | 2.7 | 78f0587 |
 | 2.9 | Link lookups to YAML source entries | pending | 0.5d | 2.8 |  |
 | 3.1 | Map decorator names to monograph concepts | pending | 0.5d |  |  |
 | 3.2 | Encode viewpoint membership in decorators | pending | 0.5d | 3.1 |  |
 | 3.3 | Document decorator pattern trade-offs | pending | 0.5d | 3.2 |  |
 | 3.4 | Assign SIL-2 | pending | 0.5d | 3.3 |  |
 | 3.5 | Enumerate failure modes | pending | 0.5d | 3.4 |  |
-| 3.6 | Implement core decorators | done (crit) | 1d | 2.8, 3.5 |  |
+| 3.6 | Implement core decorators | done (crit) | 1d | 2.8, 3.5 | c23b8e5 |
 | 3.7 | Implement ICD contract enforcement | done (crit) | 1d | 3.6 | 6fb886b |
 | 3.8 | Build AST scanner | pending | 1d | 3.7 |  |
 | 3.9 | Map decorators to test requirements | pending | 0.5d | 3.8 |  |
@@ -60,18 +60,18 @@ _Generated: 2026-02-19_
 | 3a.5 | Confirm SIL-3 rigor on kernel in slice | pending | 0.5d | 3a.4 |  |
 | 3a.6 | Exercise ≥1 FMEA failure mode | pending | 0.5d | 3a.5 |  |
 | 3a.7 | Write minimal TLA+ spec for K1 | pending | 1.5d | 3a.6 |  |
-| 3a.8 | Validate full pipeline: YAML → registry → decorato | done (crit) | 1d | 3.7, 3a.7 |  |
+| 3a.8 | Validate full pipeline: YAML → registry → decorato | done (crit) | 1d | 3.7, 3a.7 | 2f1154d |
 | 3a.9 | Validate traceable chain for one requirement | pending | 0.5d | 3a.8 |  |
-| 3a.10 | Implement minimal K8 eval gate | done (crit) | 1d | 3a.8, 3a.9 |  |
+| 3a.10 | Implement minimal K8 eval gate | done (crit) | 1d | 3a.8, 3a.9 | 512b861 |
 | 3a.11 | Verify kernel layer activates independently | pending | 1d | 3a.10 |  |
-| 3a.12 | Run gate, produce pass/fail report | done (crit) | 0.5d | 3a.10, 3a.11 |  |
+| 3a.12 | Run gate, produce pass/fail report | done (crit) | 0.5d | 3a.10, 3a.11 | a559453 |
 | | **Slice 2** | | | | |
 | 10.1 | Define RTM schema | pending | 0.5d |  |  |
-| 10.2 | Build RTM generator | done (crit) | 0.5d | 9.2, 10.1 |  |
+| 10.2 | Build RTM generator | done (crit) | 0.5d | 9.2, 10.1 | 21ee890 |
 | 10.3 | Add gap detection | pending | 0.5d | 10.2 |  |
-| 11.1 | Integrate drift, scanner, fitness, RTM into unifie | done (crit) | 0.5d | 10.2 |  |
+| 11.1 | Integrate drift, scanner, fitness, RTM into unifie | done (crit) | 0.5d | 10.2 | 21ee890 |
 | 11.2 | Add staged canary for arch changes | pending | 0.5d | 11.1 |  |
-| 11.3 | Define Phase A gate checklist | done (crit) | 0.5d | 11.1, 11.2 |  |
+| 11.3 | Define Phase A gate checklist | done (crit) | 0.5d | 11.1, 11.2 | 7d21228 |
 | 11.4 | Implement ICD audit trail logging | pending | 0.5d | 11.3 |  |
 | 4.1 | Verify package names trace to monograph | pending | 0.5d |  |  |
 | 4.2 | Generate packages per 42010 viewpoint structure | pending | 0.5d | 4.1 |  |
@@ -82,10 +82,10 @@ _Generated: 2026-02-19_
 | 5.2 | Define ICD per 42010 boundary | pending | 0.5d | 5.1 |  |
 | 5.3 | Document contract-vs-protocol trade-off | pending | 0.5d | 5.2 |  |
 | 5.4 | Assign SIL per ICD based on connected components | pending | 0.5d | 5.3 |  |
-| 5.5 | Implement ICD as Pydantic models | done (crit) | 0.5d | 5.8, 5.4 |  |
-| 5.6 | Register ICDs in architecture.yaml | done (crit) | 0.5d | 5.5 |  |
-| 5.7 | Link ICDs to SAD boundary crossings | pending | 0.5d |  |  |
-| 5.8 | Build ICD Schema Registry | done (crit) | 0.5d | 5.7, 3a.12 |  |
+| 5.5 | Implement ICD as Pydantic models | done (crit) | 0.5d | 5.8, 5.4 | cb3e621 |
+| 5.6 | Register ICDs in architecture.yaml | done (crit) | 0.5d |  | 78f0587 |
+| 5.7 | Link ICDs to SAD boundary crossings | pending | 0.5d | 5.6 |  |
+| 5.8 | Build ICD Schema Registry | done (crit) | 0.5d | 5.7, 3a.12 | c8433fe |
 | 5.9 | Implement ICD Validation Test Harness | pending | 0.5d | 5.8 |  |
 | 5a.1 | Identify stakeholder scenarios | pending | 0.5d |  |  |
 | 5a.2 | Evaluate architecture against scenarios | pending | 0.5d | 5a.1 |  |
@@ -94,53 +94,53 @@ _Generated: 2026-02-19_
 | 6.1 | Build drift detector | pending | 0.5d |  |  |
 | 6.2 | Define drift severity levels | pending | 0.5d | 6.1 |  |
 | 6.3 | Wire drift detection into CI pipeline | pending | 0.5d | 6.2 |  |
-| 7.1 | Extend AST scanner with per-module rules | done (crit) | 0.5d | 5.6 |  |
-| 7.2 | Add wrong-decorator detection | done (crit) | 0.5d | 7.1 |  |
+| 7.1 | Extend AST scanner with per-module rules | done (crit) | 0.5d | 5.6 | 21ee890 |
+| 7.2 | Add wrong-decorator detection | done (crit) | 0.5d | 7.1 | 21ee890 |
 | 7.3 | Wire scanner into CI pipeline | pending | 0.5d | 7.2 |  |
 | 8.1 | Assign verification methods to arch contracts | pending | 0.5d |  |  |
 | 8.2 | Implement SIL-appropriate test levels | pending | 0.5d | 8.1 |  |
-| 8.3 | Write contract fixture generator | done (crit) | 0.5d | 7.2, 8.2 |  |
+| 8.3 | Write contract fixture generator | done (crit) | 0.5d | 7.2, 8.2 | cb3e621 |
 | 8.4 | Map tests to decorators and requirements | pending | 0.5d | 8.3 |  |
 | 9.1 | Derive fitness function parameters from ATAM | pending | 0.5d |  |  |
-| 9.2 | Implement fitness functions | done (crit) | 0.5d | 8.3, 9.1 |  |
+| 9.2 | Implement fitness functions | done (crit) | 0.5d | 8.3, 9.1 | 5c864f4 |
 | 9.3 | Wire into CI as per-commit checks | pending | 0.5d | 9.2 |  |
 | 9.4 | Implement ICD-specific fitness functions | pending | 0.5d | 9.3 |  |
 | | **Slice 3** | | | | |
 | 12.1 | Classify every component by failure consequence | pending | 0.5d |  |  |
 | 12.2 | Define verification requirements per SIL | pending | 0.5d | 12.1 |  |
 | 12.3 | Link SIL assignments to YAML components | pending | 0.5d | 12.2 |  |
-| 13.1 | FMEA: kernel invariant desynchronization | done (crit) | 0.5d | 11.3 |  |
+| 13.1 | FMEA: kernel invariant desynchronization | done (crit) | 0.5d | 11.3 | d8f3e64 |
 | 13.2 | FMEA: sandbox escape | pending | 0.5d | 13.1 |  |
 | 13.3 | FMEA: egress bypass | pending | 0.5d | 13.2 |  |
 | 13.4 | FMEA: goal injection (L0–L4 predicate violation) | pending | 0.5d | 13.3 |  |
 | 13.5 | FMEA: topology desynchronization | pending | 0.5d | 13.4 |  |
 | 13.6 | Compile residual risk register | pending | 0.5d | 13.5 |  |
 | 13.7 | Link FMEA mitigations to roadmap steps | pending | 0.5d | 13.6 |  |
-| 14.1 | TLA+ spec: kernel invariant state machine | done (crit) | 1.5d | 13.1 |  |
+| 14.1 | TLA+ spec: kernel invariant state machine | done (crit) | 1.5d | 13.1 | 2f1154d |
 | 14.2 | TLA+ spec: sandbox isolation | pending | 1.5d | 14.1 |  |
 | 14.3 | TLA+ spec: egress filter pipeline | pending | 1.5d | 14.2 |  |
 | 14.4 | Document assumption register | pending | 1.5d | 14.3 |  |
-| 14.5 | Implement formal state-machine validator | done (crit) | 1.5d | 14.1, 14.4 |  |
+| 14.5 | Implement formal state-machine validator | done (crit) | 1.5d | 14.1, 14.4 | 21ee890 |
 | 15.1 | Map KernelContext to monograph boundary concepts | pending | 0.5d |  |  |
 | 15.2 | Confirm SIL-3 designation | pending | 0.5d | 15.1 |  |
 | 15.3 | Review FMEA mitigations for kernel context lifecyc | pending | 0.5d | 15.2 |  |
-| 15.4 | Implement per TLA+ state machine spec | done (crit) | 1.5d | 14.5, 15.3 |  |
+| 15.4 | Implement per TLA+ state machine spec | done (crit) | 1.5d | 14.5, 15.3 | 844bee8 |
 | 15.5 | Register in architecture.yaml, add decorator | pending | 1d | 15.4 |  |
 | 15.6 | Link to requirement and test | pending | 0.5d | 15.5 |  |
 | 15.7 | Verify independence from downstream layers | pending | 1d | 15.6 |  |
 | 16.1 | Map K1–K4 to monograph channel constraints | pending | 0.5d |  |  |
 | 16.2 | Review FMEA mitigations for K1–K4 | pending | 0.5d | 16.1 |  |
-| 16.3 | Implement K1 schema validation per TLA+ | done (crit) | 1.5d | 15.4, 16.2 |  |
-| 16.4 | Implement K2 permission gating per TLA+ | done (crit) | 1.5d | 16.3 |  |
-| 16.5 | Implement K3 bounds checking per TLA+ | done (crit) | 1.5d | 16.4 |  |
-| 16.6 | Implement K4 trace injection per TLA+ | done (crit) | 1.5d | 16.5 |  |
+| 16.3 | Implement K1 schema validation per TLA+ | done (crit) | 1.5d | 15.4, 16.2 | a43dab7 |
+| 16.4 | Implement K2 permission gating per TLA+ | done (crit) | 1.5d | 16.3 | 5e9cd77 |
+| 16.5 | Implement K3 bounds checking per TLA+ | done (crit) | 1.5d | 16.4 | 5cc6a8a |
+| 16.6 | Implement K4 trace injection per TLA+ | done (crit) | 1.5d | 16.5 | 844bee8 |
 | 16.7 | Register K1–K4 in YAML, apply decorators | pending | 1d | 16.6 |  |
 | 16.8 | Link each to requirement and test | pending | 0.5d | 16.7 |  |
-| 16.9 | Verify K1–K4 Guard Condition Determinism | done (crit) | 1.5d | 16.6, 16.8 |  |
+| 16.9 | Verify K1–K4 Guard Condition Determinism | done (crit) | 1.5d | 16.6, 16.8 | 2f1154d |
 | 17.1 | Map K5–K6 to monograph | pending | 0.5d |  |  |
 | 17.2 | Review FMEA mitigations | pending | 0.5d | 17.1 |  |
-| 17.3 | Implement K5 idempotency (RFC 8785) per TLA+ | done (crit) | 1.5d | 16.9, 17.2 |  |
-| 17.4 | Implement K6 audit WAL per TLA+ | done (crit) | 1.5d | 17.3 |  |
+| 17.3 | Implement K5 idempotency (RFC 8785) per TLA+ | done (crit) | 1.5d | 16.9, 17.2 | 8535cd3 |
+| 17.4 | Implement K6 audit WAL per TLA+ | done (crit) | 1.5d | 17.3 | 21ee890 |
 | 17.5 | Register, decorate | pending | 1d | 17.4 |  |
 | 17.6 | Link to requirements and tests | pending | 0.5d | 17.5 |  |
 | 17.7 | Verify K5–K6 Invariant Preservation | done (crit) | 1.5d | 17.4, 17.6 | 2114590 |
@@ -167,53 +167,53 @@ _Generated: 2026-02-19_
 | 21.3 | Run TLA+ model checker against all kernel specs | pending | 1.5d | 21.2 |  |
 | 21.4 | Validate RTM completeness for kernel | pending | 0.5d | 21.3 |  |
 | 21.5 | Independent review of kernel safety | pending | 1d | 21.4 |  |
-| 21.6 | Define Phase B gate checklist | done (crit) | 0.5d | 21.2, 21.5 |  |
+| 21.6 | Define Phase B gate checklist | done (crit) | 0.5d | 21.2, 21.5 | 7109031 |
 | | **Slice 4** | | | | |
 | 22.1 | Map storage concepts to monograph (memory tiers, M | pending | 0.5d |  |  |
 | 22.2 | Document storage architecture trade-offs | pending | 0.5d | 22.1 |  |
 | 22.3 | Assign SIL-2 | pending | 0.5d | 22.2 |  |
 | 22.4 | FMEA: connection pool exhaustion, RLS bypass, migr | pending | 0.5d | 22.3 |  |
-| 22.5 | Implement async pool, models, RLS, migrations | done (crit) | 0.5d | 22.4, 21.6 |  |
+| 22.5 | Implement async pool, models, RLS, migrations | done (crit) | 0.5d | 22.4, 21.6 | bef16ea |
 | 22.6 | Link to requirement and test | pending | 0.5d | 22.5 |  |
-| 22.7 | Apply RLS per ICD Boundary | done (crit) | 0.5d | 22.5, 22.6 |  |
+| 22.7 | Apply RLS per ICD Boundary | done (crit) | 0.5d | 22.5, 22.6 | 1acc2ac |
 | 23.1 | Inherit SIL-2 | pending | 0.5d |  |  |
 | 23.2 | FMEA: orphan partition, failed archival, restore f | pending | 0.5d | 23.1 |  |
-| 23.3 | Implement time-based partitions, auto-create, S3 a | done (crit) | 0.5d | 22.7, 23.2 |  |
+| 23.3 | Implement time-based partitions, auto-create, S3 a | done (crit) | 0.5d | 22.7, 23.2 | 9df08fb |
 | 23.4 | Link to requirement and test | pending | 0.5d | 23.3 |  |
 | 24.1 | Assign SIL-2 | pending | 0.5d |  |  |
 | 24.2 | FMEA: cache poisoning, pub/sub message loss, HA fa | pending | 0.5d | 24.1 |  |
-| 24.3 | Implement pool, pub/sub, queues, cache, HA | done (crit) | 0.5d | 23.3, 24.2 |  |
+| 24.3 | Implement pool, pub/sub, queues, cache, HA | done (crit) | 0.5d | 23.3, 24.2 | 9bd81bb |
 | 24.4 | Link to requirement and test | pending | 0.5d | 24.3 |  |
 | 25.1 | Assign SIL-2 | pending | 0.5d |  |  |
 | 25.2 | FMEA: embedding drift, cross-tenant retrieval, col | pending | 0.5d | 25.1 |  |
-| 25.3 | Implement client, tenant-isolated collections, emb | done (crit) | 0.5d | 24.3, 25.2 |  |
+| 25.3 | Implement client, tenant-isolated collections, emb | done (crit) | 0.5d | 24.3, 25.2 | 6e2f27c |
 | 25.4 | Link to requirement and test | pending | 0.5d | 25.3 |  |
 | 26.1 | Assign SIL-2 verification methods | pending | 0.5d |  |  |
-| 26.2 | Execute SIL-2 test suite | done (crit) | 0.5d | 25.3, 26.1 |  |
+| 26.2 | Execute SIL-2 test suite | done (crit) | 0.5d | 25.3, 26.1 | 62b10c8 |
 | 26.3 | Validate RTM completeness for storage | pending | 0.5d | 26.2 |  |
-| 26.4 | Phase C gate checklist | done (crit) | 0.5d | 26.2, 26.3 |  |
+| 26.4 | Phase C gate checklist | done (crit) | 0.5d | 26.2, 26.3 | dbe34cc |
 | | **Slice 5** | | | | |
 | 27.1 | Map redaction to monograph channel filtering | pending | 0.5d |  |  |
 | 27.2 | Assign SIL-2 | pending | 0.5d | 27.1 |  |
 | 27.3 | FMEA: incomplete redaction, redaction bypass via e | pending | 0.5d | 27.2 |  |
-| 27.4 | Implement canonical redaction library | done (crit) | 1d | 27.3, 26.4 |  |
+| 27.4 | Implement canonical redaction library | done (crit) | 1d | 27.3, 26.4 | c1cddd1 |
 | 27.5 | Link to requirement and test | pending | 0.5d | 27.4 |  |
 | 28.1 | Assign SIL-2 | pending | 0.5d |  |  |
 | 28.2 | FMEA: sanitization bypass, injection via unicode,  | pending | 0.5d | 28.1 |  |
-| 28.3 | Implement input sanitization, output redaction, in | done (crit) | 1d | 27.4, 28.2 |  |
+| 28.3 | Implement input sanitization, output redaction, in | done (crit) | 1d | 27.4, 28.2 | c1cddd1 |
 | 28.4 | Link to requirement and test | pending | 0.5d | 28.3 |  |
 | 29.1 | Assign SIL-2 | pending | 0.5d |  |  |
 | 29.2 | FMEA: forbidden path bypass, incomplete code analy | pending | 0.5d | 29.1 |  |
-| 29.3 | Implement forbidden paths, code review analysis | done | 1d | 29.2 |  |
-| 29.4 | Link | done | 0.5d | 29.3 |  |
+| 29.3 | Implement forbidden paths, code review analysis | done | 1d | 29.2 | cb3e621 |
+| 29.4 | Link | done | 0.5d | 29.3 | 2f1154d |
 | 30.1 | Assign SIL-2 | pending | 0.5d |  |  |
 | 30.2 | FMEA: undetected secret pattern, false redaction o | pending | 0.5d | 30.1 |  |
-| 30.3 | Implement detect + redact in traces per ICD-v0.1 r | done (crit) | 1d | 28.3, 30.2 |  |
+| 30.3 | Implement detect + redact in traces per ICD-v0.1 r | done (crit) | 1d | 28.3, 30.2 | 2f1154d |
 | 30.4 | Link | pending | 0.5d | 30.3 |  |
 | 31.1 | Map egress to monograph channel boundary | pending | 0.5d |  |  |
 | 31.2 | Assign SIL-3 | pending | 0.5d | 31.1 |  |
 | 31.3 | FMEA: allowlist circumvention, redaction failure,  | pending | 0.5d | 31.2 |  |
-| 31.4 | Implement per TLA+ egress spec | done (crit) | 1.5d | 30.3, 31.3 |  |
+| 31.4 | Implement per TLA+ egress spec | done (crit) | 1.5d | 30.3, 31.3 | 2f1154d |
 | 31.5 | Verify egress as independent safety layer | pending (crit) | 1d | 31.4 |  |
 | 31.6 | Link | pending | 0.5d | 31.5 |  |
 | 31.7 | Verify Egress Filter Pipeline Guarantees | pending (crit) | 1.5d | 31.5, 31.6 |  |
