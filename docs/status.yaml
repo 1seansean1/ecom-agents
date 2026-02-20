@@ -19,7 +19,7 @@ tasks:
     status: done
     date: '2026-02-20'
     note: 'Lane manager, dispatcher: MainLane/CronLane/SubagentLane, LanePolicy, LaneManager; 37 unit + 10 integration tests'
-    commit: pending
+    commit: 8ce897a
   1.1: pending
   1.2: pending
   1.3: pending
