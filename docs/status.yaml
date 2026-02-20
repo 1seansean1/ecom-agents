@@ -515,7 +515,7 @@ tasks:
       15 integration)'
     status: done
   '36.4':
-    commit: pending
+    commit: bfdc743
     date: '2026-02-20'
     note: 'Topological Verification: TopologyNode/TopologyEdge/TopologyVerifier; DFS cycle detection, Celestial level ordering, layer separation checks; Holly component graph verified acyclic; 85 tests (55 unit + 30 integration, all pass)'
     status: done
