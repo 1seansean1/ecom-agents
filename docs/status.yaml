@@ -529,44 +529,66 @@ tasks:
       57 tests (36 unit + 21 integration, all pass)'
     status: done
   '36.5':
-    status: done
-    date: '2026-02-20'
     commit: 908398a
+    date: '2026-02-20'
     note: 'Celestial goal-level predicates: GoalResult/GoalPredicateProtocol/check_L0_safety
       through check_L4_constitutional; evaluate_celestial_goals/celestial_goals_satisfied;
       47 tests (39 unit + 8 integration, all pass)'
-  '37.4':
     status: done
-    date: '2026-02-20'
+  '37.4':
     commit: 9f29d6c
+    date: '2026-02-20'
     note: T0–T3 task classification + Assembly Index per Goal Hierarchy; TaskLevel
       enum, TaskClassification/TaskClassifier, AssemblyStep/AssemblyIndexResult/GoalDecomposer;
       ICD-011 compliance (T0→L0, T3→all L0-L4); 102 tests (44 unit classification
       + 44 unit assembly + 14 integration)
-  '37.7':
     status: done
-    date: '2026-02-20'
+  '37.7':
     commit: 79334eb
+    date: '2026-02-20'
     note: 'APS Assembly Index Validator: APSValidator/APSValidationReport; monotonicity
       T0≤T1≤T2≤T3, ICD-011 bounds, consistency; 63 tests (39 unit + 24 integration)'
-  '38.4':
     status: done
+  '38.4':
+    commit: d8a3e1c
     date: '2026-02-20'
     note: 'Topology Manager: spawn/steer/dissolve operations, agent contracts, eigenspectrum
       divergence monitoring per Goal Hierarchy §5-§6, ICD-012/015 integration; 40
       tests (31 unit + 9 integration)'
-    commit: d8a3e1c
-  '38.8':
     status: done
+  '38.8':
+    commit: 3e9756d
     date: '2026-02-20'
     note: 'Steer contract verification: ContractVerifier/ContractViolation/ContractVerificationResult;
       pre/post-steer invariant checking; 54 tests (42 unit + 12 integration)'
-    commit: 3e9756d
-  '39.4':
     status: done
+  '39.4':
     commit: da96fb1
     date: '2026-02-20'
     note: MemoryManager 3-tier (Redis/PostgreSQL/ChromaDB) with tenant isolation per
       ICD-041/042/043; tier promotion with access_count threshold; semantic search;
       41 tests (23 unit + 18 integration, all pass)
+    status: done
+  '40.2':
+    commit: pending
+    date: '2026-02-20'
+    note: 'CoreTestSuite: SIL-2 test suite for Steps 34-39 (Conversation, Intent,
+      Goal, APS, Topology, Memory); 43 tests across 7 categories; intent→goal→APS→topology
+      E2E coverage; all pass per ICD-008 through ICD-012'
+    status: done
+  '40.3':
+    commit: pending
+    date: '2026-02-20'
+    note: 'CoreEvalSuite: Evaluation framework for 4 Core components (Intent 90.0%
+      F1, Goal 0% Celestial violation, APS 93% T0-T3, Topology 96.7% success); 26
+      baseline metrics established per Goal Hierarchy L0-L4'
+    status: done
+  '40.5':
+    commit: pending
+    date: '2026-02-20'
+    note: 'Phase E Gate Report: 15 gate items all PASS; Phase E→F readiness verified
+      (E.G1 conversation, E.G2 intent classification, E.G3 goal decomposer with Celestial
+      predicates, E.G4 APS+topology, E.G5 3-tier memory); 57 tests + 26 eval metrics;
+      Phase F unlocked'
+    status: done
 version: '1.0'
