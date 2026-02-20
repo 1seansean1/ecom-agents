@@ -570,21 +570,21 @@ tasks:
       41 tests (23 unit + 18 integration, all pass)
     status: done
   '40.2':
-    commit: pending
+    commit: 12b3fd7
     date: '2026-02-20'
     note: 'CoreTestSuite: SIL-2 test suite for Steps 34-39 (Conversation, Intent,
       Goal, APS, Topology, Memory); 43 tests across 7 categories; intent→goal→APS→topology
       E2E coverage; all pass per ICD-008 through ICD-012'
     status: done
   '40.3':
-    commit: pending
+    commit: 12b3fd7
     date: '2026-02-20'
     note: 'CoreEvalSuite: Evaluation framework for 4 Core components (Intent 90.0%
       F1, Goal 0% Celestial violation, APS 93% T0-T3, Topology 96.7% success); 26
       baseline metrics established per Goal Hierarchy L0-L4'
     status: done
   '40.5':
-    commit: pending
+    commit: 12b3fd7
     date: '2026-02-20'
     note: 'Phase E Gate Report: 15 gate items all PASS; Phase E→F readiness verified
       (E.G1 conversation, E.G2 intent classification, E.G3 goal decomposer with Celestial
