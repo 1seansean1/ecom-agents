@@ -101,6 +101,57 @@ class CelestialPredicateProtocol(Protocol):
         ...
 
 
+@dataclass(slots=True)
+class GoalResult:
+    """Result of evaluating a goal against system state per Goal Hierarchy §2.0–2.6.
+
+    Represents the evaluation of a system state against a specific goal level.
+    Returns structured information about goal satisfaction, including distance
+    metrics that quantify constraint violations and explanatory reasoning.
+
+    Attributes:
+        level: Goal level evaluated (0–6, where 0–4 are Celestial and 5–6 Terrestrial).
+        satisfied: Whether the goal is satisfied in this state.
+        distance: Distance metric from satisfied region (0.0 = satisfied).
+        explanation: Human-readable explanation of evaluation result.
+        violations: List of constraint violations (empty if satisfied).
+        confidence: Confidence in the result (0.0–1.0).
+    """
+
+    level: int
+    satisfied: bool
+    distance: float
+    explanation: str
+    violations: list[str] = field(default_factory=list)
+    confidence: float = 1.0
+
+
+@runtime_checkable
+class GoalPredicateProtocol(Protocol):
+    """Protocol for goal-level predicate functions.
+
+    Defines the interface for predicates that evaluate system state against goal levels.
+    Each predicate returns a GoalResult with structured satisfaction information.
+    """
+
+    @property
+    def level(self) -> int:
+        """Goal level identifier (0–6)."""
+        ...
+
+    def evaluate_goal(self, state: CelestialState) -> GoalResult:
+        """Evaluate goal against system state.
+
+        Args:
+            state: System state snapshot.
+
+        Returns:
+            GoalResult with satisfaction status, distance, and explanation.
+        """
+        ...
+
+
+
 class L0SafetyPredicate:
     """L0: Physical safety — no harm to humans (highest priority, immutable).
 
@@ -666,3 +717,238 @@ DEFAULT_PREDICATES = [
     L3PermissionsPredicate(),
     L4ConstitutionalPredicate(),
 ]
+
+
+# ============================================================================
+# Celestial Goal-Level Predicates (36.5)
+# ============================================================================
+# Five executable functions per Goal Hierarchy §2.0–2.4 that evaluate system
+# state against Celestial goal levels and return GoalResult structures.
+# ============================================================================
+
+
+def check_L0_safety(state: CelestialState) -> GoalResult:
+    """Evaluate L0 safety invariants goal.
+
+    L0 is the highest-priority Celestial level ensuring the system does not cause
+    physical harm, enable weapons, or lose control. Returns GoalResult with distance
+    metric quantifying safety margin from violation.
+
+    Per Goal Hierarchy §2.0: L0 covers physical harm, weapon systems, system control,
+    and cascade failures.
+
+    Args:
+        state: System state snapshot to evaluate.
+
+    Returns:
+        GoalResult with satisfaction status. If violated, distance quantifies how far
+        the system is from safety (0.0 = satisfied, > 0 = violation margin).
+    """
+    predicate = L0SafetyPredicate()
+    result = predicate.evaluate(state)
+
+    # Convert PredicateResult to GoalResult
+    # If predicate failed, distance > 0 indicates violation severity
+    distance = 0.0 if result.passed else 0.5  # 0.5 = moderate violation
+    if result.violations and "harm" in str(result.violations):
+        distance = 1.0  # Critical violation
+
+    return GoalResult(
+        level=0,
+        satisfied=result.passed,
+        distance=distance,
+        explanation=result.reason,
+        violations=result.violations,
+        confidence=result.confidence,
+    )
+
+
+def check_L1_legal(state: CelestialState) -> GoalResult:
+    """Evaluate L1 legal compliance goal.
+
+    L1 ensures the system complies with applicable laws and regulations (GDPR, CCPA,
+    export controls, content restrictions, etc.). Returns GoalResult with distance
+    metric quantifying compliance margin.
+
+    Per Goal Hierarchy §2.1: L1 covers data protection, export controls, content
+    restrictions, and regional laws.
+
+    Args:
+        state: System state snapshot to evaluate.
+
+    Returns:
+        GoalResult with satisfaction status. Distance metric reflects compliance risk
+        (0.0 = fully compliant, > 0 = compliance violation degree).
+    """
+    predicate = L1LegalPredicate()
+    result = predicate.evaluate(state)
+
+    # Convert PredicateResult to GoalResult
+    distance = 0.0 if result.passed else 0.3  # Legal violations are moderate
+    if result.violations and any(v in str(result.violations) for v in ["export", "GDPR"]):
+        distance = 0.8  # Regulatory violations are severe
+
+    return GoalResult(
+        level=1,
+        satisfied=result.passed,
+        distance=distance,
+        explanation=result.reason,
+        violations=result.violations,
+        confidence=result.confidence,
+    )
+
+
+def check_L2_ethical(state: CelestialState) -> GoalResult:
+    """Evaluate L2 ethical constraints goal.
+
+    L2 ensures the system operates ethically: no discrimination, transparent about AI
+    use, no deception, informed consent, and user autonomy respected. Returns GoalResult
+    with distance metric quantifying ethical alignment.
+
+    Per Goal Hierarchy §2.2: L2 covers fairness, transparency, non-deception, consent,
+    and autonomy respect.
+
+    Args:
+        state: System state snapshot to evaluate.
+
+    Returns:
+        GoalResult with satisfaction status. Distance reflects ethical risk
+        (0.0 = fully ethical, > 0 = ethical violation severity).
+    """
+    predicate = L2EthicalPredicate()
+    result = predicate.evaluate(state)
+
+    # Convert PredicateResult to GoalResult
+    distance = 0.0 if result.passed else 0.4
+    if result.violations and "deception" in str(result.violations):
+        distance = 0.9  # Deception is high ethical violation
+
+    return GoalResult(
+        level=2,
+        satisfied=result.passed,
+        distance=distance,
+        explanation=result.reason,
+        violations=result.violations,
+        confidence=result.confidence,
+    )
+
+
+def check_L3_permissions(state: CelestialState) -> GoalResult:
+    """Evaluate L3 permission boundaries goal.
+
+    L3 ensures agents can only use authorized tools and access authorized data (RLS).
+    Returns GoalResult with distance metric quantifying authorization margin.
+
+    Per Goal Hierarchy §2.3: L3 covers agent tool authorization, data access
+    authorization (RLS), and tenant isolation.
+
+    Args:
+        state: System state snapshot to evaluate.
+
+    Returns:
+        GoalResult with satisfaction status. Distance reflects authorization risk
+        (0.0 = fully authorized, > 0 = unauthorized access severity).
+    """
+    predicate = L3PermissionsPredicate()
+    result = predicate.evaluate(state)
+
+    # Convert PredicateResult to GoalResult
+    distance = 0.0 if result.passed else 0.6
+    if result.violations and "unauthorized" in str(result.violations):
+        distance = 0.95  # Unauthorized access is critical
+
+    return GoalResult(
+        level=3,
+        satisfied=result.passed,
+        distance=distance,
+        explanation=result.reason,
+        violations=result.violations,
+        confidence=result.confidence,
+    )
+
+
+def check_L4_constitutional(state: CelestialState) -> GoalResult:
+    """Evaluate L4 constitutional rules goal.
+
+    L4 ensures the system maintains its constitutional rules: goal hierarchy integrity,
+    kernel invariance, audit completeness, topology contracts, and steering operators.
+    Returns GoalResult with distance metric quantifying constitutional integrity.
+
+    Per Goal Hierarchy §2.4: L4 covers goal hierarchy, kernel gates, audit trail,
+    topology contracts, and steering operators.
+
+    Args:
+        state: System state snapshot to evaluate.
+
+    Returns:
+        GoalResult with satisfaction status. Distance reflects constitutional risk
+        (0.0 = fully compliant, > 0 = constitutional violation severity).
+    """
+    predicate = L4ConstitutionalPredicate()
+    result = predicate.evaluate(state)
+
+    # Convert PredicateResult to GoalResult
+    distance = 0.0 if result.passed else 0.7
+    if result.violations and any(
+        v in str(result.violations)
+        for v in ["kernel", "constitution", "self-modification"]
+    ):
+        distance = 0.99  # Constitutional violations are nearly critical
+
+    return GoalResult(
+        level=4,
+        satisfied=result.passed,
+        distance=distance,
+        explanation=result.reason,
+        violations=result.violations,
+        confidence=result.confidence,
+    )
+
+
+def evaluate_celestial_goals(
+    state: CelestialState,
+) -> list[GoalResult]:
+    """Evaluate all five Celestial goals L0–L4 in lexicographic order.
+
+    Evaluates each goal-level predicate in order (L0 → L4), short-circuiting if
+    any goal fails (per lexicographic gating principle).
+
+    Args:
+        state: System state snapshot to evaluate.
+
+    Returns:
+        List of GoalResult objects in evaluation order. Stops on first failure.
+    """
+    check_functions = [
+        check_L0_safety,
+        check_L1_legal,
+        check_L2_ethical,
+        check_L3_permissions,
+        check_L4_constitutional,
+    ]
+
+    results = []
+    for check_func in check_functions:
+        result = check_func(state)
+        results.append(result)
+
+        # Short-circuit on failure (Celestial constraint violation)
+        if not result.satisfied:
+            break
+
+    return results
+
+
+def celestial_goals_satisfied(state: CelestialState) -> bool:
+    """Check if all five Celestial goals are satisfied.
+
+    Convenience function returning True only if all L0–L4 goals are satisfied.
+
+    Args:
+        state: System state snapshot to evaluate.
+
+    Returns:
+        True if all Celestial goals satisfied, False if any fail.
+    """
+    results = evaluate_celestial_goals(state)
+    return all(result.satisfied for result in results)
