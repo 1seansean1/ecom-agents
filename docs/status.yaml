@@ -565,5 +565,5 @@ tasks:
     date: '2026-02-20'
     note: 'Steer contract verification: ContractVerifier/ContractViolation/ContractVerificationResult;
       pre/post-steer invariant checking; 54 tests (42 unit + 12 integration)'
-    commit: pending
+    commit: 3e9756d
 version: '1.0'
