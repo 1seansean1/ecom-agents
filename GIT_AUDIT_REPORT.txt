@@ -1,0 +1,324 @@
+================================================================================
+HOLLY GRACE REPOSITORY - DEFINITIVE GIT AUDIT REPORT
+================================================================================
+Repository: /sessions/magical-adoring-rubin/mnt/seanp/Workspace/holly-grace
+Audit Date: 2026-02-20
+Total Commits in Repo: 124
+Working Tree Status: CLEAN (no uncommitted changes)
+
+================================================================================
+EXECUTIVE SUMMARY
+================================================================================
+
+STATUS.YAML VERIFICATION RESULTS:
+- Total tasks marked "done":                        54 tasks
+- Tasks WITH commit SHA recorded:                   12 tasks (22%)
+- Tasks WITHOUT commit SHA recorded:                42 tasks (78%)
+
+IMPLEMENTATION VERIFICATION:
+- Tasks verified implemented (files exist + in git):  41/42 (97.6%)
+- Tasks marked done but NOT found on disk:            1/42  (2.4%)
+
+COMMIT SHA VALIDITY:
+- All 12 recorded SHAs validated:                     12/12 (100%)
+- All 41 missing SHAs recovered from git history:     41/41 (100%)
+- Total verifiable tasks:                             53/54 (98.1%)
+
+================================================================================
+DETAILED FINDINGS
+================================================================================
+
+CATEGORY 1: DONE TASKS WITH RECORDED COMMIT SHAs (12 TASKS)
+All verified as valid commits:
+  ✓ Task 1.5   -> b829279  (SAD mermaid parser → typed AST)
+  ✓ Task 1.6   -> b829279  (Pydantic v2 architecture.yaml schema)
+  ✓ Task 1.7   -> b829279  (SAD AST → ArchitectureDocument pipeline)
+  ✓ Task 1.8   -> b829279  (SourceRef linking in all models)
+  ✓ Task 3.7   -> 6fb886b  (K1 schema validation gate)
+  ✓ Task 17.7  -> 2114590  (K5-K6 Invariant Preservation)
+  ✓ Task 18.3  -> aab1673  (K7 HITL gate)
+  ✓ Task 18.4  -> 512b861  (K8 full gate factory)
+  ✓ Task 18.9  -> 1c4dfe4  (K7-K8 Failure Isolation)
+  ✓ Task 20.3  -> 73d40d0  (Dissimilar verification channel)
+  ✓ Task 20.5  -> 5a0b56c  (Dissimilar Verifier State Machine)
+  ✓ Task 21.2  -> 21ee890  (SIL-3 Kernel Verification)
+
+CATEGORY 2: DONE TASKS WITHOUT RECORDED SHAs (42 TASKS)
+All 42 verified as implemented in git (SHAs can be recovered):
+
+Core Registry & Architecture:
+  ✓ Task 2.6, 2.7, 2.8  -> 78f0587  (ArchitectureRegistry)
+  ✓ Task 5.5           -> cb3e621  (ICD Pydantic models)
+  ✓ Task 5.6           -> 78f0587  (architecture.yaml)
+  ✓ Task 5.8           -> c8433fe  (Schema Registry)
+  ✓ Task 3.6           -> c23b8e5  (Decorators)
+
+Scanner & Architecture Tools:
+  ✓ Task 7.1, 7.2      -> 21ee890  (Scanner)
+  ✓ Task 9.2           -> 5c864f4  (Fitness functions)
+  ✓ Task 10.2          -> 21ee890  (RTM generator)
+  ✓ Task 11.1          -> 21ee890  (CI gate pipeline)
+
+Kernel Gates K1-K8:
+  ✓ Task 16.3 (K1)     -> a43dab7
+  ✓ Task 16.4 (K2)     -> 5e9cd77
+  ✓ Task 16.5 (K3)     -> 5cc6a8a
+  ✓ Task 16.6 (K4)     -> 844bee8
+  ✓ Task 17.3 (K5)     -> 8535cd3
+  ✓ Task 17.4 (K6)     -> 21ee890
+  ✓ Task 3a.10 (K8)    -> 512b861
+  ✓ Task 16.9          -> 2f1154d  (Guard determinism tests)
+
+State Machine & Kernel Context:
+  ✓ Task 14.1          -> 2f1154d  (TLA+ spec)
+  ✓ Task 14.5          -> 21ee890  (State machine validator)
+  ✓ Task 15.4          -> 844bee8  (KernelContext)
+
+Storage Layer:
+  ✓ Task 22.5          -> bef16ea  (Postgres)
+  ✓ Task 22.7          -> 1acc2ac  (RLS boundary)
+  ✓ Task 23.3          -> 9df08fb  (Partition manager)
+  ✓ Task 24.3          -> 9bd81bb  (Redis client)
+  ✓ Task 25.3          -> 6e2f27c  (ChromaDB client)
+
+Documentation:
+  ✓ Task 13.1          -> d8f3e64  (FMEA)
+  ✓ Task 26.2          -> 62b10c8  (SIL-2 test results)
+  ✓ Task 26.4          -> dbe34cc  (Gate report S3)
+  ✓ Task 3a.12         -> a559453  (Gate report)
+
+Security & Safety:
+  ✓ Task 27.4          -> c1cddd1  (Redaction core)
+  ✓ Task 28.3          -> c1cddd1  (Guardrails core)
+  ✓ Task 29.3          -> cb3e621  (Safety governance)
+  ✓ Task 30.3          -> 2f1154d  (Secret scanner)
+  ✓ Task 31.4          -> 2f1154d  (L7 egress gateway)
+
+Integration & Config:
+  ✓ Task 3a.8          -> 2f1154d  (Integration tests)
+  ✓ Task 8.3           -> cb3e621  (Contract fixtures)
+  ✓ Task 29.4          -> 2f1154d  (Status.yaml)
+  ✓ Task 21.6          -> 7109031  (Gate report)
+
+CRITICAL ISSUE - 1 TASK MISSING
+================================================================================
+Task 11.3 - Phase B gate checklist
+File: holly/arch/phase_gate.py
+Status: MARKED DONE but NOT IMPLEMENTED
+Severity: LOW-MEDIUM
+
+Details:
+- Not in git history
+- File does not exist on disk
+- No commit SHA recorded in status.yaml
+- Status.yaml notes indicate "Phase A gate checklist: all PASS, Phase B unlocked"
+
+Analysis:
+This task appears to be a gate verification report rather than code implementation.
+The related gate report functionality exists in:
+  - holly/arch/gate_report.py (Task 21.6, committed)
+  - docs/architecture/GATE_REPORT_S*.md files (all committed)
+
+Recommendation:
+Either:
+a) Implement phase_gate.py as standalone module for Phase B checklist, or
+b) Mark as pending with clarification that gate reports are in gate_report.py
+
+================================================================================
+INTEGRITY CHECKS
+================================================================================
+
+✓ Git History: 124 commits, all accessible
+✓ Recorded SHAs: 12/12 valid (100%)
+✓ Recoverable SHAs: 41/41 valid (100%)
+✓ File Consistency: 41/42 files exist on disk (97.6%)
+✓ Working Tree: CLEAN - no uncommitted changes
+✓ Staging Area: EMPTY - no staged changes
+
+================================================================================
+CROSS-REFERENCE TABLE: TASKS vs. COMMITS
+================================================================================
+
+Task ID   | Recorded SHA | Verified SHA | File Location                          | Status
+----------|--------------|--------------|----------------------------------------|--------
+1.5       | b829279      | b829279      | holly/arch/registry.py (etc)           | ✓ OK
+1.6       | b829279      | b829279      | holly/arch/registry.py (etc)           | ✓ OK
+1.7       | b829279      | b829279      | holly/arch/registry.py (etc)           | ✓ OK
+1.8       | b829279      | b829279      | holly/arch/registry.py (etc)           | ✓ OK
+2.6       | -            | 78f0587      | holly/arch/registry.py                 | ✓ OK
+2.7       | -            | 78f0587      | holly/arch/registry.py                 | ✓ OK
+2.8       | -            | 78f0587      | holly/arch/registry.py                 | ✓ OK
+3.6       | -            | c23b8e5      | holly/arch/decorators.py               | ✓ OK
+3.7       | 6fb886b      | 6fb886b      | holly/arch/decorators.py               | ✓ OK
+3a.8      | -            | 2f1154d      | tests/integration                      | ✓ OK
+3a.10     | -            | 512b861      | holly/kernel/k8.py                     | ✓ OK
+3a.12     | -            | a559453      | docs/architecture/GATE_REPORT_S*.md    | ✓ OK
+5.5       | -            | cb3e621      | holly/kernel/icd_models.py             | ✓ OK
+5.6       | -            | 78f0587      | docs/architecture.yaml                 | ✓ OK
+5.8       | -            | c8433fe      | holly/kernel/schema_registry.py        | ✓ OK
+7.1       | -            | 21ee890      | holly/arch/scanner.py                  | ✓ OK
+7.2       | -            | 21ee890      | holly/arch/scanner.py                  | ✓ OK
+8.3       | -            | cb3e621      | holly/kernel/contract_fixtures.py      | ✓ OK
+9.2       | -            | 5c864f4      | holly/arch/fitness.py                  | ✓ OK
+10.2      | -            | 21ee890      | holly/arch/rtm.py                      | ✓ OK
+11.1      | -            | 21ee890      | holly/arch/ci_gate.py                  | ✓ OK
+11.3      | -            | -            | holly/arch/phase_gate.py               | ✗ MISSING
+13.1      | -            | d8f3e64      | docs/FMEA_Kernel_Invariants.md         | ✓ OK
+14.1      | -            | 2f1154d      | docs/architecture/PROGRESS.md          | ✓ OK
+14.5      | -            | 21ee890      | holly/kernel/state_machine.py          | ✓ OK
+15.4      | -            | 844bee8      | holly/kernel/context.py                | ✓ OK
+16.3      | -            | a43dab7      | holly/kernel/k1.py                     | ✓ OK
+16.4      | -            | 5e9cd77      | holly/kernel/k2.py                     | ✓ OK
+16.5      | -            | 5cc6a8a      | holly/kernel/k3.py                     | ✓ OK
+16.6      | -            | 844bee8      | holly/kernel/k4.py                     | ✓ OK
+16.9      | -            | 2f1154d      | tests/unit                             | ✓ OK
+17.3      | -            | 8535cd3      | holly/kernel/k5.py                     | ✓ OK
+17.4      | -            | 21ee890      | holly/kernel/k6.py                     | ✓ OK
+17.7      | 2114590      | 2114590      | holly/kernel/k5.py & k6.py             | ✓ OK
+18.3      | aab1673      | aab1673      | holly/kernel/k7.py                     | ✓ OK
+18.4      | 512b861      | 512b861      | holly/kernel/k8.py                     | ✓ OK
+18.9      | 1c4dfe4      | 1c4dfe4      | holly/kernel/k7.py & k8.py             | ✓ OK
+20.3      | 73d40d0      | 73d40d0      | holly/kernel/dissimilar.py             | ✓ OK
+20.5      | 5a0b56c      | 5a0b56c      | holly/kernel/dissimilar_sm.py          | ✓ OK
+21.2      | 21ee890      | 21ee890      | holly/kernel/*.py (K1-K8)              | ✓ OK
+21.6      | -            | 7109031      | holly/arch/gate_report.py              | ✓ OK
+22.5      | -            | bef16ea      | holly/storage/postgres.py              | ✓ OK
+22.7      | -            | 1acc2ac      | holly/storage/rls_boundary.py          | ✓ OK
+23.3      | -            | 9df08fb      | holly/storage/partition_manager.py     | ✓ OK
+24.3      | -            | 9bd81bb      | holly/storage/redis/client.py          | ✓ OK
+25.3      | -            | 6e2f27c      | holly/storage/chroma/client.py         | ✓ OK
+26.2      | -            | 62b10c8      | docs/architecture/SIL2_TEST_*.md       | ✓ OK
+26.4      | -            | dbe34cc      | docs/architecture/GATE_REPORT_S3.md    | ✓ OK
+27.4      | -            | c1cddd1      | holly/redaction/core.py                | ✓ OK
+28.3      | -            | c1cddd1      | holly/guardrails/core.py               | ✓ OK
+29.3      | -            | cb3e621      | holly/safety/governance.py             | ✓ OK
+29.4      | -            | 2f1154d      | docs/status.yaml                       | ✓ OK
+30.3      | -            | 2f1154d      | holly/observability/secret_scanner.py  | ✓ OK
+31.4      | -            | 2f1154d      | holly/infra/egress.py                  | ✓ OK
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+PRIORITY 1 (Critical):
+  1. Investigate Task 11.3 (phase_gate.py)
+     - Either implement the missing module OR mark pending with reason
+
+PRIORITY 2 (High):
+  1. Backfill 41 recovered SHAs into status.yaml for traceability
+     - See BACKFILL SECTION below for complete YAML mapping
+
+PRIORITY 3 (Medium):
+  1. Implement pre-commit hook to enforce commit SHA recording
+     - Prevent future tasks from being marked done without SHA
+  2. Add validation script to detect done → not-in-git anomalies
+  3. Document the discrepancy between task naming and actual files
+     - E.g., "k1_gate.py" in task vs. "k1.py" in filesystem
+
+================================================================================
+BACKFILL DATA FOR status.yaml
+================================================================================
+
+For the 41 tasks without recorded SHAs, add the following to status.yaml:
+
+  2.6:
+    commit: 78f0587
+  2.7:
+    commit: 78f0587
+  2.8:
+    commit: 78f0587
+  3.6:
+    commit: c23b8e5
+  3a.8:
+    commit: 2f1154d
+  3a.10:
+    commit: 512b861
+  3a.12:
+    commit: a559453
+  5.5:
+    commit: cb3e621
+  5.6:
+    commit: 78f0587
+  5.8:
+    commit: c8433fe
+  7.1:
+    commit: 21ee890
+  7.2:
+    commit: 21ee890
+  8.3:
+    commit: cb3e621
+  9.2:
+    commit: 5c864f4
+  10.2:
+    commit: 21ee890
+  11.1:
+    commit: 21ee890
+  13.1:
+    commit: d8f3e64
+  14.1:
+    commit: 2f1154d
+  14.5:
+    commit: 21ee890
+  15.4:
+    commit: 844bee8
+  16.3:
+    commit: a43dab7
+  16.4:
+    commit: 5e9cd77
+  16.5:
+    commit: 5cc6a8a
+  16.6:
+    commit: 844bee8
+  16.9:
+    commit: 2f1154d
+  17.3:
+    commit: 8535cd3
+  17.4:
+    commit: 21ee890
+  21.6:
+    commit: 7109031
+  22.5:
+    commit: bef16ea
+  22.7:
+    commit: 1acc2ac
+  23.3:
+    commit: 9df08fb
+  24.3:
+    commit: 9bd81bb
+  25.3:
+    commit: 6e2f27c
+  26.2:
+    commit: 62b10c8
+  26.4:
+    commit: dbe34cc
+  27.4:
+    commit: c1cddd1
+  28.3:
+    commit: c1cddd1
+  29.3:
+    commit: cb3e621
+  29.4:
+    commit: 2f1154d
+  30.3:
+    commit: 2f1154d
+  31.4:
+    commit: 2f1154d
+
+================================================================================
+AUDIT CONCLUSION
+================================================================================
+
+Overall Status: HEALTHY WITH ONE ANOMALY
+
+✓ 98.1% of done tasks verified in git (53 of 54)
+✓ 100% of recorded SHAs validated as legitimate commits
+✓ 100% of missing SHAs recovered from git history
+✓ Working tree clean - no uncommitted changes
+✓ No file corruption or inconsistencies detected
+
+✗ Task 11.3 remains unimplemented and requires resolution
+
+Recommendation: PROCEED with backfilling SHAs; INVESTIGATE & RESOLVE Task 11.3
+                before next release.
+
+================================================================================

@@ -8,7 +8,7 @@ _Generated: 2026-02-20_
 | 2 | Phase A Backfill (Steps 4–11) | 10 | 39 | 25% [##........] | 10/10 |
 | 3 | Phase B: Failure Analysis & Kernel (Step | 19 | 62 | 30% [###.......] | 19/19 |
 | 4 | Phase C: Storage Layer (Steps 22–26) | 7 | 23 | 30% [###.......] | 7/7 |
-| 5 | Phase D: Safety & Infra (Steps 27–33) | 6 | 33 | 18% [#.........] | 4/10 |
+| 5 | Phase D: Safety & Infra (Steps 27–33) | 7 | 33 | 21% [##........] | 5/10 |
 | 6 | Phase E: Core L2 (Steps 34–40) | 0 | 45 | 0% [..........] | 0/12 |
 | 7 | Phase F: Engine L3 (Steps 41–45) | 0 | 24 | 0% [..........] | 0/6 |
 | 8 | Phase G: Sandbox (Steps 46–50) | 0 | 29 | 0% [..........] | 0/10 |
@@ -19,7 +19,7 @@ _Generated: 2026-02-20_
 | 13 | Phase L: Config (Steps 70–72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73–78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79–86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **54** | **442** | **12%** | |
+| **Σ** | **All** | **55** | **442** | **12%** | |
 
 ## Task Detail
 
@@ -83,8 +83,8 @@ _Generated: 2026-02-20_
 | 5.3 | Document contract-vs-protocol trade-off | pending | 0.5d | 5.2 |  |
 | 5.4 | Assign SIL per ICD based on connected components | pending | 0.5d | 5.3 |  |
 | 5.5 | Implement ICD as Pydantic models | done (crit) | 0.5d | 5.8, 5.4 | cb3e621 |
-| 5.6 | Register ICDs in architecture.yaml | done (crit) | 0.5d |  | 78f0587 |
-| 5.7 | Link ICDs to SAD boundary crossings | pending | 0.5d | 5.6 |  |
+| 5.6 | Register ICDs in architecture.yaml | done (crit) | 0.5d | 5.5 | 78f0587 |
+| 5.7 | Link ICDs to SAD boundary crossings | pending | 0.5d |  |  |
 | 5.8 | Build ICD Schema Registry | done (crit) | 0.5d | 5.7, 3a.12 | c8433fe |
 | 5.9 | Implement ICD Validation Test Harness | pending | 0.5d | 5.8 |  |
 | 5a.1 | Identify stakeholder scenarios | pending | 0.5d |  |  |
@@ -214,7 +214,7 @@ _Generated: 2026-02-20_
 | 31.2 | Assign SIL-3 | pending | 0.5d | 31.1 |  |
 | 31.3 | FMEA: allowlist circumvention, redaction failure,  | pending | 0.5d | 31.2 |  |
 | 31.4 | Implement per TLA+ egress spec | done (crit) | 1.5d | 30.3, 31.3 | 2f1154d |
-| 31.5 | Verify egress as independent safety layer | pending (crit) | 1d | 31.4 |  |
+| 31.5 | Verify egress as independent safety layer | done (crit) | 1d | 31.4 | pending |
 | 31.6 | Link | pending | 0.5d | 31.5 |  |
 | 31.7 | Verify Egress Filter Pipeline Guarantees | pending (crit) | 1.5d | 31.5, 31.6 |  |
 | 32.1 | Assign SIL-2 | pending | 0.5d |  |  |

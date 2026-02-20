@@ -465,3 +465,8 @@ tasks:
     date: '2026-02-19'
     note: 'L7 egress gateway: domain allowlist, payload redaction, rate limiting,
       budget enforcement per ICD-030 (50 tests)'
+  '31.5':
+    status: done
+    date: '2026-02-20'
+    note: 12 integration tests for layer independence verification (Task 31.5)
+    commit: pending
