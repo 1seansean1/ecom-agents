@@ -639,3 +639,11 @@ tasks:
       tests; Phase F→G preconditions verified'
     status: done
 version: '1.0'
+  '46.5':
+    commit: a9fa294196379bc242fca1ed854798d8b54940d3
+    date: '2026-02-20'
+    note: 'Minimal container with SIL-3 isolation: ContainerImage/ContainerConfig/MinimalContainerImage;
+      no network utilities, no Holly packages per Behavior Spec §2; Alpine base with Python3/tini;
+      Dockerfile.sandbox; 47 tests (network/Holly invariants, config constraints, builder,
+      validation, integration)'
+    status: done
