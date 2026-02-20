@@ -9,8 +9,8 @@ _Generated: 2026-02-20_
 | 3 | Phase B: Failure Analysis & Kernel (Step | 19 | 62 | 30% [###.......] | 19/19 |
 | 4 | Phase C: Storage Layer (Steps 22–26) | 7 | 23 | 30% [###.......] | 7/7 |
 | 5 | Phase D: Safety & Infra (Steps 27–33) | 12 | 33 | 36% [###.......] | 10/10 |
-| 6 | Phase E: Core L2 (Steps 34–40) | 8 | 45 | 17% [#.........] | 8/12 |
-| 7 | Phase F: Engine L3 (Steps 41–45) | 0 | 24 | 0% [..........] | 0/6 |
+| 6 | Phase E: Core L2 (Steps 34–40) | 11 | 45 | 24% [##........] | 11/12 |
+| 7 | Phase F: Engine L3 (Steps 41–45) | 1 | 24 | 4% [..........] | 1/6 |
 | 8 | Phase G: Sandbox (Steps 46–50) | 0 | 29 | 0% [..........] | 0/10 |
 | 9 | Phase H: API & Auth (Steps 51–56) | 0 | 24 | 0% [..........] | 0/8 |
 | 10 | Phase I: Observability (Steps 57–61) | 0 | 21 | 0% [..........] | 0/7 |
@@ -19,7 +19,7 @@ _Generated: 2026-02-20_
 | 13 | Phase L: Config (Steps 70–72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73–78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79–86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **68** | **442** | **15%** | |
+| **Σ** | **All** | **72** | **442** | **16%** | |
 
 ## Task Detail
 
@@ -268,15 +268,15 @@ _Generated: 2026-02-20_
 | 39.4 | Implement 3-tier: short (Redis via ICD-041), mediu | done (crit) | 0.5d | 38.8, 39.3 | da96fb1 |
 | 39.5 | Link | pending | 0.5d | 39.4 |  |
 | 40.1 | Assign SIL-2 verification methods | pending | 0.5d |  |  |
-| 40.2 | Execute SIL-2 test suite | pending (crit) | 0.5d | 39.4, 40.1 |  |
-| 40.3 | Run all Core eval suites | pending (crit) | 0.5d | 40.2 |  |
+| 40.2 | Execute SIL-2 test suite | done (crit) | 0.5d | 39.4, 40.1 | 12b3fd7 |
+| 40.3 | Run all Core eval suites | done (crit) | 0.5d | 40.2 | 12b3fd7 |
 | 40.4 | Validate RTM completeness for Core | pending | 0.5d | 40.3 |  |
-| 40.5 | Phase E gate checklist | pending (crit) | 0.5d | 40.3, 40.4 |  |
+| 40.5 | Phase E gate checklist | done (crit) | 0.5d | 40.3, 40.4 | 12b3fd7 |
 | | **Slice 7** | | | | |
 | 41.1 | Map to monograph channel composition, macro-channe | pending | 0.5d |  |  |
 | 41.2 | Assign SIL-2 | pending | 0.5d | 41.1 |  |
 | 41.3 | FMEA: lane starvation, policy deadlock, dispatcher | pending | 0.5d | 41.2 |  |
-| 41.4 | Implement lane manager, policy engine, dispatchers | pending (crit) | 0.5d | 41.3, 40.5 |  |
+| 41.4 | Implement lane manager, policy engine, dispatchers | done (crit) | 0.5d | 41.3, 40.5 | pending |
 | 41.5 | Link | pending | 0.5d | 41.4 |  |
 | 42.1 | Map to monograph tool permission masks, channel co | pending | 0.5d |  |  |
 | 42.2 | Assign SIL-2 | pending | 0.5d | 42.1 |  |

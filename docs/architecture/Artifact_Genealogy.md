@@ -1708,3 +1708,89 @@ Traceability:
 
 Next task:
 → 33.2: Build structured safety argument (risk register → safety case per ISO 42010)
+
+---
+
+## Task 41.4 (2026-02-20)
+
+**Task ID:** 41.4  
+**Phase:** F (Engine L3)  
+**Title:** Implement lane manager, policy engine, dispatchers per ICD-013/014/015
+
+**Primary Artifact:**
+- `holly/engine/lanes.py` (1,059 lines)
+
+**Key Components:**
+- `Lane` (base class): abstraction for task queuing with policy enforcement
+- `MainLane`: user-initiated task execution with priority-based dispatch
+- `CronLane`: scheduled task management with time-based evaluation
+- `SubagentLane`: parallel agent execution with concurrency limits
+- `LaneManager`: unified dispatcher coordinating all three lane types
+- `LanePolicy`: per-tenant queue depth and backpressure configuration
+
+**Key Classes:**
+1. `Task`: User task schema per ICD-013 (task_id, goal, user_id, tenant_id, deadline, idempotency_key, resource_budget, mcp_tools, context, trace_id)
+2. `ScheduledTask`: Time-triggered task schema per ICD-014 (task, scheduled_time, recurrence, max_retries, schedule_id)
+3. `SubagentTask`: Parallel agent task schema per ICD-015 (agent_binding, goals, parent_execution_id, user_id, tenant_id, message_queue)
+4. `LanePolicy`: Policy enforcement (max_queue_depth=500, max_concurrency=100, backpressure_timeout, idempotency_window)
+5. `MainLane`: Priority-based queue (0-10) with idempotency cache for 24h deduplication
+6. `CronLane`: Sorted schedule map with evaluation cycle for due tasks
+7. `SubagentLane`: Priority queue with concurrent execution tracking
+8. `LaneManager`: Multi-tenant dispatcher creating/retrieving lanes on demand
+
+**Code Patterns (Per Standards):**
+- `from __future__ import annotations` (first line)
+- Full type annotations on ALL functions, methods, parameters, return types
+- Google-style docstrings with Args/Returns/Raises sections
+- `__slots__` on all classes for memory efficiency
+- `@dataclass(slots=True)` on all data classes
+- Python 3.10 compatible (enum.Enum, datetime.timezone.utc)
+- No bare except, all specific exception handling
+- Protocol classes use `@runtime_checkable` where applicable
+
+**ICD Integration:**
+- ICD-013: Core → Main Lane (unidirectional enqueue, priority dispatch, backpressure per queue depth)
+- ICD-014: Core → Cron Lane (schedule requests, cron evaluation, recurrence support)
+- ICD-015: Topology Manager → Subagent Lane (spawn requests, concurrent execution, resource limits)
+
+**Tests:**
+- 37 unit tests covering all lane types, policies, and error conditions
+- 10 integration tests for concurrent operations, multi-tenant isolation, cross-lane interactions
+- Total: 47 tests (100% pass rate)
+
+**Test Coverage:**
+- Task creation, expiration checks (deadline validation)
+- ScheduledTask scheduling, past-time errors, future scheduling
+- SubagentTask spawning, expiration, concurrent lifecycle
+- MainLane priority ordering, idempotency, queue full detection
+- CronLane scheduling, due task evaluation, recurrence handling
+- SubagentLane concurrent spawns, concurrency tracking, completion marking
+- LaneManager multi-tenant isolation, lane creation, statistics
+- Cross-lane policy enforcement, backpressure enforcement
+
+**Acceptance Criteria Met:**
+✓ Lane manager implemented per ICD-013/014/015 specifications
+✓ Three lane types (main/cron/subagent) with distinct behaviors
+✓ Policy engine enforces queue depth and backpressure
+✓ Tenant isolation enforced across all lanes
+✓ Goals dispatch to correct lanes under load per ICD boundaries
+✓ Idempotency key deduplication within 24h window
+✓ Priority-based dispatch in MainLane (0-10 levels)
+✓ Scheduled task evaluation with cron support
+✓ Concurrent subagent execution with limits
+✓ Integration test suite: all lanes work, policies enforced, stats available
+
+**Updated Documentation:**
+- docs/status.yaml: Added 41.4 entry (status=done, date=2026-02-20, 47 tests)
+- docs/architecture/PROGRESS.md: Regenerated (Slice 7: 1/24 tasks done, 1/6 critical path)
+- docs/architecture/Artifact_Genealogy.md: This entry
+
+**Traceability:**
+✓ Task 41.4 on critical path: Phase F start → 42.4 → 43.3 → 44.5 → 45.2 → 45.4
+✓ Acceptance criteria: All lane types implemented, all ICDs addressed, full policy enforcement
+✓ Test count: 47 new tests (37 unit + 10 integration), all pass
+✓ Code organization: New module holly/engine/lanes.py + unit/integration test suites
+✓ Dependencies: asyncio, datetime, dataclasses, enum (standard library)
+
+**Next Tasks on Critical Path:**
+→ 42.4: Build MCP Registry per ICD-019/020 with per-agent permissions and K2 gates
