@@ -541,6 +541,6 @@ tasks:
   '37.4':
     status: done
     date: '2026-02-20'
-    commit: pending
+    commit: 9f29d6c
     note: 'T0–T3 task classification + Assembly Index per Goal Hierarchy; TaskLevel enum, TaskClassification/TaskClassifier, AssemblyStep/AssemblyIndexResult/GoalDecomposer; ICD-011 compliance (T0→L0, T3→all L0-L4); 102 tests (44 unit classification + 44 unit assembly + 14 integration)'
 version: '1.0'
