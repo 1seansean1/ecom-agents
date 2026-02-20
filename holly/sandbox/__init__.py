@@ -7,7 +7,7 @@ isolation, seccomp filtering, and cgroup resource limits.
 Modules:
 - container: Minimal Alpine-based container image builder
 - executor: Code executor with gRPC service per Behavior Spec §2.1
-- isolation: Namespace, seccomp, and cgroup enforcement (future)
+- isolation: Namespace, seccomp, and cgroup enforcement per Behavior Spec §2.2
 - protocol: gRPC protocol definitions (future)
 """
 
@@ -26,6 +26,19 @@ from holly.sandbox.executor import (
     ExecutionResult,
     ExecutorState,
 )
+from holly.sandbox.isolation import (
+    CgroupError,
+    CgroupLimit,
+    IsolationChecker,
+    IsolationConfig,
+    IsolationError,
+    IsolationInvariant,
+    Namespace,
+    NamespaceError,
+    NamespaceType,
+    SeccompError,
+    SeccompPolicy,
+)
 
 __all__ = [
     "ContainerConfig",
@@ -39,4 +52,15 @@ __all__ = [
     "ExecutionRequest",
     "ExecutionResult",
     "ExecutorState",
+    "CgroupError",
+    "CgroupLimit",
+    "IsolationChecker",
+    "IsolationConfig",
+    "IsolationError",
+    "IsolationInvariant",
+    "Namespace",
+    "NamespaceError",
+    "NamespaceType",
+    "SeccompError",
+    "SeccompPolicy",
 ]

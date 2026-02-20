@@ -11,7 +11,7 @@ _Generated: 2026-02-20_
 | 5 | Phase D: Safety & Infra (Steps 27–33) | 12 | 33 | 36% [###.......] | 10/10 |
 | 6 | Phase E: Core L2 (Steps 34–40) | 11 | 45 | 24% [##........] | 11/12 |
 | 7 | Phase F: Engine L3 (Steps 41–45) | 5 | 24 | 20% [##........] | 5/6 |
-| 8 | Phase G: Sandbox (Steps 46–50) | 0 | 29 | 0% [..........] | 0/10 |
+| 8 | Phase G: Sandbox (Steps 46–50) | 3 | 29 | 10% [#.........] | 3/10 |
 | 9 | Phase H: API & Auth (Steps 51–56) | 0 | 24 | 0% [..........] | 0/8 |
 | 10 | Phase I: Observability (Steps 57–61) | 0 | 21 | 0% [..........] | 0/7 |
 | 11 | Phase J: Agents (Steps 62–65) | 0 | 25 | 0% [..........] | 0/10 |
@@ -19,7 +19,7 @@ _Generated: 2026-02-20_
 | 13 | Phase L: Config (Steps 70–72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73–78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79–86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **76** | **442** | **17%** | |
+| **Σ** | **All** | **79** | **442** | **17%** | |
 
 ## Task Detail
 
@@ -302,19 +302,19 @@ _Generated: 2026-02-20_
 | 46.2 | Document minimal-image trade-offs per Behavior Spe | pending | 0.5d | 46.1 |  |
 | 46.3 | Assign SIL-3 | pending | 0.5d | 46.2 |  |
 | 46.4 | FMEA per Behavior Spec §2: image supply-chain atta | pending | 0.5d | 46.3 |  |
-| 46.5 | Build minimal container: no network, no Holly deps | pending (crit) | 1d | 46.4, 45.4 |  |
+| 46.5 | Build minimal container: no network, no Holly deps | done (crit) | 1d | 46.4, 45.4 | a9fa294 |
 | 46.6 | Link | pending | 0.5d | 46.5 |  |
 | 47.1 | Inherit SIL-3 | pending | 0.5d |  |  |
 | 47.2 | FMEA per Behavior Spec §2: proto deserialization a | pending | 0.5d | 47.1 |  |
-| 47.3 | Implement per TLA+ sandbox spec per Behavior Spec  | pending (crit) | 1.5d | 46.5, 47.2 |  |
+| 47.3 | Implement per TLA+ sandbox spec per Behavior Spec  | done (crit) | 1.5d | 46.5, 47.2 | 9d19aff |
 | 47.4 | Link | pending | 0.5d | 47.3 |  |
-| 47.5 | Validate gRPC Proto Constraints per ICD-022 | pending (crit) | 1.5d | 47.3, 47.4 |  |
+| 47.5 | Validate gRPC Proto Constraints per ICD-022 | done (crit) | 1.5d | 47.3, 47.4 | 5aa6dc8 |
 | 48.1 | Inherit SIL-3 | pending | 0.5d |  |  |
 | 48.2 | FMEA per Behavior Spec §2: namespace leak, seccomp | pending | 0.5d | 48.1 |  |
-| 48.3 | Implement per TLA+ isolation spec per Behavior Spe | pending (crit) | 1.5d | 47.5, 48.2 |  |
-| 48.4 | Verify isolation as independent safety layer per B | pending | 1d | 48.3 |  |
-| 48.5 | Verify Isolation Invariant Preservation per Behavi | pending (crit) | 1.5d | 48.3, 48.4 |  |
-| 48.6 | Link | pending | 0.5d | 48.5 |  |
+| 48.3 | Implement per TLA+ isolation spec per Behavior Spe | done | 1.5d | 47.5, 48.2 | 2026-02-20 |
+| 48.4 | Verify isolation as independent safety layer per B | pending | 1d | 48.3 | 2026-02-20 |
+| 48.5 | Verify Isolation Invariant Preservation per Behavi | done | 1.5d | 48.3, 48.4 | 2026-02-20 |
+| 48.6 | Link | pending | 0.5d | 48.5 | 2026-02-20 |
 | 49.1 | Document gVisor vs Firecracker trade-off per Behav | pending | 0.5d |  |  |
 | 49.2 | Inherit SIL-3 | pending | 0.5d | 49.1 |  |
 | 49.3 | FMEA per Behavior Spec §2: runtime-specific escape | pending | 0.5d | 49.2 |  |
