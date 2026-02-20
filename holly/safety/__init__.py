@@ -1,43 +1,35 @@
-"""Safety — redaction, guardrails, governance."""
+"""Holly Grace safety assurance module.
 
-from holly.safety.governance import (
-    AccessViolation,
-    AccessViolationDetail,
-    CodeReviewResult,
-    CodeReviewViolation,
-    ForbiddenPath,
-    ForbiddenPathResult,
-    ForbiddenReason,
-    GovernanceEngine,
-    GovernanceEngineProtocol,
-    GovernanceError,
-    GovernanceRule,
-    OperationType,
-    ResourceType,
-    canonicalize_forbidden_paths,
-    create_default_engine,
+Provides structured safety argument, risk management, and compliance tools
+for SIL-2 autonomous agent systems.
+"""
+
+from .argument import (
+    ClaimStatus,
+    SafetyArgumentGraph,
+    SafetyClaim,
+    SafetyEvidence,
+    SafetyGoal,
+    SafetyStrategy,
+    SILLevel,
+    VerificationMethod,
+    build_safety_argument,
+    export_argument_gsn,
+    export_argument_json,
+    validate_argument_completeness,
 )
 
 __all__ = [
-    "AccessViolation",
-    "AccessViolationDetail",
-    "CanonicalizeError",
-    "CodeReviewResult",
-    "CodeReviewViolation",
-    "ForbiddenPath",
-    "ForbiddenPathResult",
-    "ForbiddenReason",
-    "GovernanceEngine",
-    "GovernanceEngineProtocol",
-    "GovernanceError",
-    "GovernanceRule",
-    "OperationType",
-    "RedactionError",
-    "RedactionResult",
-    "RedactionRule",
-    "ResourceType",
-    "canonicalize_forbidden_paths",
-    "canonicalize_redaction_rules",
-    "create_default_engine",
-    "redact",
+    "SILLevel",
+    "VerificationMethod",
+    "ClaimStatus",
+    "SafetyGoal",
+    "SafetyStrategy",
+    "SafetyEvidence",
+    "SafetyClaim",
+    "SafetyArgumentGraph",
+    "build_safety_argument",
+    "validate_argument_completeness",
+    "export_argument_gsn",
+    "export_argument_json",
 ]

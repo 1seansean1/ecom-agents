@@ -473,5 +473,20 @@ tasks:
   '31.7':
     status: done
     date: '2026-02-20'
-    note: 'Egress filter pipeline guarantees: allowlist→redact→rate-limit→budget→audit→forward order verified, property-based short-circuit tests, ICD-030 compliance (26 tests: 8 order + 11 short-circuit + 4 idempotency + 4 ICD-030)'
+    note: "Egress filter pipeline guarantees: allowlist\u2192redact\u2192rate-limit\u2192\
+      budget\u2192audit\u2192forward order verified, property-based short-circuit\
+      \ tests, ICD-030 compliance (26 tests: 8 order + 11 short-circuit + 4 idempotency\
+      \ + 4 ICD-030)"
     commit: 77164da
+  '33.1':
+    status: done
+    date: '2026-02-20'
+    note: 'Model Validation Engine: ModelValidator/ValidationResult/ModelValidationPipeline;
+      schema + semantic validation chains; 73 tests'
+    commit: c4117bb
+
+  '33.2':
+    status: done
+    date: '2026-02-20'
+    note: 'Structured Safety Argument: SafetyGoal/SafetyStrategy/SafetyEvidence/SafetyClaim/SafetyArgumentGraph; GSN export; completeness validation; 62 tests'
+    commit: pending
