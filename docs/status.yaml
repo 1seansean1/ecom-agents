@@ -469,4 +469,4 @@ tasks:
     status: done
     date: '2026-02-20'
     note: 12 integration tests for layer independence verification (Task 31.5)
-    commit: pending
+    commit: 42015d4
