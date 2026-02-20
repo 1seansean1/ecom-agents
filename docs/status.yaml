@@ -490,3 +490,8 @@ tasks:
     date: '2026-02-20'
     note: 'Structured Safety Argument: SafetyGoal/SafetyStrategy/SafetyEvidence/SafetyClaim/SafetyArgumentGraph; GSN export; completeness validation; 62 tests'
     commit: 53d4521
+  '33.5':
+    status: done
+    date: '2026-02-20'
+    note: 'ICD integration into Phase D safety case: ICDTraceMatrix/build_icd_trace_matrix/validate_icd_coverage; all 49 ICDs traceable; 44 tests (34 unit + 10 integration)'
+    commit: fb37998
