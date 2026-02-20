@@ -552,5 +552,5 @@ tasks:
     status: done
     date: '2026-02-20'
     note: 'Topology Manager: spawn/steer/dissolve operations, agent contracts, eigenspectrum divergence monitoring per Goal Hierarchy §5-§6, ICD-012/015 integration; 40 tests (31 unit + 9 integration)'
-    commit: pending
+    commit: d8a3e1c
 version: '1.0'
