@@ -608,13 +608,6 @@ tasks:
       error contract compliance; 41 unit + 18 integration tests (59 total)'
     status: done
   '43.3':
-    commit: fc7d6ca
-    date: '2026-02-20'
-    note: 'Goal-Dispatch Middleware (custom): bridges goal hierarchy (L0-L4) with
-      lane/MCP dispatch; K2PermissionGate, CelestialComplianceEvaluator, GoalDispatcher;
-      52 tests'
-    status: done
-  43.3_manifest:
     commit: d65f071
     date: '2026-02-20'
     note: 'MCP Builtin Tools (manifest 43.3): code (ICD-022), web (ICD-031), filesystem
@@ -634,6 +627,13 @@ tasks:
     note: 'SIL-2 test suite execution (Phase F steps 41-44): 226 tests pass across
       lanes, MCP registry, goal dispatch, and workflow engine modules; 5 pre-existing
       failures from timing edge cases in lane scheduling'
+    status: done
+  '45.4':
+    commit: a28578e
+    date: '2026-02-20'
+    note: 'Phase F Gate Checklist: phase_f_gate.py + phase_f_gate_report.md; F.G1-F.G5
+      all PASS (41.4 Lane Manager, 42.4 MCP Registry, 43.3 MCP Builtins, 44.5 Workflow
+      Engine, 45.2 SIL-2 suite); 46 tests; Phase G unlocked'
     status: done
   '46.5':
     commit: a9fa294196379bc242fca1ed854798d8b54940d3

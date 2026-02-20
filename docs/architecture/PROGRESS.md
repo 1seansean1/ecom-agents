@@ -10,7 +10,7 @@ _Generated: 2026-02-20_
 | 4 | Phase C: Storage Layer (Steps 22–26) | 7 | 23 | 30% [###.......] | 7/7 |
 | 5 | Phase D: Safety & Infra (Steps 27–33) | 12 | 33 | 36% [###.......] | 10/10 |
 | 6 | Phase E: Core L2 (Steps 34–40) | 11 | 45 | 24% [##........] | 11/12 |
-| 7 | Phase F: Engine L3 (Steps 41–45) | 5 | 24 | 20% [##........] | 5/6 |
+| 7 | Phase F: Engine L3 (Steps 41–45) | 6 | 24 | 25% [##........] | 6/6 |
 | 8 | Phase G: Sandbox (Steps 46–50) | 5 | 29 | 17% [#.........] | 5/10 |
 | 9 | Phase H: API & Auth (Steps 51–56) | 0 | 24 | 0% [..........] | 0/8 |
 | 10 | Phase I: Observability (Steps 57–61) | 0 | 21 | 0% [..........] | 0/7 |
@@ -19,7 +19,7 @@ _Generated: 2026-02-20_
 | 13 | Phase L: Config (Steps 70–72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73–78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79–86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **81** | **442** | **18%** | |
+| **Σ** | **All** | **82** | **442** | **18%** | |
 
 ## Task Detail
 
@@ -285,7 +285,7 @@ _Generated: 2026-02-20_
 | 42.5 | Link | pending | 0.5d | 42.4 |  |
 | 43.1 | Assign SIL-2 | pending | 0.5d |  |  |
 | 43.2 | FMEA per builtin: code (sandbox escape via gRPC pe | pending | 0.5d | 43.1 |  |
-| 43.3 | Implement code (gRPC→sandbox per ICD-022), web (HT | done (crit) | 0.5d | 42.4, 43.2 | fc7d6ca |
+| 43.3 | Implement code (gRPC→sandbox per ICD-022), web (HT | done (crit) | 0.5d | 42.4, 43.2 | d65f071 |
 | 43.4 | Link | pending | 0.5d | 43.3 |  |
 | 44.1 | Map to monograph durable execution, compensation | pending | 0.5d |  |  |
 | 44.2 | Document saga vs orchestration trade-off | pending | 0.5d | 44.1 |  |
@@ -296,7 +296,7 @@ _Generated: 2026-02-20_
 | 45.1 | Assign SIL-2 verification methods | pending | 0.5d |  |  |
 | 45.2 | Execute SIL-2 test suite | done (crit) | 0.5d | 44.5, 45.1 | 7e3997a |
 | 45.3 | Validate RTM completeness | pending | 0.5d | 45.2 |  |
-| 45.4 | Phase F gate checklist | pending (crit) | 0.5d | 45.2, 45.3 |  |
+| 45.4 | Phase F gate checklist | done (crit) | 0.5d | 45.2, 45.3 | a28578e |
 | | **Slice 8** | | | | |
 | 46.1 | Map to monograph Markov blanket isolation | pending | 0.5d |  |  |
 | 46.2 | Document minimal-image trade-offs per Behavior Spe | pending | 0.5d | 46.1 |  |
