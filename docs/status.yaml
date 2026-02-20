@@ -606,5 +606,5 @@ tasks:
     date: '2026-02-20'
     note: 'MCP Registry: per-agent permission gates per K2, tool introspection, ICD-019/020
       error contract compliance; 41 unit + 18 integration tests (59 total)'
-    commit: pending
+    commit: a3e231c
 version: '1.0'
