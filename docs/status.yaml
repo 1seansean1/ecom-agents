@@ -32,14 +32,17 @@ tasks:
   2.5: pending
   2.6:
     status: done
+    commit: 78f0587
     date: '2026-02-18'
     note: ArchitectureRegistry singleton, thread-safe lazy init (18 tests)
   2.7:
     status: done
+    commit: 78f0587
     date: '2026-02-18'
     note: get_component/get_boundary/get_icd lookups (24 tests)
   2.8:
     status: done
+    commit: 78f0587
     date: '2026-02-18'
     note: Hot-reload with validation, generation counter (18 tests)
   2.9: pending
@@ -50,6 +53,7 @@ tasks:
   3.5: pending
   3.6:
     status: done
+    commit: c23b8e5
     date: '2026-02-18'
     note: 'Core decorators: @kernel_boundary, @tenant_scoped, @lane_dispatch, @mcp_tool,
       @eval_gated (37 tests)'
@@ -70,17 +74,20 @@ tasks:
   3a.7: pending
   3a.8:
     status: done
+    commit: 2f1154d
     date: '2026-02-18'
     note: "Full pipeline integration test: YAML \u2192 registry \u2192 decorator \u2192\
       \ K1 (13 tests)"
   3a.9: pending
   3a.10:
     status: done
+    commit: 512b861
     date: '2026-02-18'
     note: K8 eval gate, PredicateRegistry, @eval_gated decorator enforcement (26 tests)
   3a.11: pending
   3a.12:
     status: done
+    commit: a559453
     date: '2026-02-18'
     note: 'Spiral gate report: 3 PASS, 9 WAIVED, 0 FAIL - Slice 2 unlocked (17 tests)'
   4.1: pending
@@ -94,17 +101,20 @@ tasks:
   5.4: pending
   5.5:
     status: done
+    commit: cb3e621
     date: '2026-02-18'
     note: 49 ICD Pydantic models, ICD_MODEL_MAP, register_all_icd_models(), enum constraints
       (120 tests)
   5.6:
     status: done
+    commit: 78f0587
     date: '2026-02-18'
     note: 49 ICDs in architecture.yaml with component mapping, protocol, SIL; registry
       lookups (165 tests)
   5.7: pending
   5.8:
     status: done
+    commit: c8433fe
     date: '2026-02-18'
     note: 'ICD Schema Registry: Pydantic model resolution with TTL cache, all 49 ICDs,
       <1ms p99 (32 tests)'
@@ -118,11 +128,13 @@ tasks:
   6.3: pending
   7.1:
     status: done
+    commit: 21ee890
     date: '2026-02-18'
     note: "AST scanner with per-module rules, layer\u2192decorator mapping, component\
       \ overrides, source/module/directory scanning (31 tests)"
   7.2:
     status: done
+    commit: 21ee890
     date: '2026-02-18'
     note: 'ICD-aware wrong-decorator detection: icd_schema cross-validation, ICD_MISMATCH
       findings, scan_full() combined pipeline (32 tests)'
@@ -131,6 +143,7 @@ tasks:
   8.2: pending
   8.3:
     status: done
+    commit: cb3e621
     date: '2026-02-18'
     note: 'Contract fixture generator: valid/invalid/Hypothesis strategies for all
       49 ICDs (597 tests)'
@@ -138,6 +151,7 @@ tasks:
   9.1: pending
   9.2:
     status: done
+    commit: 5c864f4
     date: '2026-02-18'
     note: 'Architecture fitness functions: layer violations, coupling metrics, dependency
       depth, import graph, run_all (67 tests)'
@@ -146,23 +160,27 @@ tasks:
   10.1: pending
   10.2:
     status: done
+    commit: 21ee890
     date: '2026-02-18'
     note: 'RTM generator: decorator discovery, test discovery, traceability matrix,
       CSV export, report generation (30 tests)'
   10.3: pending
   11.1:
     status: done
+    commit: 21ee890
     date: '2026-02-18'
     note: 'Unified CI gate: ordered 4-stage pipeline, fail-fast, blocking/warning/info
       severity, GateVerdict summary (28 tests)'
   11.2: pending
   11.3:
     status: done
+    commit: 7d21228
     date: '2026-02-18'
-    note: 'Phase A gate checklist: 10 items, all PASS, Phase B unlocked (25 tests)'
+    note: 'Phase B gate checklist: 18 items, all PASS, Phase C unlocked (68 tests)'
   11.4: pending
   13.1:
     status: done
+    commit: d8f3e64
     date: '2026-02-19'
     note: "FMEA kernel invariant desynchronization: KernelContext + K1\u2013K8, 3\
       \ failure modes each, RPN table, mitigations (0 tests \u2014 document artifact)"
@@ -174,6 +192,7 @@ tasks:
   13.7: pending
   14.1:
     status: done
+    commit: 2f1154d
     date: '2026-02-19'
     note: "TLA+ KernelContext state machine: 5 states, 8 actions, 8 safety invariants,\
       \ 5 liveness properties; TLC 14 distinct states, 0 violations (0 tests \u2014\
@@ -183,6 +202,7 @@ tasks:
   14.4: pending
   14.5:
     status: done
+    commit: 21ee890
     date: '2026-02-19'
     note: "Formal state-machine validator: KernelState/KernelEvent enums, VALID_TRANSITIONS\
       \ frozenset, pure guards, validate_trace, KernelStateMachineValidator; mirrors\
@@ -193,6 +213,7 @@ tasks:
   15.3: pending
   15.4:
     status: done
+    commit: 844bee8
     date: '2026-02-19'
     note: 'KernelContext async context manager: 5-state lifecycle (IDLE/ENTERING/ACTIVE/EXITING/FAULTED),
       pluggable gates, corr_id, exit cleanup stub; all state-machine paths end in
@@ -204,12 +225,14 @@ tasks:
   16.2: pending
   16.3:
     status: done
+    commit: a43dab7
     date: '2026-02-19'
     note: 'k1_gate factory: Gate-protocol async adapter for KernelContext; wraps k1_validate;
       all failure paths end in IDLE (TLA+ EventuallyIdle); composes with other gates;
       property-based zero FP/FN tests (29 tests)'
   16.4:
     status: done
+    commit: 5e9cd77
     date: '2026-02-19'
     note: 'K2 RBAC permission gate: k2_check_permissions + k2_gate factory; PermissionRegistry
       singleton; RevocationCache protocol + NullRevocationCache + FailRevocationCache;
@@ -218,6 +241,7 @@ tasks:
       IDLE; composes with k1_gate; property-based zero FP/FN (42 tests)'
   16.5:
     status: done
+    commit: 5cc6a8a
     date: '2026-02-19'
     note: 'K3 resource bounds gate: k3_check_bounds + k3_gate factory; BudgetRegistry
       singleton; UsageTracker Protocol + InMemoryUsageTracker + FailUsageTracker;
@@ -225,6 +249,7 @@ tasks:
       per-tenant isolation (40 tests)'
   16.6:
     status: done
+    commit: 844bee8
     date: '2026-02-19'
     note: 'K4 trace injection gate: k4_inject_trace + k4_gate factory; TenantContextError;
       KernelContext._set_trace + tenant_id/trace_started_at slots; UUID validation;
@@ -233,6 +258,7 @@ tasks:
   16.8: pending
   16.9:
     status: done
+    commit: 2f1154d
     date: '2026-02-19'
     note: 'K1-K4 guard condition determinism: property-based tests verifying INV-4
       (guards pure, no side effects); 31 tests across TestK1/K2/K3/K4Determinism +
@@ -241,12 +267,14 @@ tasks:
   17.2: pending
   17.3:
     status: done
+    commit: 8535cd3
     date: '2026-02-19'
     note: 'K5 idempotency gate: k5_generate_key (RFC 8785 + SHA-256), InMemoryIdempotencyStore,
       k5_gate factory; CanonicalizeError + DuplicateRequestError exceptions; jcs dependency
       added; 48 tests'
   17.4:
     status: done
+    commit: 21ee890
     date: '2026-02-19'
     note: 'K6 WAL gate: WALEntry dataclass, WALBackend protocol, InMemoryWALBackend,
       redact() (email/api_key/credit_card/ssn/phone), k6_write_entry(), k6_gate()
@@ -326,12 +354,14 @@ tasks:
       \ (k6,k7) and StrEnum (state_machine); 58/58 pass"
   21.6:
     status: done
+    commit: 7109031
     date: '2026-02-19'
     note: 'Phase B gate checklist: GATE_ITEMS_PHASE_B (18 items), evaluate_phase_b_gate(),
       render_phase_b_report(), gate-b CLI subcommand; 18 PASS, 0 FAIL - Phase C unlocked
       (68 tests)'
   22.5:
     status: done
+    commit: bef16ea
     date: '2026-02-19'
     note: 'Async Postgres pool: TenantIsolatedPool (SET LOCAL RLS), SchemaManager
       (11 tables, 16 indexes, 10 RLS policies), GoalsRepo/AuditRepo/CheckpointsRepo/TaskStateRepo/MemoryRepo,
@@ -339,6 +369,7 @@ tasks:
       non-fatal AuditRepo+TaskStateRepo; asyncpg 0.31.0 (41 tests)'
   22.7:
     status: done
+    commit: 1acc2ac
     date: '2026-02-19'
     note: 'RLS boundary audit: ICD_BOUNDARY (6 specs), ICDBoundarySpec, RLSTableVerdict,
       RLSBoundaryReport, validate_icd_boundary_static(), audit_rls_policies() (pg_policies
@@ -346,6 +377,7 @@ tasks:
       cross-tenant isolation verified (70 tests)'
   23.3:
     status: done
+    commit: 9df08fb
     date: '2026-02-19'
     note: 'Partition lifecycle manager: PartitionName (frozen/slots, from_tenant_id/parse),
       PartitionManager (ensure_partition, archive_partition, restore_partition, list_expired_partitions,
@@ -355,6 +387,7 @@ tasks:
       (58 tests)'
   24.3:
     status: done
+    commit: 9bd81bb
     date: '2026-02-19'
     note: 'Redis module: CacheClient (ICD-033/041, tenant-namespaced keys, fail-open),
       QueueClient (ICD-035, LPUSH/RPOP, ZADD/ZRANGEBYSCORE cron, depth limit 10k),
@@ -364,6 +397,7 @@ tasks:
       factory), tenant_key/queue_key/stream_key/revocation_key helpers (61 tests)'
   25.3:
     status: done
+    commit: 6e2f27c
     date: '2026-02-19'
     note: 'ChromaDB module: collection_name (memory_{tenant_id}), DocumentRecord (frozen/slots),
       QueryResult (+top_ids/top_documents/top_metadatas helpers), AsyncChromaCollectionProto/AsyncChromaClientProto
@@ -373,6 +407,7 @@ tasks:
       by collection name; EMBEDDING_DIM=1536 (42 tests)'
   26.2:
     status: done
+    commit: 62b10c8
     date: '2026-02-19'
     note: "SIL-2 storage test suite executed: 272 tests across 5 integration test\
       \ files (postgres_rls: 41, rls_boundary: 70, partition_manager: 58, redis_client:\
@@ -380,6 +415,7 @@ tasks:
       \ (0 new tests \u2014 execution task)"
   26.4:
     status: done
+    commit: dbe34cc
     date: '2026-02-19'
     note: "Phase C gate checklist: GATE_REPORT_S3.md; critical-path trace (22.5\u2192\
       22.7\u219223.3\u219224.3\u219225.3\u219226.2\u219226.4) all 7 tasks PASS; 272\
@@ -387,6 +423,7 @@ tasks:
       \ Phase D unlocked"
   27.4:
     status: done
+    commit: c1cddd1
     date: '2026-02-19'
     note: 'Canonical redaction library: RedactionRule/RedactionResult/RedactionError
       classes, canonicalize_redaction_rules() factory, redact() and detect_pii() APIs,
@@ -394,6 +431,7 @@ tasks:
       ICD v0.1; 108 tests (77 unit + 31 integration, all pass)'
   '28.3':
     status: done
+    commit: c1cddd1
     date: '2026-02-19'
     note: 'Input sanitization, output redaction, injection detection: GuardrailsEngine
       (unified pipeline), InputSanitizationResult/OutputRedactionResult/InjectionDetectionResult,
@@ -402,6 +440,7 @@ tasks:
       rules integrated; 86 tests (62 unit + 24 integration, all pass)'
   '29.3':
     status: done
+    commit: cb3e621
     date: '2026-02-19'
     note: 'Forbidden paths, code review analysis: GovernanceEngine (unified pipeline),
       ForbiddenPath/GovernanceRule dataclasses, check_forbidden_paths/review_code_governance/register_*
@@ -409,17 +448,20 @@ tasks:
       43 tests (30 unit + 13 integration, all pass)'
   '29.4':
     status: done
+    commit: 2f1154d
     date: '2026-02-19'
     note: Python 3.10 compatibility fixes for StrEnum/UTC imports; ruff linting passes
       (zero errors); task 29.3 implementation verified
   '30.3':
     status: done
+    commit: 2f1154d
     date: '2026-02-19'
     note: 'Secret Scanner (detect + redact): SecretFinding/ScanResult/SecretScannerConfig/SecretScanner
       classes, scan/scan_string/scan_dict APIs, canonical redaction library integration,
       38 tests (23 unit + 15 integration, all pass)'
   '31.4':
     status: done
+    commit: 2f1154d
     date: '2026-02-19'
     note: 'L7 egress gateway: domain allowlist, payload redaction, rate limiting,
       budget enforcement per ICD-030 (50 tests)'
