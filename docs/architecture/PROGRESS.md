@@ -9,7 +9,7 @@ _Generated: 2026-02-20_
 | 3 | Phase B: Failure Analysis & Kernel (Step | 19 | 62 | 30% [###.......] | 19/19 |
 | 4 | Phase C: Storage Layer (Steps 22–26) | 7 | 23 | 30% [###.......] | 7/7 |
 | 5 | Phase D: Safety & Infra (Steps 27–33) | 12 | 33 | 36% [###.......] | 10/10 |
-| 6 | Phase E: Core L2 (Steps 34–40) | 3 | 45 | 6% [..........] | 3/12 |
+| 6 | Phase E: Core L2 (Steps 34–40) | 4 | 45 | 8% [..........] | 4/12 |
 | 7 | Phase F: Engine L3 (Steps 41–45) | 0 | 24 | 0% [..........] | 0/6 |
 | 8 | Phase G: Sandbox (Steps 46–50) | 0 | 29 | 0% [..........] | 0/10 |
 | 9 | Phase H: API & Auth (Steps 51–56) | 0 | 24 | 0% [..........] | 0/8 |
@@ -19,7 +19,7 @@ _Generated: 2026-02-20_
 | 13 | Phase L: Config (Steps 70–72) | 0 | 12 | 0% [..........] | 0/4 |
 | 14 | Phase M: Console L5 (Steps 73–78) | 0 | 18 | 0% [..........] | 0/7 |
 | 15 | Phase N: Deploy & Ops (Steps 79–86) | 0 | 29 | 0% [..........] | 0/14 |
-| **Σ** | **All** | **63** | **442** | **14%** | |
+| **Σ** | **All** | **64** | **442** | **14%** | |
 
 ## Task Detail
 
@@ -242,7 +242,7 @@ _Generated: 2026-02-20_
 | 36.2 | Assign SIL-2 | pending | 0.5d | 36.1 |  |
 | 36.3 | FMEA: goal injection, Celestial override, codimens | pending | 0.5d | 36.2 |  |
 | 36.4 | Implement 7-level hierarchy + lexicographic gating | done (crit) | 0.5d | 36.9, 36.3 | bfdc743 |
-| 36.5 | Implement Celestial L0–L4 as executable predicates | done (crit) | 0.5d | 36.4 | pending |
+| 36.5 | Implement Celestial L0–L4 as executable predicates | done (crit) | 0.5d | 36.4 | 908398a |
 | 36.6 | Register, decorate per ICD-010 | pending | 0.5d |  |  |
 | 36.7 | Link | pending | 0.5d | 36.6 |  |
 | 36.8 | Implement L0–L4 Predicate Functions | pending (crit) | 0.5d | 36.7, 33.4 |  |
@@ -250,7 +250,7 @@ _Generated: 2026-02-20_
 | 37.1 | Map to monograph agency rank, cognitive light cone | pending | 0.5d |  |  |
 | 37.2 | Assign SIL-2 | pending | 0.5d | 37.1 |  |
 | 37.3 | FMEA: wrong tier classification, Assembly Index ov | pending | 0.5d | 37.2 |  |
-| 37.4 | Implement T0–T3 classification + Assembly Index pe | pending (crit) | 0.5d | 36.5, 37.3 |  |
+| 37.4 | Implement T0–T3 classification + Assembly Index pe | done (crit) | 0.5d | 36.5, 37.3 | 9f29d6c |
 | 37.5 | Register, decorate per ICD-011 | pending | 0.5d | 37.4 |  |
 | 37.6 | Link | pending | 0.5d | 37.5 |  |
 | 37.7 | Validate APS Assembly Index per Goal Hierarchy Age | pending (crit) | 0.5d | 37.4, 37.6 |  |
