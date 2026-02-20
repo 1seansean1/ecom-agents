@@ -651,4 +651,12 @@ tasks:
       CodeExecutor state machine, backpressure enforcement (10 max concurrent, 100
       queue depth), CodeExecutorServiceStub for Protocol-based testing; 61 tests (validation,
       state, backpressure, ICD-022 compliance, edge cases)'
+  '47.5':
+    status: done
+    date: '2026-02-20'
+    commit: 5aa6dc85649ef203e18b5f868aac4ed05d55362d
+    note: 'Validate gRPC Proto Constraints per ICD-022: property-based tests for ExecutionRequest/Result
+      field validation, constraint bounds (code 10MB, memory 512MB, timeout 30s, files
+      100MB), enum constraints, field ordering, error messages, serialization stability;
+      20 tests'
 version: '1.0'
