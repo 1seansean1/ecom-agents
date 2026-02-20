@@ -1,0 +1,44 @@
+// Sandbox Code Executor gRPC Service per Behavior Spec §2.1
+// ExecutionRequest and ExecutionResult message definitions
+
+syntax = "proto3";
+
+package holly.sandbox;
+
+import "google/protobuf/duration.pb2";
+import "google/protobuf/timestamp.pb2";
+
+// ExecutionRequest specifies code to execute in sandbox per Behavior Spec §2.1
+message ExecutionRequest {
+  string request_id = 1;  // Unique execution ID (UUID)
+  string code = 2;  // Source code (Python, JavaScript, etc.)
+  string language = 3;  // Language identifier ("python3.11", "node18", etc.)
+  map<string, string> environment = 4;  // Environment variables (no secrets)
+  map<string, bytes> files = 5;  // Input files (sandboxed tmpfs only)
+  google.protobuf.Duration timeout = 6;  // Wall-clock timeout (max 30 seconds)
+  int64 memory_limit_mb = 7;  // Memory limit in MB (default 256, max 512)
+  int64 cpu_period_ms = 8;  // CPU throttle period (cgroup v2)
+  int64 cpu_quota_ms = 9;  // CPU quota per period
+}
+
+// ExecutionResult returns code execution results per Behavior Spec §2.1
+message ExecutionResult {
+  string request_id = 1;  // Request ID (echo)
+  string stdout = 2;  // Standard output (max 1 MB)
+  string stderr = 3;  // Standard error (max 1 MB)
+  map<string, bytes> output_files = 4;  // Generated files
+  int32 exit_code = 5;  // Process exit code (0 = success)
+  google.protobuf.Duration wall_time = 6;  // Actual wall-clock time
+  google.protobuf.Duration user_time = 7;  // User CPU time
+  google.protobuf.Duration system_time = 8;  // System CPU time
+  int64 memory_peak_mb = 9;  // Peak memory usage
+  int64 page_faults = 10;  // Major page faults (OOM indicator)
+  string error_message = 11;  // Error description if exit_code != 0
+  google.protobuf.Timestamp start_time = 12;  // Execution start timestamp
+  google.protobuf.Timestamp end_time = 13;  // Execution end timestamp
+}
+
+// CodeExecutor service provides sandboxed code execution
+service CodeExecutor {
+  rpc Execute(ExecutionRequest) returns (ExecutionResult);
+}

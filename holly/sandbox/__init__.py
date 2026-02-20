@@ -6,7 +6,7 @@ isolation, seccomp filtering, and cgroup resource limits.
 
 Modules:
 - container: Minimal Alpine-based container image builder
-- executor: Code executor with gRPC service (future)
+- executor: Code executor with gRPC service per Behavior Spec §2.1
 - isolation: Namespace, seccomp, and cgroup enforcement (future)
 - protocol: gRPC protocol definitions (future)
 """
@@ -19,6 +19,13 @@ from holly.sandbox.container import (
     MinimalContainerImage,
     create_minimal_container,
 )
+from holly.sandbox.executor import (
+    CodeExecutor,
+    ExecutionError,
+    ExecutionRequest,
+    ExecutionResult,
+    ExecutorState,
+)
 
 __all__ = [
     "ContainerConfig",
@@ -27,4 +34,9 @@ __all__ = [
     "IsolationLayer",
     "MinimalContainerImage",
     "create_minimal_container",
+    "CodeExecutor",
+    "ExecutionError",
+    "ExecutionRequest",
+    "ExecutionResult",
+    "ExecutorState",
 ]
